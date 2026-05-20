@@ -45,28 +45,24 @@ const handleLogin = async () => {
   }
 
   try {
-    // SỬA ĐƯỜNG DẪN: Thêm /auth/ trỏ đúng vào module xác thực của backend
     const res = await axios.post('http://localhost:3000/api/auth/login', {
       username: username.value,
       password: password.value
     });
 
-    // Lấy thông tin từ phản hồi của server
     const user = res.data.user;
-    const role = user.role; // Ví dụ: 'CUSTOMER', 'OMS', 'WMS', 'TMS', 'Docs'
+    const role = user.role; 
 
-    // Thông báo thành công
     isSuccess.value = true;
     message.value = `Xin chào ${user.full_name || username.value}! Đang chuyển vào hệ thống...`;
     
-    // Lưu thông tin vào bộ nhớ trình duyệt
     localStorage.setItem('role', role);
     localStorage.setItem('username', user.username);
     if(res.data.token) {
         localStorage.setItem('token', res.data.token);
     }
     
-    // ĐIỀU HƯỚNG TỰ ĐỘNG (Khớp chính xác với chuỗi hoa/thường quy định trong DB)
+    // ĐIỀU HƯỚNG TỰ ĐỘNG KHỚP CÁC PHÒNG BAN VÀ THÊM QUYỀN KẾ TOÁN (ACC)
     setTimeout(() => {
         const checkRole = role.toUpperCase();
         if (checkRole === 'CUSTOMER') {
@@ -79,6 +75,8 @@ const handleLogin = async () => {
             router.push('/tms');
         } else if (checkRole === 'DOCS' || role === 'Docs') {
             router.push('/docs');
+        } else if (checkRole === 'ACC') {
+            router.push('/acc'); // <-- ĐƯỜNG DẪN MỚI THÊM ĐƯA KẾ TOÁN VÀO DASHBOARD ĐỐI SOÁT DOANH THU
         } else {
             router.push('/');
         }

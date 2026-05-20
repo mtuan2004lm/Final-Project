@@ -4,7 +4,8 @@ import CustomerView from '../views/CustomerView.vue'
 import OmsView from '../views/OmsView.vue'
 import WmsView from '../views/WmsView.vue'
 import TmsView from '../views/TmsView.vue'
-import DocsView from '../views/DocsView.vue' // <-- Kiểm tra kỹ dòng này xem có đúng chính tả chưa
+import DocsView from '../views/DocsView.vue'
+import AccView from '../views/AccView.vue'
 
 const routes = [
   { path: '/', component: LoginView },
@@ -12,7 +13,11 @@ const routes = [
   { path: '/oms', component: OmsView },
   { path: '/wms', component: WmsView },
   { path: '/tms', component: TmsView },
-  { path: '/docs', component: DocsView }
+  { path: '/docs', component: DocsView },
+  { 
+    path: '/acc', 
+    component: () => import('../views/AccView.vue') // Tải bất đồng bộ giao diện Phê duyệt tiền của phòng Kế toán
+  }
 ]
 
 const router = createRouter({

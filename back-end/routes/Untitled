@@ -1,0 +1,1 @@
+UPDATE users SET role = 'ACC' WHERE username = 'ten_tai_khoan_cua_ban';

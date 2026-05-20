@@ -1,18 +1,31 @@
 const express = require('express');
 const cors = require('cors');
-const authRoutes = require('./routes/authRoutes'); // <--- Thêm dòng này nếu chưa có
-const orderRoutes = require('./routes/orderRoutes');
-
 const app = express();
 
+// Cấu hình Middleware
 app.use(cors());
-app.use(express.json());
+app.use(express.json()); // Đọc dữ liệu body JSON gửi từ Frontend
 
-// Nạp các tuyến đường API công việc
-app.use('/api/auth', authRoutes);   // <--- Khai báo để xử lý login/register
-app.use('/api/orders', orderRoutes); // Xử lý đơn hàng các phòng ban
+// =================================================================
+// 1. IMPORT CÁC ĐƯỜNG DẪN ĐỊNH TUYẾN (ROUTES)
+// =================================================================
+const authRoutes = require('./routes/authRoutes'); // Route xử lý đăng nhập/đăng ký
+const orderRoutes = require('./routes/orderRoutes'); // Route xử lý phân hệ đơn hàng
 
+// =================================================================
+// 2. KÍCH HOẠT MIDDLEWARE ĐƯỜNG DẪN API (ĐỒNG BỘ FRONTEND)
+// =================================================================
+
+// Kích hoạt cổng Đăng nhập / Đăng ký (Sửa dứt điểm lỗi 404 Login)
+app.use('/api/auth', authRoutes); 
+
+// Kích hoạt cổng Đơn hàng cho các phòng ban (OMS, WMS, TMS, DOCS...)
+app.use('/api/orders', orderRoutes);
+
+// =================================================================
+
+// Khởi động hệ thống Server tại cổng 3000
 const PORT = 3000;
 app.listen(PORT, () => {
-    console.log(`Server running on port ${PORT}`);
+    console.log(`🚀 Server Back-end đang hoạt động mượt mà tại: http://localhost:${PORT}`);
 });
