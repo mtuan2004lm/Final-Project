@@ -3,9 +3,9 @@
     <div class="sidebar">
       <div class="brand">LOGISTICS PRO</div>
       <div class="user-info">
-        <div class="avatar">{{ userRole.charAt(0) }}</div>
+        <div class="avatar">{{ username.charAt(0) }}</div>
         <div>
-           <h3>{{ userRole }}</h3>
+           <h3>{{ username }}</h3>
            <small>Đang online</small>
         </div>
       </div>
@@ -235,7 +235,8 @@ import axios from 'axios';
 import { useRouter } from 'vue-router';
 
 const router = useRouter();
-const userRole = ref('CUSTOMER');
+// Lấy username thực tế từ localStorage (nếu không có thì để mặc định là 'CUSTOMER')
+const username = ref(localStorage.getItem('username') || 'CUSTOMER');
 const currentTab = ref('current-orders');
 
 // Quản lý trạng thái đơn hàng
@@ -284,24 +285,31 @@ const unpaidOrders = computed(() => {
   return orders.value.filter(o => o.payment_status === 'UNPAID' && o.status !== 'DONE');
 });
 
-// Hàm gọi API lấy danh sách đơn hàng từ Backend
+// Hàm gọi API lấy danh sách đơn hàng từ Backend (Đã thêm query param lọc theo username)
 const fetchOrders = async () => {
   try {
-    const res = await axios.get('http://localhost:3000/api/orders/customer');
+    const currentUsername = localStorage.getItem('username') || '';
+    const res = await axios.get(`http://localhost:3000/api/orders/customer`, {
+      params: { username: currentUsername }
+    });
     orders.value = res.data;
   } catch (error) {
     console.error("Lỗi lấy danh sách đơn hàng:", error);
   }
 };
 
-// Hàm gửi đơn hàng mới lên hệ thống
+// Hàm gửi đơn hàng mới lên hệ thống (Đã nhúng thêm thuộc tính username vào dữ liệu gửi đi)
 const submitOrder = async () => {
   if (!newOrder.value.product_name || !newOrder.value.quantity) {
     alert("Vui lòng điền đầy đủ thông tin mặt hàng!");
     return;
   }
   try {
-    await axios.post('http://localhost:3000/api/orders', newOrder.value);
+    const orderPayload = {
+      ...newOrder.value,
+      username: localStorage.getItem('username') || '' // Gửi kèm thông tin định danh người tạo
+    };
+    await axios.post('http://localhost:3000/api/orders', orderPayload);
     alert("Khởi tạo đơn hàng thành công! Đã gửi hồ sơ sang phòng OMS thẩm định luồng.");
     newOrder.value = { customer_name: '', product_name: '', quantity: 1, cargo_type: 'Standard' };
     fetchOrders();
@@ -363,7 +371,7 @@ const logout = () => {
 .sidebar { width: 260px; background: #2c3e50; color: white; padding: 25px 20px; display: flex; flex-direction: column; box-sizing: border-box; }
 .brand { font-size: 22px; font-weight: 800; text-align: center; margin-bottom: 25px; letter-spacing: 1px; color: #fff; }
 .user-info { display: flex; align-items: center; gap: 12px; padding-bottom: 15px; border-bottom: 1px solid #34495e; }
-.avatar { width: 42px; height: 42px; background: #3498db; border-radius: 50%; display: flex; justify-content: center; align-items: center; font-weight: bold; font-size: 18px; }
+.avatar { width: 42px; height: 42px; background: #3498db; border-radius: 50%; display: flex; justify-content: center; align-items: center; font-weight: bold; font-size: 18px; text-transform: uppercase; }
 .user-info h3 { margin: 0; font-size: 15px; letter-spacing: 0.5px; }
 .user-info small { color: #2ecc71; font-weight: 600; }
 

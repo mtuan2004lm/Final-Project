@@ -101,7 +101,7 @@
                   <div class="custom-progress"><div class="line" style="width: 35%"></div></div>
                </div>
                <div class="box-rev month">
-                  <p>DOANH THU THÁNG MÀY</p>
+                  <p>DOANH THU THÁNG NÀY</p>
                   <h2>${{ revenueReport.month }}</h2>
                   <div class="custom-progress"><div class="line" style="width: 75%"></div></div>
                </div>

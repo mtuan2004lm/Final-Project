@@ -1,9 +1,17 @@
 const pool = require('../config/db');
 
-// 1. Lấy toàn bộ đơn hàng của Khách hàng
+// 1. Lấy toàn bộ đơn hàng của RIÊNG Khách hàng đang đăng nhập
 exports.getCustomerOrders = async (req, res) => {
+    // Nhận username từ query string do frontend gửi lên
+    const { username } = req.query; 
+
+    if (!username) {
+        return res.status(400).json({ message: "Thiếu thông tin người dùng (username)!" });
+    }
+
     try {
-        const result = await pool.query('SELECT * FROM orders ORDER BY id DESC');
+        // Lọc dữ liệu theo đúng username của tài khoản
+        const result = await pool.query('SELECT * FROM orders WHERE username = $1 ORDER BY id DESC', [username]);
         res.json(result.rows);
     } catch (err) {
         console.error("🔴 LỖI LẤY ĐƠN HÀNG KHÁCH HÀNG:", err);
@@ -13,7 +21,8 @@ exports.getCustomerOrders = async (req, res) => {
 
 // 2. Khách hàng tạo đơn mới
 exports.createOrder = async (req, res) => {
-    const { customer_name, product_name, quantity, cargo_type } = req.body;
+    // Nhận thêm thông tin username từ body của request
+    const { customer_name, product_name, quantity, cargo_type, username } = req.body;
     
     if (!product_name || !quantity) {
         return res.status(400).json({ message: "Vui lòng nhập đầy đủ tên hàng hóa và số lượng!" });
@@ -23,14 +32,15 @@ exports.createOrder = async (req, res) => {
         const pricePerUnit = cargo_type === 'Dangerous' ? 120 : 50; 
         const total_cost = quantity * pricePerUnit;
 
-        const final_customer_name = customer_name && customer_name.trim() !== "" ? customer_name : "Khách hàng (cus_user)";
+        const final_customer_name = customer_name && customer_name.trim() !== "" ? customer_name : (username || "Khách hàng (cus_user)");
 
+        // Thêm cột username vào câu lệnh INSERT câu lệnh lưu dữ liệu đơn hàng
         const result = await pool.query(
             `INSERT INTO orders 
-            (customer_name, product_name, quantity, status, current_dept, total_cost, payment_status) 
-            VALUES ($1, $2, $3, 'NEW', 'OMS', $4, 'UNPAID') 
+            (customer_name, product_name, quantity, status, current_dept, total_cost, payment_status, username) 
+            VALUES ($1, $2, $3, 'NEW', 'OMS', $4, 'UNPAID', $5) 
             RETURNING *`,
-            [final_customer_name, product_name, quantity, total_cost]
+            [final_customer_name, product_name, quantity, total_cost, username]
         );
         
         res.status(201).json({ 
