@@ -1,140 +1,238 @@
 <template>
-    <div class="dashboard-container">
-      <div class="sidebar">
-        <div class="brand">LOGISTICS PRO</div>
-        <div class="user-info">
-          <div class="avatar">A</div>
-          <div>
-             <h3>PHÒNG KẾ TOÁN</h3>
-             <small style="color: #2ecc71;">Kiểm soát dòng tiền</small>
-          </div>
-        </div>
-        <div style="padding: 15px; background: #34495e; border-radius: 6px; font-size: 13px; margin-top: 20px;">
-           <p style="margin: 0; color: #f1c40f;">📌 Nhiệm vụ:</p>
-           <small>Đối soát tài khoản ngân hàng, xác nhận các đơn hàng đã đóng tiền để cho phép xuất kho bãi.</small>
-        </div>
-        <button @click="logout" class="btn-logout">Đăng Xuất</button>
-      </div>
-  
-      <div class="main-content">
-         <header>
-            <h1>💵 TRUNG TÂM PHÊ DUYỆT DOANH THU KẾ TOÁN (ACCOUNTING DEPT)</h1>
-         </header>
-  
-         <div class="card" style="margin-top: 25px;">
-            <h3>📥 Danh sách đơn hàng Khách hàng vừa Thanh toán cần đối soát (Chờ Duyệt Tiền)</h3>
-            
-            <table class="data-table">
-               <thead>
-                  <tr>
-                     <th>ID Đơn</th>
-                     <th>Khách hàng</th>
-                     <th>Tên Hàng hóa</th>
-                     <th>Ảnh đính kèm</th>
-                     <th>Tổng số tiền thu</th>
-                     <th>Hình thức thanh toán</th>
-                     <th>Trạng thái tiền</th>
-                     <th>Hành động kế toán</th>
-                  </tr>
-               </thead>
-               <tbody>
-                  <tr v-for="order in accOrders" :key="order.id">
-                     <td><b>#{{ order.id }}</b></td>
-                     <td>{{ order.customer_name || 'N/A' }}</td>
-                     <td>{{ order.product_name }} (SL: {{ order.quantity }})</td>
-                     <td>
-                        <img v-if="order.image_url" :src="'http://localhost:3000' + order.image_url" class="order-img-preview" @click="zoomImage('http://localhost:3000' + order.image_url)" title="Bấm vào để phóng to ảnh" />
-                        <span v-else style="color: #95a5a6; font-style: italic; font-size: 12px;">Không có ảnh</span>
-                     </td>
-                     <td style="color: #27ae60; font-weight: bold; font-size: 16px;">${{ order.total_cost }}</td>
-                     <td><span class="pay-method-tag">{{ order.payment_method || 'Chuyển khoản' }}</span></td>
-                     <td>
-                        <span :class="order.payment_status === 'PAID' ? 'status-paid' : 'status-pending'">
-                           {{ order.payment_status === 'PAID' ? '✔️ Đã thanh toán' : '⏳ Chờ kiểm tra tiền nổi' }}
-                        </span>
-                     </td>
-                     <td>
-                        <button @click="confirmMoneyReceived(order.id)" class="btn-approve-money">✔️ Đã nhận đủ tiền (Duyệt)</button>
-                     </td>
-                  </tr>
-                  <tr v-if="accOrders.length === 0">
-                     <td colspan="8" style="text-align: center; padding: 40px; color: #7f8c8d; font-style: italic;">
-                        Hiện tại không có giao dịch dòng tiền nào cần phê duyệt.
-                     </td>
-                  </tr>
-               </tbody>
-            </table>
+   <div class="dashboard-container">
+     <div class="sidebar">
+       <div class="brand">LOGISTICS FINANCE</div>
+       <div class="user-info">
+         <div class="avatar">📊</div>
+         <div>
+            <h3>PHÒNG KẾ TOÁN</h3>
+            <small style="color: #2ecc71;">Kiểm soát dòng tiền</small>
          </div>
-      </div>
-    </div>
-  </template>
+       </div>
+       <div class="mission-box">
+          <p>📌 Vai trò Đối soát:</p>
+          <small>Kiểm tra dòng tiền thu từ Khách hàng, phê duyệt xuất kho và đối chiếu quyết toán phụ phí cầu đường, nhiên liệu từ Tài xế gửi về.</small>
+       </div>
+       <button @click="logout" class="btn-logout">Đăng Xuất</button>
+     </div>
+ 
+     <div class="main-content">
+        <header>
+           <h1>💵 TRUNG TÂM PHÊ DUYỆT DOANH THU & CHI PHÍ KẾ TOÁN (ACCOUNTING)</h1>
+        </header>
+ 
+        <div class="summary-cards-grid">
+           <div class="summary-card revenue">
+              <div class="card-icon">💰</div>
+              <div class="card-info">
+                 <p class="card-label">Tiền Thu Khách Hàng (Đã thu)</p>
+                 <h2 class="card-value">{{ summary.collectedCustomerRevenue }} USD</h2>
+                 <small>Dự kiến tổng thu: {{ summary.totalCustomerRevenue }} USD</small>
+              </div>
+           </div>
+           
+           <div class="summary-card cost">
+              <div class="card-icon">⛽</div>
+              <div class="card-info">
+                 <p class="card-label">Tổng Chi Phí E-POD Tài Xế</p>
+                 <h2 class="card-value">-{{ summary.totalEpodCost }} USD</h2>
+                 <small>BOT: {{ summary.totalBotFee }} USD | Nhiên liệu: {{ summary.totalFuelFee }} USD</small>
+              </div>
+           </div>
+           
+           <div class="summary-card profit" :class="{ 'positive': summary.netProfit >= 0, 'negative': summary.netProfit < 0 }">
+              <div class="card-icon">📈</div>
+              <div class="card-info">
+                 <p class="card-label">Lợi Nhuận Ròng Thực Tế</p>
+                 <h2 class="card-value">{{ summary.netProfit }} USD</h2>
+                 <small>Biên lợi nhuận thực tế</small>
+              </div>
+           </div>
+        </div>
+ 
+        <div class="card table-card">
+           <h3>📥 Sổ cái tổng hợp chứng từ & Phân tách dòng tiền liên phòng ban</h3>
+           
+           <table class="data-table">
+              <thead>
+                 <tr>
+                    <th>Mã Đơn</th>
+                    <th>Thông tin Khách</th>
+                    <th>Phần Tiền Khách (Thu)</th>
+                    <th>Phần Tiền E-POD (Chi)</th>
+                    <th>Vận hành Kho/Xe</th>
+                    <th>Chứng từ Giao hàng</th>
+                    <th>Trạng thái Thu/Chi</th>
+                    <th>Hành động</th>
+                 </tr>
+              </thead>
+              <tbody>
+                 <tr v-for="order in orders" :key="order.id">
+                    <td><strong class="order-id-tag">#{{ order.id }}</strong></td>
+                    <td>
+                       <span class="customer-name-txt">{{ order.customer_name }}</span>
+                       <span class="product-sub-txt">📦 Hàng: {{ order.product_name }} (SL: {{ order.quantity }})</span>
+                    </td>
+                    <td>
+                       <span class="money-in">+{{ order.total_cost }} USD</span>
+                    </td>
+                    <td>
+                       <div v-if="order.bot_fee > 0 || order.fuel_fee > 0" class="epod-breakdown">
+                          <span class="money-out">- Tổng: {{ order.bot_fee + order.fuel_fee }} USD</span>
+                          <small>• Phí BOT: {{ order.bot_fee }} USD</small>
+                          <small>• Nhiên liệu: {{ order.fuel_fee }} USD</small>
+                       </div>
+                       <span v-else class="text-muted">Chưa phát sinh</span>
+                    </td>
+                    <td>
+                       <span class="dept-badge">🏬 Kho: {{ order.warehouse_location }}</span>
+                       <span class="dept-badge">🚚 Lộ trình: {{ order.delivery_route }}</span>
+                    </td>
+                    <td>
+                       <div v-if="order.pod_image">
+                          <span class="badge-success">✓ Đã nộp POD</span>
+                          <span class="text-notes" v-if="order.driver_notes">📝 Ghi chú: "{{ order.driver_notes }}"</span>
+                       </div>
+                       <span v-else class="badge-pending">⏳ Chưa có</span>
+                    </td>
+                    <td>
+                       <span v-if="order.status === 'DONE'" class="status-tag status-done">💸 Đã Quyết Toán</span>
+                       <span v-else-if="order.payment_status === 'PAID'" class="status-tag status-paid">💰 Đã Thu Tiền Khách</span>
+                       <span v-else-if="order.payment_status === 'PENDING'" class="status-tag status-pending">⏳ Chờ Duyệt Tiền</span>
+                       <span v-else class="status-tag status-unpaid">❌ Chưa đóng tiền</span>
+                    </td>
+                    <td>
+                       <button 
+                          v-if="order.current_dept === 'ACC' && (order.status === 'PENDING' || order.status === 'DELIVERED')"
+                          @click="approveOrderPayment(order.id)" 
+                          class="btn-approve-action"
+                       >
+                          {{ order.status === 'DELIVERED' ? 'Duyệt Chi E-POD' : 'Duyệt Thu Tiền Khách' }}
+                       </button>
+                       <span v-else class="text-locked">🔒 Đã khóa sổ cái</span>
+                    </td>
+                 </tr>
+                 <tr v-if="orders.length === 0">
+                    <td colspan="8" style="text-align: center; color: #7f8c8d; padding: 30px;">Hiện tại không có chứng từ phát sinh dòng tiền cần xử lý.</td>
+                 </tr>
+              </tbody>
+           </table>
+        </div>
+     </div>
+   </div>
+</template>
+ 
+<script>
+import axios from 'axios';
+ 
+export default {
+   name: 'AccView',
+   data() {
+      return {
+         orders: [],
+         summary: {
+            totalCustomerRevenue: 0,
+            collectedCustomerRevenue: 0,
+            totalEpodCost: 0,
+            totalBotFee: 0,
+            totalFuelFee: 0,
+            netProfit: 0
+         }
+      };
+   },
+   created() {
+      this.fetchFinancialData();
+   },
+   methods: {
+      async fetchFinancialData() {
+         try {
+            const response = await axios.get('http://localhost:3000/api/orders/acc/orders');
+            if (response.data) {
+               this.orders = response.data.orders || [];
+               this.summary = response.data.summary || this.summary;
+            }
+         } catch (err) {
+            alert('Lỗi khi tải dữ liệu từ phòng Kế toán: ' + err.message);
+         }
+      },
+      async approveOrderPayment(orderId) {
+         if (!confirm(`Xác nhận phê duyệt luân chuyển dòng tiền và khóa sổ cái cho chứng từ #${orderId}?`)) return;
+         try {
+            const response = await axios.put(`http://localhost:3000/api/orders/acc/${orderId}/approve`);
+            alert(response.data.message || 'Phê duyệt dòng tiền thành công!');
+            this.fetchFinancialData(); // Cập nhật lại số liệu tức thì
+         } catch (err) {
+            alert('Lỗi trong quá trình phê duyệt: ' + err.message);
+         }
+      },
+      logout() {
+         localStorage.clear();
+         this.$router.push('/login');
+      }
+   }
+};
+</script>
+ 
+<style scoped>
+  /* CẤU TRÚC GIAO DIỆN CHUNG */
+  .dashboard-container { display: flex; min-height: 100vh; font-family: 'Segoe UI', Roboto, sans-serif; background: #f4f6f9; color: #2c3e50; }
+  .sidebar { width: 280px; background: #2c3e50; color: white; padding: 30px 20px; display: flex; flex-direction: column; box-shadow: 4px 0 10px rgba(0,0,0,0.1); }
+  .brand { font-size: 20px; font-weight: bold; letter-spacing: 1px; color: #f1c40f; text-align: center; margin-bottom: 30px; border-bottom: 2px solid #34495e; padding-bottom: 15px; }
+  .user-info { display: flex; align-items: center; gap: 15px; margin-bottom: 25px; }
+  .avatar { width: 45px; height: 45px; background: #34495e; border-radius: 50%; display: flex; justify-content: center; align-items: center; font-weight: bold; font-size: 20px; border: 2px solid #f1c40f; }
+  .mission-box { background: #34495e; padding: 15px; border-radius: 6px; font-size: 13px; line-height: 1.5; color: #ecf0f1; margin-top: 10px; border-left: 4px solid #f1c40f; }
+  .btn-logout { margin-top: auto; padding: 12px; background: #e74c3c; color: white; border: none; border-radius: 4px; cursor: pointer; font-weight: bold; transition: 0.3s; }
+  .btn-logout:hover { background: #c0392b; }
   
-  <script setup>
-  import { ref, onMounted } from 'vue';
-  import axios from 'axios';
-  import { useRouter } from 'vue-router';
+  .main-content { flex: 1; padding: 30px 40px; overflow-y: auto; }
+  header h1 { font-size: 24px; font-weight: 700; color: #2c3e50; margin: 0 0 25px 0; }
   
-  const router = useRouter();
-  const accOrders = ref([]);
+  /* GRID THẺ THỐNG KÊ DOANH THU */
+  .summary-cards-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 20px; margin-bottom: 30px; }
+  .summary-card { background: white; padding: 20px; border-radius: 8px; display: flex; align-items: center; gap: 20px; box-shadow: 0 4px 12px rgba(0,0,0,0.05); border: 1px solid #eef2f5; }
+  .card-icon { font-size: 35px; width: 60px; height: 60px; border-radius: 50%; display: flex; justify-content: center; align-items: center; }
+  .revenue .card-icon { background: #e8f5e9; }
+  .cost .card-icon { background: #ffebee; }
+  .profit.positive .card-icon { background: #e3f2fd; }
+  .profit.negative .card-icon { background: #fbe9e7; }
+  .card-info { flex: 1; }
+  .card-label { font-size: 13px; color: #7f8c8d; margin: 0 0 5px 0; font-weight: 600; text-transform: uppercase; }
+  .card-value { font-size: 22px; font-weight: 700; margin: 0 0 4px 0; }
+  .revenue .card-value { color: #2e7d32; }
+  .cost .card-value { color: #c62828; }
+  .profit.positive .card-value { color: #1565c0; }
+  .profit.negative .card-value { color: #d84315; }
+  .card-info small { font-size: 11.5px; color: #95a5a6; display: block; }
   
-  // Tải dữ liệu các đơn đang nằm ở phòng ban Kế toán
-  const fetchAccOrders = async () => {
-    try {
-      const res = await axios.get('http://localhost:3000/api/orders/acc/orders');
-      accOrders.value = res.data;
-    } catch (error) {
-      console.error("🔴 LỖI: Kết nối dữ liệu phòng kế toán thất bại!", error);
-    }
-  };
+  /* THIẾT KẾ BẢNG SỔ CÁI */
+  .card { background: white; padding: 25px; border-radius: 8px; box-shadow: 0 4px 15px rgba(0,0,0,0.04); border: 1px solid #eef2f5; }
+  .table-card h3 { margin-top: 0; margin-bottom: 20px; font-size: 16px; color: #34495e; border-left: 4px solid #2c3e50; padding-left: 10px; }
+  .data-table { width: 100%; border-collapse: collapse; }
+  .data-table th, .data-table td { padding: 14px 16px; border-bottom: 1px solid #ecf0f1; text-align: left; font-size: 13.5px; vertical-align: top; }
+  .data-table th { background: #f8f9fa; color: #7f8c8d; font-size: 12px; font-weight: bold; text-transform: uppercase; letter-spacing: 0.5px; }
   
-  // Kế toán bấm xác nhận tiền về tài khoản ngân hàng
-  const confirmMoneyReceived = async (orderId) => {
-     if(!confirm(`Xác nhận đơn hàng #${orderId} đã nổi tiền thành công tại tài khoản công ty?`)) return;
-     try {
-        const res = await axios.put(`http://localhost:3000/api/orders/acc/${orderId}/approve`);
-        alert(res.data.message);
-        fetchAccOrders(); // Làm mới lại danh sách ngay lập tức sau khi duyệt
-     } catch (error) {
-        console.error(error);
-        alert("Lỗi hệ thống khi phê duyệt kế toán!");
-     }
-  };
+  /* CHI TIẾT TỪNG PHẦN TIỀN */
+  .order-id-tag { background: #eaeaea; padding: 3px 6px; border-radius: 4px; font-family: monospace; color: #333; }
+  .customer-name-txt { font-weight: 600; display: block; color: #2c3e50; }
+  .product-sub-txt { font-size: 12px; color: #7f8c8d; display: block; margin-top: 2px; }
   
-  const zoomImage = (url) => { window.open(url, '_blank'); };
-  const logout = () => { localStorage.clear(); router.push('/'); };
+  .money-in { color: #27ae60; font-weight: bold; font-size: 14px; }
+  .money-out { color: #c0392b; font-weight: bold; font-size: 14px; display: block; }
+  .epod-breakdown { display: flex; flex-direction: column; gap: 1px; }
+  .epod-breakdown small { color: #7f8c8d; font-size: 11px; }
   
-  onMounted(() => {
-    if (localStorage.getItem('role') !== 'ACC') {
-       router.push('/'); // Chặn quyền truy cập nếu không phải Kế toán
-    } else {
-       fetchAccOrders();
-       // Tự động quét cập nhật dữ liệu liên tục sau mỗi 4 giây
-       const interval = setInterval(fetchAccOrders, 4000);
-    }
-  });
-  </script>
+  .dept-badge { display: block; font-size: 11px; color: #4b5563; background: #f1f5f9; padding: 2px 6px; border-radius: 4px; margin-bottom: 3px; width: fit-content; }
+  .text-notes { display: block; background: #fff8e1; border: 1px dashed #ffe082; padding: 4px; border-radius: 4px; margin-top: 4px; font-style: italic; font-size: 11px; color: #b76e00; }
   
-  <style scoped>
-  /* Giao diện chuẩn phong cách vuông vắn thanh lịch */
-  .dashboard-container { display: flex; height: 100vh; font-family: 'Segoe UI', sans-serif; background: #f0f2f5;}
-  .sidebar { width: 250px; background: #2c3e50; color: white; padding: 20px; display: flex; flex-direction: column; box-sizing: border-box; }
-  .brand { font-size: 22px; font-weight: 800; text-align: center; margin-bottom: 25px; letter-spacing: 1px; }
-  .user-info { display: flex; align-items: center; gap: 10px; padding-bottom: 15px; border-bottom: 1px solid #34495e; margin-bottom: 15px; }
-  .avatar { width: 40px; height: 40px; background: #9b59b6; border-radius: 50%; display: flex; justify-content: center; align-items: center; font-weight: bold; }
-  .btn-logout { margin-top: auto; padding: 12px; background: #c0392b; color: white; border: none; border-radius: 4px; cursor: pointer; font-weight: 600; }
-  .main-content { flex: 1; padding: 35px; overflow-y: auto; background: #ffffff; }
-  .card { background: white; padding: 25px; border-radius: 8px; box-shadow: 0 4px 15px rgba(0,0,0,0.06); border: 1px solid #eef2f5; }
+  /* TRẠNG THÁI */
+  .status-tag { display: inline-block; padding: 4px 10px; border-radius: 20px; font-size: 11px; font-weight: bold; text-transform: uppercase; }
+  .status-done { background: #e8f5e9; color: #2e7d32; }
+  .status-paid { background: #e3f2fd; color: #1565c0; }
+  .status-pending { background: #fff3e0; color: #ef6c00; }
+  .status-unpaid { background: #ffebee; color: #c62828; }
   
-  .data-table { width: 100%; border-collapse: collapse; margin-top: 15px; }
-  .data-table th, .data-table td { padding: 14px 18px; border-bottom: 1px solid #ecf0f1; text-align: left; font-size: 14px;}
-  .data-table th { background: #f8f9fa; color: #7f8c8d; font-size: 13px; font-weight: bold; text-transform: uppercase; }
-  
-  .order-img-preview { width: 60px; height: 60px; object-fit: cover; border-radius: 4px; cursor: pointer; border: 1px solid #ddd; transition: transform 0.2s; }
-  .order-img-preview:hover { transform: scale(1.1); border-color: #2c3e50; }
-  
-  .pay-method-tag { padding: 4px 10px; background: #e1f5fe; color: #0288d1; border-radius: 4px; font-weight: bold; font-size: 12px;}
-  .status-pending { color: #d35400; font-weight: bold; font-size: 13px; }
-  .status-paid { color: #27ae60; font-weight: bold; font-size: 13px; }
-  .btn-approve-money { padding: 8px 14px; background: #27ae60; color: white; border: none; border-radius: 4px; cursor: pointer; font-weight: bold; font-size: 13px; }
-  .btn-approve-money:hover { background: #219653; }
-  </style>
+  /* HÀNH ĐỘNG BUTTON */
+  .btn-approve-action { padding: 6px 12px; background: #27ae60; color: white; border: none; border-radius: 4px; font-weight: bold; font-size: 12px; cursor: pointer; transition: 0.2s; box-shadow: 0 2px 4px rgba(39,174,96,0.2); }
+  .btn-approve-action:hover { background: #219653; transform: translateY(-1px); }
+  .text-locked { color: #94a3b8; font-size: 12px; font-style: italic; font-weight: 500; }
+</style>

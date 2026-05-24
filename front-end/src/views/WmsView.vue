@@ -20,6 +20,9 @@
          <button @click="activeTab = 'cargo_condition'" :class="{ active: activeTab === 'cargo_condition' }" class="menu-btn">
             ⚠️ Báo cáo Hư hại & Hoàn trả
          </button>
+         <button @click="switchToHistoryTab" :class="{ active: activeTab === 'warehouse_history' }" class="menu-btn" style="color: #f39c12;">
+            📜 Nhật ký Nhập & Xuất Kho
+         </button>
       </div>
  
       <button @click="logout" class="btn-logout">Đăng Xuất</button>
@@ -30,56 +33,49 @@
        <div v-if="activeTab === 'inbound_outbound'">
           <header><h1>QUẢN LÝ NHẬP XUẤT KHO KÝ GỬI & QUÉT MÃ KIỆN HÀNG</h1></header>
 
-          <div class="revenue-container" style="margin-bottom: 25px;">
-             <div class="box-rev today">
-                <p>KIỆN HÀNG ĐÃ QUÉT TRONG NGÀY</p>
-                <h2>{{ orders.filter(o => o.is_scanned).length }} / {{ orders.length }} Kiện</h2>
-                <div class="custom-progress">
-                   <div class="line" :style="{ width: (orders.length ? (orders.filter(o => o.is_scanned).length / orders.length) * 100 : 0) + '%' }"></div>
-                </div>
+          <div class="barcode-scanner-box">
+             <div class="scanner-title">
+                <span class="laser-dot"></span>
+                <b>MÔ PHỎNG THIẾT BỊ QUÉT MÃ BARCODE (MÁY PDA CHUYÊN DỤNG CỦA KHO)</b>
              </div>
-             <div class="box-rev month">
-                <p>HIỆU SUẤT LẤP ĐẦY KHO TRUNG CHUYỂN</p>
-                <h2>68% Diện tích</h2>
-                <div class="custom-progress"><div class="line" style="width: 68%"></div></div>
+             <div class="scanner-input-row">
+                <input type="text" v-model="barcodeInput" placeholder="Nhập vào đây rồi dùng máy quét hoặc nhập mã (VD: PKG-60093)..." class="scanner-input" @keyup.enter="handleBarcodeScan" />
+                <button @click="handleBarcodeScan" class="btn-scan-trigger">⚡ Mô phỏng quét mã (Enter)</button>
              </div>
           </div>
 
-          <div class="card list-card">
-              <h3>📦 Danh sách hàng chờ quét mã & xuất kho sang Vận tải (TMS)</h3>
-              
-              <div class="barcode-scanner-mock">
-                 <input type="text" v-model="barcodeInput" placeholder="Nhấp vào đây rồi dùng máy quét hoặc nhập mã (VD: PKG-#ID) để quét nhanh..." @keyup.enter="handleBarcodeScan" class="scan-input" />
-                 <button @click="handleBarcodeScan" class="btn-action btn-ok">Mô phỏng quét mã</button>
-              </div>
-
+          <div class="card list-card" style="margin-top: 25px;">
+              <h3>📦 Danh sách kiện hàng chờ đóng gói & xuất kho sang TMS</h3>
               <table class="data-table">
                   <thead>
                       <tr>
-                        <th>Mã kiện (QR/Barcode)</th><th>ID Đơn</th><th>Khách hàng</th><th>Hàng hóa</th><th>SL</th><th>Trạng thái quét</th><th>Thao tác xuất</th>
+                        <th>Mã Kiện Hàng</th><th>Khách hàng</th><th>Hàng hóa</th><th>Vị Trí Lưu</th><th>Trạng thái quét</th><th>Hành động nghiệp vụ</th>
                       </tr>
                   </thead>
                   <tbody>
-                      <tr v-for="order in orders" :key="order.id">
+                      <tr v-for="order in orders" :key="order.id" :class="{'row-scanned-active': order.id == highlightedOrderId}">
+                          <td><b class="barcode-tag">PKG-600{{ order.id }}</b></td>
+                          <td><b>{{ order.customer_name }}</b></td>
+                          <td>{{ order.product_name }} (SL: {{ order.quantity }})</td>
                           <td>
-                             <code class="barcode-tag">📋 PKG-{{ order.id }}0093</code>
-                          </td>
-                          <td><b>#{{ order.id }}</b></td>
-                          <td>{{ order.customer_name }}</td>
-                          <td>{{ order.product_name }}</td>
-                          <td>{{ order.quantity }}</td>
-                          <td>
-                             <span v-if="order.is_scanned" class="badge-vip" style="background: #e8f5e9; color: #2e7d32; border-color: #a5d6a7;">✓ Đã quét mã</span>
-                             <span v-else class="badge-normal" style="background: #ffe082; color: #b7791f;">⏳ Chờ quét kiểm kho</span>
+                             <span v-if="order.warehouse_location" class="location-badge">📍 {{ order.warehouse_location }}</span>
+                             <span v-else style="color: #95a5a6; font-style: italic;">Chưa xếp kệ</span>
                           </td>
                           <td>
+                             <span v-if="order.is_scanned" class="badge-status status-scanned">✓ Đã quét mã</span>
+                             <span v-else class="badge-status status-wait">⏳ Chờ quét kiểm kho</span>
+                          </td>
+                          <td class="action-cell">
                             <button @click="packOrder(order.id, order.is_scanned)" class="btn-action btn-ok" :disabled="!order.is_scanned" :style="{ opacity: order.is_scanned ? 1 : 0.5, cursor: order.is_scanned ? 'pointer' : 'not-allowed' }">
                                Bàn giao xe tải (TMS)
+                            </button>
+                            <button @click="openHistoryModal(order.id)" class="btn-action btn-history">
+                               📜 Xem Log
                             </button>
                           </td>
                       </tr>
                       <tr v-if="orders.length === 0">
-                          <td colspan="7" style="text-align: center; color: #7f8c8d; padding: 30px; font-style: italic;">Kho trống - Chưa có hàng hóa cần luân chuyển.</td>
+                          <td colspan="6" style="text-align: center; color: #7f8c8d; padding: 30px; font-style: italic;">Hiện tại không có kiện hàng nào chờ xử lý xuất kho.</td>
                       </tr>
                   </tbody>
               </table>
@@ -87,37 +83,33 @@
        </div>
 
        <div v-if="activeTab === 'locations'">
-          <header><h1>SƠ ĐỒ ĐỊNH VỊ VÀ SẮP XẾP KIỆN HÀNG CHUYÊN NGHIỆP</h1></header>
+          <header><h1>QUẢN LÝ SƠ ĐỒ VỊ TRÍ LƯU TRỮ TRÊN Ô / KỆ (PUT-AWAY)</h1></header>
           <div class="card list-card" style="margin-top: 25px;">
-              <h3>📍 Phân phối tọa độ lưu trữ (Giúp nhân viên bốc xếp tìm hàng nhanh)</h3>
+              <h3>📍 Chỉ định khu vực lưu trữ hàng hóa tạm thời</h3>
               <table class="data-table">
                   <thead>
-                      <tr>
-                        <th>ID Đơn</th>
-                        <th>Khách hàng</th>
-                        <th>Hàng hóa</th>
-                        <th>Số lượng</th>
-                        <th>Vị trí lưu kho hiện tại</th>
-                        <th>Hành động điều phối</th>
-                      </tr>
+                      <tr><th>Mã Kiện</th><th>Khách hàng</th><th>Sản phẩm</th><th>Vị trí hiện tại</th><th>Cập nhật khu vực lưu trữ mới (Aisle/Shelf)</th></tr>
                   </thead>
                   <tbody>
                       <tr v-for="order in orders" :key="order.id">
-                          <td><b>#{{ order.id }}</b></td>
-                          <td><b>{{ order.customer_name }}</b></td>
+                          <td><b class="barcode-tag">PKG-600{{ order.id }}</b></td>
+                          <td>{{ order.customer_name }}</td>
                           <td>{{ order.product_name }}</td>
-                          <td>{{ order.quantity }} kiện</td>
                           <td>
-                             <span class="dept-tag" style="background: #34495e; color: #fff; font-size: 13px; padding: 4px 8px;">
-                                {{ order.warehouse_location || '⚠️ Chưa xếp ô kệ (Đang ở sảnh nhận)' }}
-                             </span>
+                             <span v-if="order.warehouse_location" class="location-badge">📍 {{ order.warehouse_location }}</span>
+                             <span v-else style="color: #e64c3c; font-weight: bold;">🚨 Chưa phân kho</span>
                           </td>
                           <td>
-                             <button @click="openLocationModal(order)" class="btn-action btn-ok" style="background: #27ae60;">✏️ Đổi vị trí ô kệ</button>
+                             <div style="display: flex; gap: 8px;">
+                                <select :id="'select-loc-' + order.id" class="form-select-custom">
+                                   <option value="Khu A - Kệ 01 - Tầng 2">Khu A - Kệ 01 - Tầng 2 (Hàng nhẹ)</option>
+                                   <option value="Khu B - Kệ 05 - Tầng 1">Khu B - Kệ 05 - Tầng 1 (Hàng nặng/Pallet)</option>
+                                   <option value="Khu C - Ô biệt trữ 12">Khu C - Ô biệt trữ 12 (Giá trị cao)</option>
+                                   <option value="Khu VIP - Gần cửa xuất">Khu VIP - Gần cửa xuất (Đi nhanh)</option>
+                                </select>
+                                <button @click="updateLocation(order.id)" class="btn-action btn-ok">Gán vị trí</button>
+                             </div>
                           </td>
-                      </tr>
-                      <tr v-if="orders.length === 0">
-                          <td colspan="6" style="text-align: center; color: #7f8c8d; padding: 20px;">Không có dữ liệu lưu trữ hàng hóa trong kho.</td>
                       </tr>
                   </tbody>
               </table>
@@ -125,102 +117,102 @@
        </div>
 
        <div v-if="activeTab === 'cargo_condition'">
-          <header><h1>BÁO CÁO HIỆN TRẠNG KIỆN HÀNG & XỬ LÝ HOÀN TRẢ</h1></header>
+          <header><h1>BIÊN BẢN KHẢO SÁT NGOẠI QUAN & BÁO CÁO HƯ HẠI (CARGO CONDITION)</h1></header>
           <div class="card list-card" style="margin-top: 25px;">
-              <h3>⚠️ Khảo sát tình trạng thực tế khi nhận hàng từ khách / Đối tác</h3>
-              <p style="font-size: 13px; color: #7f8c8d; margin-top: -5px;">*Lập biên bản chụp ảnh tình trạng móp méo ngay tại sảnh kho để tránh rủi ro đền bù oan uổng.</p>
-              
-              <table class="data-table" style="margin-top: 15px;">
+              <h3>⚠️ Ghi nhận tình trạng móp méo, rách bao bì trước khi xuất kho</h3>
+              <table class="data-table">
                   <thead>
-                      <tr>
-                        <th>ID Đơn</th>
-                        <th>Chủ hàng</th>
-                        <th>Tên mặt hàng</th>
-                        <th>Tình trạng ghi nhận</th>
-                        <th>Ảnh minh chứng</th>
-                        <th>Xử lý nghiệp vụ kho</th>
-                      </tr>
+                      <tr><th>Mã Kiện</th><th>Khách hàng</th><th>Tình trạng ngoại quan</th><th>Minh chứng</th><th>Thao tác lập biên bản</th></tr>
                   </thead>
                   <tbody>
                       <tr v-for="order in orders" :key="order.id">
-                          <td><b>#{{ order.id }}</b></td>
+                          <td><b class="barcode-tag">PKG-600{{ order.id }}</b></td>
                           <td>{{ order.customer_name }}</td>
-                          <td>{{ order.product_name }}</td>
                           <td>
-                             <span v-if="order.cargo_condition" class="badge-vip" style="background: #fff5f5; color: #e74c3c; border-color: #fab1a0;">
-                                ❌ {{ order.cargo_condition }}
-                             </span>
-                             <span v-else class="badge" style="background: #e8f5e9; color: #2e7d32;">
-                                ✓ Hàng nguyên đai nguyên kiện
-                             </span>
+                             <span v-if="order.cargo_condition" class="condition-text-alert">⚠️ {{ order.cargo_condition }}</span>
+                             <span v-else style="color: #27ae60; font-weight: bold;">✓ Nguyên đai nguyên kiện, sạch sẽ</span>
                           </td>
                           <td>
-                             <div v-if="order.cargo_image" class="mock-img-preview">
-                                <span style="font-size: 11px; color: #2980b9; font-weight: bold;">🖼️ Đã đính kèm ảnh.jpg</span>
+                             <span v-if="order.cargo_image" style="color: #2980b9; font-weight: bold; font-size: 12px;">📸 Đã đính kèm ảnh chụp</span>
+                             <span v-else style="color: #95a5a6; font-style: italic;">Không có ảnh</span>
+                          </td>
+                          <td>
+                             <div style="display: flex; flex-direction: column; gap: 6px;">
+                                <textarea :id="'textarea-cond-' + order.id" class="form-textarea-custom" rows="2" placeholder="Nhập mô tả hư hại..."></textarea>
+                                <button @click="submitConditionReport(order.id)" class="btn-action" style="background: #e74c3c; color: white;">
+                                   🚨 Xác nhận lỗi & Khóa quét nhanh
+                                </button>
                              </div>
-                             <span v-else style="color: #bdc3c7; font-size: 12px; font-style: italic;">Chưa đính kèm</span>
                           </td>
-                          <td class="action-cell">
-                             <button @click="openDamageModal(order)" class="btn-action btn-fail">⚠️ Lập BB Hư Hại</button>
-                             <button @click="processReturnFromWms(order.id)" class="btn-action" style="background: #d35400; color: white;">↩️ Xuất trả hàng ngay</button>
-                          </td>
-                      </tr>
-                      <tr v-if="orders.length === 0">
-                          <td colspan="6" style="text-align: center; color: #7f8c8d; padding: 20px;">Không có hàng hóa lỗi/cần kiểm tra.</td>
                       </tr>
                   </tbody>
               </table>
           </div>
        </div>
+
+       <div v-if="activeTab === 'warehouse_history'">
+          <header><h1>📜 SỔ CÁI NHẬT KÝ LỊCH SỬ NHẬP KHO & XUẤT KHO (WMS LOGS)</h1></header>
+          <div class="card list-card" style="margin-top: 25px;">
+              <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px;">
+                 <h3>Tổng hợp dòng thời gian vận hành điều độ tại Kho</h3>
+                 <button @click="fetchGlobalWarehouseLogs" class="btn-action" style="background: #27ae60; color: white;">🔄 Làm mới nhật ký</button>
+              </div>
+              
+              <div v-if="loadingHistory" class="loading-text">⏳ Đang truy xuất dữ liệu vận hành từ cơ sở dữ liệu...</div>
+              
+              <table v-else class="data-table">
+                  <thead>
+                      <tr>
+                         <th style="width: 100px;">Mã Đơn</th>
+                         <th style="width: 180px;">Mốc Thời Gian</th>
+                         <th style="width: 150px;">Hành Trình Chuyển</th>
+                         <th>Nội Dung Chi Tiết Sự Kiện Vận Hành Kho</th>
+                      </tr>
+                  </thead>
+                  <tbody>
+                      <tr v-for="(log, idx) in globalWarehouseLogs" :key="idx">
+                          <td><b class="barcode-tag">PKG-600{{ log.order_id }}</b></td>
+                          <td><small style="color: #7f8c8d; font-weight: bold;">⏰ {{ formatTime(log.changed_at) }}</small></td>
+                          <td>
+                             <span class="dept-tag">{{ log.old_status }} ➔ {{ log.new_status }}</span>
+                          </td>
+                          <td>
+                             <div style="font-size: 13.5px; color: #2c3e50; line-height: 1.4;">
+                                {{ log.notes || 'Hệ thống cập nhật trạng thái tự động.' }}
+                             </div>
+                          </td>
+                      </tr>
+                      <tr v-if="globalWarehouseLogs.length === 0">
+                          <td colspan="4" style="text-align: center; color: #7f8c8d; padding: 40px; font-style: italic;">
+                             Chưa ghi nhận bất kỳ lịch sử nhập xuất kho nào trong hệ thống sổ cái.
+                          </td>
+                      </tr>
+                  </tbody>
+              </table>
+          </div>
+       </div>
+
     </div>
 
-    <div v-if="showLocationModal" class="modal-overlay" @click="showLocationModal = false">
-      <div class="modal-content-box" @click.stop style="width: 450px;">
-         <div class="modal-header">
-            <h2>📍 Xếp Vị Trí Lưu Kho Cho Đơn #{{ selectedOrder?.id }}</h2>
-            <button class="close-btn" @click="showLocationModal = false">×</button>
-         </div>
-         <div class="modal-body">
-            <label style="display: block; font-weight: bold; margin-bottom: 8px; font-size: 13px;">Chọn Khu vực - Dãy kệ - Tầng chứa hàng:</label>
-            <select v-model="targetLocation" class="form-select-custom">
-               <option value="Khu A - Kệ 01 - Tầng 1">Khu A - Kệ 01 - Tầng 1 (Hàng nặng)</option>
-               <option value="Khu A - Kệ 02 - Tầng 3">Khu A - Kệ 02 - Tầng 3 (Hàng giá trị cao)</option>
-               <option value="Khu B - Kệ 05 - Tầng 2">Khu B - Kệ 05 - Tầng 2 (Bách hóa)</option>
-               <option value="Khu C - Khu vực Chất Pallet">Khu C - Khu vực Chất Pallet nền kho</option>
-            </select>
-            <div style="margin-top: 20px; display: flex; gap: 10px; justify-content: flex-end;">
-               <button @click="showLocationModal = false" class="btn-action" style="background: #bdc3c7; color: #000;">Hủy</button>
-               <button @click="submitLocationChange" class="btn-action btn-ok">Xác nhận cập nhật</button>
-            </div>
-         </div>
-      </div>
-    </div>
-
-    <div v-if="showDamageModal" class="modal-overlay" @click="showDamageModal = false">
+    <div v-if="showHistoryModal" class="modal-overlay" @click="showHistoryModal = false">
       <div class="modal-content-box" @click.stop>
-         <div class="modal-header" style="background: #e74c3c;">
-            <h2>⚠️ Biên Bản Ghi Nhận Tình Trạng Hàng Lỗi #{{ selectedOrder?.id }}</h2>
-            <button class="close-btn" @click="showDamageModal = false">×</button>
+         <div class="modal-header">
+            <h2>📜 Nhật Ký Hành Trình Đơn Hàng #{{ selectedOrderId }}</h2>
+            <button class="close-btn" @click="showHistoryModal = false">×</button>
          </div>
          <div class="modal-body">
-            <div class="log-notes" style="margin-top: 0; margin-bottom: 15px;">
-               📌 <b>Lưu ý pháp lý:</b> Thông tin này sẽ làm căn cứ chứng minh hàng hóa đã lỗi trước khi nhập kho trung chuyển.
-            </div>
-            
-            <div style="margin-bottom: 15px;">
-               <label style="display: block; font-weight: bold; margin-bottom: 6px; font-size: 13px;">Mô tả chi tiết lỗi ngoại quan:</label>
-               <textarea v-model="damageNotes" placeholder="Ví dụ: Thùng carton rách góc, đổ vỡ chất lỏng, móp méo vỏ ngoài nặng..." rows="3" class="form-textarea-custom"></textarea>
-            </div>
-
-            <div style="margin-bottom: 15px;">
-               <label style="display: block; font-weight: bold; margin-bottom: 6px; font-size: 13px;">Chụp ảnh minh chứng (Cargo Photo):</label>
-               <input type="file" @change="simulateImageUpload" accept="image/*" style="font-size: 13px;" />
-               <p v-if="damageImageUploaded" style="color: #27ae60; font-size: 12px; font-weight: bold; margin-top: 5px;">✓ Tải ảnh lên bộ nhớ đệm thành công!</p>
-            </div>
-
-            <div style="margin-top: 20px; display: flex; gap: 10px; justify-content: flex-end;">
-               <button @click="showDamageModal = false" class="btn-action" style="background: #bdc3c7; color: #000;">Đóng</button>
-               <button @click="submitDamageReport" class="btn-action btn-fail" style="background: #e74c3c;">Lưu biên bản</button>
+            <div v-if="loadingHistory" class="loading-text">⏳ Đang lấy dữ liệu...</div>
+            <div v-else class="timeline-wrapper">
+                <div class="timeline-item" v-for="(log, index) in orderHistory" :key="index">
+                    <div class="timeline-badge-circle"></div>
+                    <div class="timeline-content-card">
+                        <div class="time-stamp">⏰ {{ formatTime(log.changed_at) }}</div>
+                        <div class="log-status-row">
+                           Hành trình: <span class="dept-tag">{{ log.old_status }} ➔ {{ log.new_status }}</span>
+                        </div>
+                        <div class="log-notes" v-if="log.notes">📝 {{ log.notes }}</div>
+                    </div>
+                </div>
             </div>
          </div>
       </div>
@@ -230,216 +222,215 @@
 </template>
  
 <script setup>
-import { ref, onMounted } from 'vue';
+import { ref, onMounted, onUnmounted } from 'vue';
 import axios from 'axios';
 import { useRouter } from 'vue-router';
   
 const router = useRouter();
 const userRole = ref('WMS');
-const activeTab = ref('inbound_outbound'); // Mặc định hiển thị tab quét mã nhập xuất
-
+const activeTab = ref('inbound_outbound');
+  
 const orders = ref([]);
 const barcodeInput = ref('');
+const highlightedOrderId = ref(null);
+let wmsInterval = null;
 
-// Các trạng thái đóng mở Modal tương tự cấu trúc OMS
-const showLocationModal = ref(false);
-const showDamageModal = ref(false);
-const selectedOrder = ref(null);
-
-const targetLocation = ref('');
-const damageNotes = ref('');
-const damageImageUploaded = ref(false);
+const showHistoryModal = ref(false);
+const selectedOrderId = ref(null);
+const orderHistory = ref([]);
+const globalWarehouseLogs = ref([]); // Mới thêm: Chứa tất cả lịch sử kho
+const loadingHistory = ref(false);
   
-// Hàm tải danh sách đơn hàng thuộc phòng quản lý WMS
 const fetchOrders = async () => {
   try {
     const res = await axios.get('http://localhost:3000/api/orders/wms');
-    // Thêm các thuộc tính client-side bổ sung giả lập nếu DB chưa hỗ trợ trường quét
-    orders.value = res.data.map(order => ({
-       ...order,
-       is_scanned: order.is_scanned || false,
-       warehouse_location: order.warehouse_location || '',
-       cargo_condition: order.cargo_condition || '',
-       cargo_image: order.cargo_image || false
-    }));
+    orders.value = res.data;
   } catch (error) {
-    console.error("Lỗi tải dữ liệu phòng WMS từ máy chủ");
+    console.error("Lỗi đồng bộ dữ liệu phòng WMS:", error);
   }
 };
 
-// 1. NGHIỆP VỤ QUÉT MÃ BARCODE GIẢ LẬP
-const handleBarcodeScan = () => {
-   if (!barcodeInput.value.trim()) return alert("Vui lòng nhập chuỗi mã Barcode!");
-   
-   // Trích xuất ID đơn hàng từ chuỗi giả lập quét mã (Ví dụ người dùng nhập hoặc quét ra chuỗi chứ kí tự số đơn hàng)
-   const foundOrder = orders.value.find(o => barcodeInput.value.includes(o.id.toString()));
-   
-   if (foundOrder) {
-      foundOrder.is_scanned = true;
-      alert(`🎯 Quét mã thành công kiện hàng Đơn #${foundOrder.id}! Đã xác nhận khớp thông tin hệ thống.`);
-      barcodeInput.value = '';
-   } else {
-      alert("❌ Mã kiện hàng (Barcode) không tồn tại trên hệ thống điều phối kho hiện tại!");
+// Mới thêm: Hàm lấy toàn bộ lịch sử hệ thống kho phục vụ Tab 4
+const fetchGlobalWarehouseLogs = async () => {
+   loadingHistory.value = true;
+   try {
+      const res = await axios.get('http://localhost:3000/api/orders/wms/all/logs');
+      globalWarehouseLogs.value = res.data;
+   } catch (err) {
+      console.error("Lỗi truy xuất lịch sử tổng hợp kho:", err);
+   } finally {
+      loadingHistory.value = false;
    }
 };
 
-// THAO TÁC ĐÓNG GÓI & XUẤT KHO SANG TMS (CẦN ĐIỀU KIỆN ĐÃ QUÉT MÃ)
+const switchToHistoryTab = () => {
+   activeTab.value = 'warehouse_history';
+   fetchGlobalWarehouseLogs();
+};
+  
+const handleBarcodeScan = async () => {
+   const input = barcodeInput.value.trim().toUpperCase();
+   if (!input) return;
+   
+   let matchedId = null;
+   if (input.startsWith('PKG-600')) { matchedId = input.replace('PKG-600', ''); } 
+   else { matchedId = input; }
+   
+   const targetOrder = orders.value.find(o => o.id == matchedId);
+   if (!targetOrder) {
+       alert(`❌ Mã Barcode "${input}" không tồn tại tại kho!`);
+       barcodeInput.value = '';
+       return;
+   }
+   
+   try {
+       await axios.put(`http://localhost:3000/api/orders/wms/${targetOrder.id}/scan-barcode`);
+       highlightedOrderId.value = targetOrder.id;
+       barcodeInput.value = '';
+       fetchOrders();
+       setTimeout(() => { highlightedOrderId.value = null; }, 4000);
+   } catch (err) {
+       alert("Lỗi đồng bộ dữ liệu máy quét!");
+   }
+};
+  
 const packOrder = async (orderId, isScanned) => {
-  if (!isScanned) {
-     return alert("Ngăn chặn: Kiện hàng này chưa được quét Barcode xác nhận nhập bãi, không thể xuất kho!");
-  }
+  if (!isScanned) return alert("Ngăn chặn: Kiện hàng này chưa được quét Barcode xác nhận nhập bãi!");
+  
   try {
     await axios.put(`http://localhost:3000/api/orders/${orderId}`, {
       status: 'PACKED',
       current_dept: 'TMS',
-      from_dept: 'WMS'
+      from_dept: 'WMS',
+      notes: 'Đã hoàn tất đóng gói kiểm đếm, bàn giao hạ bãi xuất bến thành công sang phòng vận tải TMS.'
     });
-    alert("Đã hoàn tất đóng gói, dán tem QR tải trọng và bàn giao thành công sang Đội xe vận tải (TMS)!");
+    alert("Đã hoàn tất xuất kho và bàn giao thành công sang Đội xe vận tải (TMS)!");
     fetchOrders();
   } catch (error) {
-    alert("Thao tác xuất kho lên xe thất bại!");
+    alert("Thao tác xuất kho thất bại!");
   }
 };
-
-// 2. NGHIỆP VỤ QUẢN LÝ VỊ TRÍ Ô KỆ KHO
-const openLocationModal = (order) => {
-   selectedOrder.value = order;
-   targetLocation.value = order.warehouse_location || 'Khu A - Kệ 01 - Tầng 1';
-   showLocationModal.value = true;
-};
-
-const submitLocationChange = async () => {
-   if (!selectedOrder.value) return;
-   try {
-      // Gửi API cập nhật tọa độ vị trí thực tế trong kho trung chuyển
-      await axios.put(`http://localhost:3000/api/orders/${selectedOrder.value.id}/location`, {
-         location: targetLocation.value
-      });
-      alert(`Đã gán thành công đơn hàng vào ô kệ: ${targetLocation.value}`);
-      showLocationModal.value = false;
-      fetchOrders();
-   } catch (err) {
-      // Hỗ trợ cập nhật trực tiếp tại local client nếu Endpoint API chưa cập nhật kịp
-      selectedOrder.value.warehouse_location = targetLocation.value;
-      alert(`[Demo Mode] Đã lưu tạm vị trí ô chứa hàng: ${targetLocation.value}`);
-      showLocationModal.value = false;
-   }
-};
-
-// 3. NGHIỆP VỤ BÁO CÁO HƯ HẠI (CARGO CONDITION)
-const openDamageModal = (order) => {
-   selectedOrder.value = order;
-   damageNotes.value = order.cargo_condition || '';
-   damageImageUploaded.value = order.cargo_image || false;
-   showDamageModal.value = true;
-};
-
-const simulateImageUpload = () => {
-   damageImageUploaded.value = true;
-};
-
-const submitDamageReport = async () => {
-   if (!damageNotes.value.trim()) return alert("Vui lòng ghi nội dung hư hại!");
-   try {
-      await axios.put(`http://localhost:3000/api/orders/${selectedOrder.value.id}/condition`, {
-         condition: damageNotes.value,
-         has_image: damageImageUploaded.value
-      });
-      alert("Đã gửi biên bản hư hại và đồng bộ lên nhật ký hành trình hệ thống!");
-      showDamageModal.value = false;
-      fetchOrders();
-   } catch (err) {
-      selectedOrder.value.cargo_condition = damageNotes.value;
-      selectedOrder.value.cargo_image = damageImageUploaded.value;
-      alert("[Demo Mode] Ghi nhận hư hại ngoại quan thành công!");
-      showDamageModal.value = false;
-   }
-};
-
-// 4. TÍNH NĂNG TRẢ LẠI HÀNG NGAY TẠI KHO TRUNG CHUYỂN
-const processReturnFromWms = async (orderId) => {
-   const confirmReturn = confirm(`Bạn có chắc chắn muốn xuất lệnh TRẢ LẠI HÀNG đơn #${orderId} về trực tiếp người gửi do lỗi/vấn đề phát sinh không?`);
-   if (!confirmReturn) return;
+  
+const updateLocation = async (orderId) => {
+   const selectEl = document.getElementById(`select-loc-${orderId}`);
+   const locationVal = selectEl ? selectEl.value : '';
    
    try {
-      // Gọi endpoint đổi trạng thái đơn hàng thành hoàn trả từ vị trí kho trung chuyển WMS
-      await axios.put(`http://localhost:3000/api/orders/${orderId}/return-order`, {
-         reason: "Hàng bị phát hiện hư hỏng / sai quy cách nghiêm trọng khi kiểm tra tại Kho WMS."
-      });
-      alert("Hệ thống đã lập lệnh xuất kho trả hàng hoàn thành công!");
-      fetchOrders();
-   } catch (error) {
-      alert("Xử lý hoàn hàng tại kho gặp lỗi hệ thống!");
+       await axios.put(`http://localhost:3000/api/orders/${orderId}/location`, { location: locationVal });
+       alert("Hệ thống đã lưu thông tin chỉ định ô kệ lưu trữ thành công!");
+       fetchOrders();
+   } catch (err) {
+       alert("Không thể gán vị trí chứa hàng!");
    }
+};
+  
+const submitConditionReport = async (orderId) => {
+   const textareaEl = document.getElementById(`textarea-cond-${orderId}`);
+   const conditionVal = textareaEl ? textareaEl.value.trim() : '';
+   if (!conditionVal) return alert("Vui lòng nhập nội dung mô tả lỗi ngoại quan!");
+   
+   try {
+       await axios.put(`http://localhost:3000/api/orders/${orderId}/condition`, {
+           condition: conditionVal,
+           has_image: true
+       });
+       alert("Biên bản ghi nhận sự cố hư hại hàng hóa đã lập thành công!");
+       if (textareaEl) textareaEl.value = '';
+       fetchOrders();
+   } catch (err) {
+       alert("Không thể lập biên bản hư hại!");
+   }
+};
+
+const openHistoryModal = async (orderId) => {
+   selectedOrderId.value = orderId;
+   showHistoryModal.value = true;
+   loadingHistory.value = true;
+   try {
+      const res = await axios.get(`http://localhost:3000/api/orders/${orderId}/history`);
+      orderHistory.value = res.data;
+   } catch (err) {
+      console.error(err);
+   } finally {
+      loadingHistory.value = false;
+   }
+};
+
+const formatTime = (timeStr) => {
+   if (!timeStr) return '';
+   const d = new Date(timeStr);
+   return d.toLocaleString('vi-VN');
 };
   
 onMounted(() => {
-  if (!localStorage.getItem('role')) router.push('/');
-  else {
-     fetchOrders();
-     setInterval(fetchOrders, 10000); // Tự động làm mới dữ liệu sau mỗi 10 giây giống OMS
+  if (!localStorage.getItem('role')) {
+    router.push('/');
+  } else {
+    fetchOrders();
+    wmsInterval = setInterval(() => {
+       fetchOrders();
+       if (activeTab.value === 'warehouse_history') {
+          // Nếu đang ở tab lịch sử, reload cả bảng lịch sử
+          axios.get('http://localhost:3000/api/orders/wms/all/logs').then(res => globalWarehouseLogs.value = res.data);
+       }
+    }, 5000);
   }
 });
   
+onUnmounted(() => { if (wmsInterval) clearInterval(wmsInterval); });
 const logout = () => { localStorage.clear(); router.push('/'); };
 </script>
  
 <style scoped>
-/* TOÀN BỘ CSS ĐƯỢC CHÉP TỪ OMS ĐỂ ĐẢM BẢO ĐỒNG BỘ GIAO DIỆN KHÔNG BỊ LỆCH */
 .dashboard-container { display: flex; height: 100vh; font-family: 'Segoe UI', sans-serif; background: #f0f2f5;}
-.sidebar { width: 250px; background: #2c3e50; color: white; padding: 20px; display: flex; flex-direction: column; box-sizing: border-box;}
+.sidebar { width: 240px; background: #2c3e50; color: white; padding: 20px; display: flex; flex-direction: column; box-sizing: border-box;}
 .brand { font-size: 22px; font-weight: 800; text-align: center; margin-bottom: 30px; letter-spacing: 1px; }
 .user-info { display: flex; align-items: center; gap: 10px; padding-bottom: 20px; border-bottom: 1px solid #34495e; margin-bottom: 20px; }
 .avatar { width: 40px; height: 40px; background: #e67e22; border-radius: 50%; display: flex; justify-content: center; align-items: center; font-weight: bold; }
 .btn-logout { margin-top: auto; padding: 10px; background: #c0392b; color: white; border: none; border-radius: 4px; cursor: pointer; font-weight: 600; }
 .main-content { flex: 1; padding: 30px; overflow-y: auto; background: #fff;}
 .card { background: white; padding: 25px; border-radius: 8px; box-shadow: 0 4px 12px rgba(0,0,0,0.05); border: 1px solid #eef2f5;}
-
 .navigation-menu { display: flex; flex-direction: column; gap: 8px; margin-top: 10px;}
 .menu-btn { padding: 12px 15px; background: none; border: none; color: #b2bec3; text-align: left; font-size: 14px; font-weight: bold; cursor: pointer; border-radius: 4px; transition: all 0.2s;}
 .menu-btn:hover, .menu-btn.active { background: #34495e; color: #fff; }
-
+header h1 { font-size: 22px; font-weight: 800; color: #2c3e50; margin: 0 0 25px 0; }
 .data-table { width: 100%; border-collapse: collapse; margin-top: 15px; }
 .data-table th, .data-table td { padding: 14px 16px; border-bottom: 1px solid #ecf0f1; text-align: left; font-size: 14px;}
 .data-table th { background: #f8f9fa; color: #7f8c8d; font-size: 12px; font-weight: bold; text-transform: uppercase;}
-
+.barcode-tag { font-family: monospace; background: #2d3436; color: #fff; padding: 3px 6px; border-radius: 3px; font-size: 13px; }
+.location-badge { background: #e3f2fd; color: #0d47a1; font-weight: bold; padding: 4px 8px; border-radius: 4px; font-size: 12px;}
+.condition-text-alert { color: #c0392b; font-weight: 600; font-size: 13px; display: inline-block;}
+.badge-status { padding: 4px 8px; border-radius: 4px; font-size: 12px; font-weight: bold; display: inline-block; }
+.status-wait { background: #ffeaa7; color: #d63031; }
+.status-scanned { background: #e8f5e9; color: #2e7d32; }
 .action-cell { display: flex; gap: 8px; }
 .btn-action { padding: 6px 12px; border: none; border-radius: 4px; cursor: pointer; font-weight: bold; font-size: 12px;}
 .btn-ok { background: #2980b9; color: white; }
-.btn-ok:hover { background: #2471a3; }
-.btn-fail { background: #e74c3c; color: white; }
-.btn-fail:hover { background: #c0392b; }
-
-.badge { padding: 4px 8px; background: #e8f5e9; color: #2e7d32; border-radius: 4px; font-size: 11px; font-weight: bold; }
-.badge-vip { padding: 4px 10px; background: #fff9db; color: #f59f00; border-radius: 20px; font-size: 12px; font-weight: bold; border: 1px solid #ffe066;}
-.badge-normal { padding: 4px 10px; background: #e1f5fe; color: #0288d1; border-radius: 20px; font-size: 12px; font-weight: bold;}
-
-.revenue-container { display: flex; gap: 20px; margin-top: 25px; }
-.box-rev { flex: 1; padding: 25px; border-radius: 8px; color: white; box-shadow: 0 6px 18px rgba(0,0,0,0.06); }
-/* Chỉnh lại dải màu Gradient cho hợp tông màu quản trị kho trung chuyển */
-.box-rev.today { background: linear-gradient(135deg, #e67e22, #d35400); }
-.box-rev.month { background: linear-gradient(135deg, #34495e, #2c3e50); }
-.box-rev h2 { font-size: 36px; margin: 8px 0; font-weight: 800; }
-.custom-progress { width: 100%; height: 5px; background: rgba(255,255,255,0.3); border-radius: 10px; margin-top: 15px; }
-.custom-progress .line { height: 100%; background: #fff; border-radius: 10px; }
-
-/* CSS CHO CÁC PHẦN FORM CHỨC NĂNG MỚI ĐƯỢC THÊM VÀO KHO HÀNG */
-.barcode-scanner-mock { display: flex; gap: 10px; margin-bottom: 20px; background: #f8f9fa; padding: 15px; border-radius: 6px; border: 1px dashed #bdc3c7;}
-.scan-input { flex: 1; padding: 10px; border: 1px solid #ccc; border-radius: 4px; font-family: monospace; font-size: 14px;}
-.barcode-tag { font-family: monospace; background: #dfe6e9; padding: 3px 6px; border-radius: 3px; color: #2d3436; font-weight: bold;}
-.mock-img-preview { border: 1px solid #3498db; background: #ebf5fb; padding: 4px 8px; border-radius: 4px; display: inline-block;}
+.btn-history { background: #34495e; color: white; }
+.barcode-scanner-box { background: #f8f9fa; border: 2px dashed #bdc3c7; border-radius: 6px; padding: 15px 20px;}
+.scanner-title { display: flex; align-items: center; gap: 8px; font-size: 13px; color: #2c3e50; margin-bottom: 10px;}
+.laser-dot { width: 8px; height: 8px; background: red; border-radius: 50%; display: inline-block; animation: blink 1s infinite;}
+.scanner-input-row { display: flex; gap: 10px;}
+.scanner-input { flex: 1; padding: 10px; border: 1px solid #bdc3c7; border-radius: 4px; font-family: monospace; font-size: 14px;}
+.btn-scan-trigger { background: #e67e22; color: white; border: none; padding: 0 15px; border-radius: 4px; font-weight: bold; cursor: pointer; font-size: 13px;}
+.row-scanned-active { background-color: #f1f9f5 !important; animation: highlightFade 4s ease-out; }
+@keyframes blink { 50% { opacity: 0; } }
+@keyframes highlightFade { from { background-color: #d4edda; } to { background-color: #fff; } }
 .form-select-custom, .form-textarea-custom { width: 100%; padding: 10px; border: 1px solid #bdc3c7; border-radius: 4px; box-sizing: border-box; font-size: 14px; margin-top: 5px;}
 .form-textarea-custom { font-family: sans-serif; resize: none;}
 .dept-tag { background: #e2e8f0; padding: 2px 6px; border-radius: 3px; font-size: 11px; font-weight: bold; color: #475569; }
 .log-notes { background: #fff5f5; color: #c0392b; padding: 10px; border-radius: 4px; font-size: 13px; border-left: 4px solid #e74c3c; margin-top: 8px; font-weight: 500; }
-
-/* OVERLAY MODAL TIMELINE POPUP STYLE */
 .modal-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); display: flex; justify-content: center; align-items: center; z-index: 9999; }
-.modal-content-box { background: white; width: 500px; max-height: 80vh; border-radius: 6px; display: flex; flex-direction: column; overflow: hidden; box-shadow: 0 8px 30px rgba(0,0,0,0.15); animation: popupFade 0.2s ease-out; }
+.modal-content-box { background: white; width: 500px; max-height: 80vh; border-radius: 6px; display: flex; flex-direction: column; overflow: hidden; box-shadow: 0 8px 30px rgba(0,0,0,0.15); }
 .modal-header { display: flex; justify-content: space-between; align-items: center; padding: 15px 20px; background: #2c3e50; color: white; }
-.modal-header h2 { font-size: 16px; margin: 0; font-weight: 700; letter-spacing: 0.5px; }
+.modal-header h2 { font-size: 15px; margin: 0; font-weight: 700; letter-spacing: 0.5px; }
 .close-btn { background: none; border: none; color: white; font-size: 26px; cursor: pointer; line-height: 1; }
 .modal-body { padding: 25px; overflow-y: auto; background: #fdfefe; }
-
-@keyframes popupFade { from { opacity: 0; transform: scale(0.96); } to { opacity: 1; transform: scale(1); } }
+.timeline-wrapper { position: relative; border-left: 2px solid #34495e; margin-left: 15px; padding-left: 25px; display: flex; flex-direction: column; gap: 20px; }
+.timeline-item { position: relative; }
+.timeline-badge-circle { position: absolute; left: -31px; top: 5px; width: 10px; height: 10px; background: #e67e22; border: 2px solid white; border-radius: 50%; box-shadow: 0 0 0 2px #34495e; }
+.timeline-content-card { background: #f8f9fa; padding: 12px 16px; border-radius: 4px; border: 1px solid #e2e8f0; }
+.time-stamp { font-size: 11px; color: #7f8c8d; font-weight: bold; margin-bottom: 5px; }
+.log-status-row { font-size: 13px; color: #2c3e50; font-weight: bold; }
+.loading-text { text-align: center; color: #7f8c8d; font-style: italic; padding: 20px 0; }
 </style>
