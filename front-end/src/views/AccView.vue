@@ -148,7 +148,13 @@ export default {
          try {
             const response = await axios.get('http://localhost:3000/api/orders/acc/orders');
             if (response.data) {
-               this.orders = response.data.orders || [];
+               // ĐÃ SỬA: Duyệt qua mảng orders nhận được từ API để ép các trường chi phí về kiểu Number số học
+               this.orders = (response.data.orders || []).map(order => ({
+                  ...order,
+                  bot_fee: Number(order.bot_fee) || 0,
+                  fuel_fee: Number(order.fuel_fee) || 0
+               }));
+               
                this.summary = response.data.summary || this.summary;
             }
          } catch (err) {
