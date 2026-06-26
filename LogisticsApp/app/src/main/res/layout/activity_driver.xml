@@ -1,0 +1,56 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:orientation="vertical"
+    android:padding="20dp"
+    android:background="#FFFFFF">
+
+    <EditText
+        android:id="@+id/edtDriverName"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:hint="Tên tài xế"
+        android:layout_marginBottom="10dp"/>
+
+    <EditText
+        android:id="@+id/edtTruckPlate"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:hint="Biển số xe"
+        android:layout_marginBottom="20dp"/>
+
+    <Button
+        android:id="@+id/btnStartLog"
+        android:layout_width="match_parent"
+        android:layout_height="55dp"
+        android:text="BẮT ĐẦU CHUYẾN ĐI (BẬT GPS)"
+        android:backgroundTint="#4CAF50"
+        android:layout_marginBottom="10dp"/>
+
+    <Button
+        android:id="@+id/btnStopLog"
+        android:layout_width="match_parent"
+        android:layout_height="55dp"
+        android:text="KẾT THÚC CHUYẾN ĐI"
+        android:backgroundTint="#F44336"
+        android:layout_marginBottom="30dp"/>
+
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Tọa độ GPS hiện tại nhận được:"
+        android:textStyle="bold"
+        android:textSize="16sp"/>
+
+    <TextView
+        android:id="@+id/txtLiveGps"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="Vĩ độ (Lat): ---\nKinh độ (Lng): ---"
+        android:background="#EEEEEE"
+        android:padding="15dp"
+        android:layout_marginTop="10dp"
+        android:textSize="16sp"
+        android:fontFamily="monospace"/>
+</LinearLayout>

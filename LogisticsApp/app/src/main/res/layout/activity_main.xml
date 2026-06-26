@@ -1,0 +1,36 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:orientation="vertical"
+    android:gravity="center"
+    android:padding="20dp"
+    android:background="#FFFFFF">
+
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="HỆ THỐNG LOGISTICS BASE"
+        android:textSize="22sp"
+        android:textStyle="bold"
+        android:textColor="#333333"
+        android:layout_marginBottom="40dp"/>
+
+    <Button
+        android:id="@+id/btnGoToDriver"
+        android:layout_width="match_parent"
+        android:layout_height="60dp"
+        android:text="GIAO DIỆN TÀI XẾ (GPS)"
+        android:backgroundTint="#4CAF50"
+        android:textSize="16sp"
+        android:layout_marginBottom="20dp"/>
+
+    <Button
+        android:id="@+id/btnGoToWarehouse"
+        android:layout_width="match_parent"
+        android:layout_height="60dp"
+        android:text="GIAO DIỆN KHO (SCAN)"
+        android:backgroundTint="#2196F3"
+        android:textSize="16sp"/>
+
+</LinearLayout>
