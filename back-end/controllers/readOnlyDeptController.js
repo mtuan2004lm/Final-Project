@@ -3,8 +3,10 @@ const pool = require('../config/db');
 // Lấy danh sách hồ sơ chứng từ nâng cao kèm số liệu KPI tổng hợp
 exports.getDocsOrders = async (req, res) => {
     try {
-        // 1. Lấy toàn bộ đơn hàng đã hoàn tất luồng hoặc đang trong trạng thái lưu trữ chứng từ
-        // Mở rộng bộ lọc: Lấy các đơn thuộc phòng 'DOCS' hoặc đã hoàn thành 'DONE'
+        // =========================================================================
+        // 1. ĐÃ SỬA BỘ LỌC SQL: Cho phép phòng DOCS giám sát đơn hàng NGAY TỪ KHÂU OMS ĐÃ DUYỆT
+        // (Bao gồm đơn đang ở kho WMS, xe chạy TMS, Kế toán ACC hay tại phòng DOCS)
+        // =========================================================================
         const ordersQuery = `
             SELECT id, customer_name, product_name, quantity, status, current_dept, payment_status, total_cost,
                    COALESCE(warehouse_location, 'Chưa gán') as warehouse_location,
@@ -16,8 +18,8 @@ exports.getDocsOrders = async (req, res) => {
                    COALESCE(pod_image, '') as pod_image,
                    created_at
             FROM orders 
-            WHERE UPPER(current_dept) = 'DOCS' 
-               OR UPPER(status) = 'DONE'
+            WHERE UPPER(current_dept) IN ('DOCS', 'WMS', 'TMS', 'ACC', 'ARCHIVED') 
+               OR UPPER(status) IN ('APPROVED', 'DONE')
             ORDER BY id DESC
         `;
         const ordersResult = await pool.query(ordersQuery);
@@ -26,18 +28,19 @@ exports.getDocsOrders = async (req, res) => {
         const kpiQuery = `
             SELECT 
                 COUNT(*) as total_archives,
-                COUNT(CASE WHEN status = 'DONE' THEN 1 END) as closed_archives,
-                COUNT(CASE WHEN pod_image IS NOT NULL AND pod_image <> '' THEN 1 END) as has_pod_proof
+                COUNT(CASE WHEN status = 'DONE' THEN 1 END) as done_archives,
+                COUNT(CASE WHEN current_dept = 'ARCHIVED' THEN 1 END) as closed_archives,
+                COUNT(CASE WHEN pod_image IS NOT NULL AND pod_image != '' THEN 1 END) as has_pod_proof
             FROM orders
-            WHERE UPPER(current_dept) = 'DOCS' OR UPPER(status) = 'DONE'
         `;
         const kpiResult = await pool.query(kpiQuery);
         const kpi = kpiResult.rows[0];
 
         res.json({
-            orders: ordersResult.rows,
+            archives: ordersResult.rows,
             kpi: {
                 totalArchives: parseInt(kpi.total_archives) || 0,
+                doneArchives: parseInt(kpi.done_archives) || 0,
                 closedArchives: parseInt(kpi.closed_archives) || 0,
                 hasPodProof: parseInt(kpi.has_pod_proof) || 0
             }
@@ -48,7 +51,7 @@ exports.getDocsOrders = async (req, res) => {
     }
 };
 
-// Tính năng mới: Khóa cứng và niêm phong chứng từ vào kho lưu trữ vĩnh viễn
+// Khóa cứng và niêm phong chứng từ vào kho lưu trữ vĩnh viễn
 exports.lockArchiveFile = async (req, res) => {
     const { id } = req.params;
     try {
@@ -66,14 +69,13 @@ exports.lockArchiveFile = async (req, res) => {
 
         // Ghi nhật ký hệ thống
         await pool.query(
-            `INSERT INTO order_logs (order_id, old_status, new_status, notes) 
-             VALUES ($1, 'DONE', 'DONE', 'Phòng chứng từ (DOCS) tiến hành kiểm toán dữ liệu và Niêm phong hồ sơ vào kho số vĩnh viễn.')`,
+            `INSERT INTO order_logs (order_id, old_status, new_status, notes) \n             VALUES ($1, 'DONE', 'DONE', 'Phòng chứng từ (DOCS) tiến hành kiểm toán dữ liệu và Niêm phong hồ sơ vào kho số vĩnh viễn.')`,
             [id]
         );
 
-        res.json({ message: "🔒 Đã niêm phong hồ sơ và khóa sửa đổi thành công!", order: result.rows[0] });
+        res.json({ message: "🔒 Đã niêm phong hồ sơ vào kho điện tử thành công!", order: result.rows[0] });
     } catch (err) {
-        console.error("🔴 LỖI NIÊM PHONG HỒ SƠ:", err.message);
-        res.status(500).json({ error: "Lỗi hệ thống khi khóa hồ sơ", detail: err.message });
+        console.error("🔴 LỖI KHI KHÓA CHỨNG TỪ:", err.message);
+        res.status(500).json({ error: "Lỗi hệ thống khi khóa hồ sơ" });
     }
 };
