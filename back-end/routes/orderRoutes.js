@@ -4,23 +4,16 @@ const multer = require('multer');
 const path = require('path');
 const fs = require('fs'); 
 
-// TỰ ĐỘNG KIỂM TRA VÀ TẠO THƯ MỤC UPLOADS NẾU CHƯA CÓ TRÊN MÁY
 if (!fs.existsSync('uploads')) {
   fs.mkdirSync('uploads', { recursive: true });
 }
 
-// CẤU HÌNH MULTER ĐỂ XỬ LÝ UPLOAD ẢNH HÀNG HÓA
 const storage = multer.diskStorage({
-  destination: function (req, file, cb) {
-    cb(null, 'uploads/');
-  },
-  filename: function (req, file, cb) {
-    cb(null, Date.now() + path.extname(file.originalname));
-  }
+  destination: function (req, file, cb) { cb(null, 'uploads/'); },
+  filename: function (req, file, cb) { cb(null, Date.now() + path.extname(file.originalname)); }
 });
 const upload = multer({ storage: storage });
 
-// IMPORT CÁC CONTROLLERS PHÒNG BAN
 const customerController = require('../controllers/customerController');
 const omsController = require('../controllers/omsController');
 const wmsController = require('../controllers/wmsController');
@@ -28,53 +21,45 @@ const tmsController = require('../controllers/tmsController');
 const readOnlyDeptController = require('../controllers/readOnlyDeptController');
 const accController = require('../controllers/accController'); 
 
-// =========================================================================
-// 1. LUỒNG KHÁCH HÀNG (CUSTOMER ACTIONS)
-// =========================================================================
-router.post('/', upload.single('product_image'), customerController.createOrder);
-router.get('/customer', customerController.getCustomerOrders); 
+// THUẬT TOÁN BỌC THÉP: BẢO VỆ SERVER KHÔNG BAO GIỜ BỊ CRASH NẾU THIẾU HÀM
+const safe = (fn) => {
+    if (typeof fn === 'function') return fn;
+    return (req, res) => res.status(500).json({ error: "API này đang được cập nhật hoặc khai báo thiếu trong Controller!" });
+};
 
-// =========================================================================
-// 2. LUỒNG THỐNG KÊ, PHÂN TÍCH & LOG SỔ CÁI (OMS & HISTORY)
-// FIX LỖI 404: Cấu hình song song cả 2 dạng URL (gạch chéo và gạch dưới) để khớp với Frontend
-// =========================================================================
-router.get('/oms/analytics/revenue', omsController.getRevenueReport || ((req, res) => res.json([])));
-router.get('/oms_analytics/revenue', omsController.getRevenueReport || ((req, res) => res.json([])));
+// 1. LUỒNG KHÁCH HÀNG
+router.post('/', upload.single('product_image'), safe(customerController.createOrder));
+router.get('/customer', safe(customerController.getCustomerOrders)); 
 
-router.get('/oms/analytics/customers', omsController.getCustomerAnalytics || ((req, res) => res.json([])));
-router.get('/oms_analytics/customers', omsController.getCustomerAnalytics || ((req, res) => res.json([])));
+// 2. LUỒNG ĐIỀU PHỐI OMS (Đã thêm lại Analytics để tránh lỗi 404 mất biểu đồ)
+router.get('/oms/analytics/revenue', safe(omsController.getRevenueReport));
+router.get('/oms_analytics/revenue', safe(omsController.getRevenueReport));
+router.get('/oms/analytics/customers', safe(omsController.getCustomerAnalytics));
+router.get('/oms_analytics/customers', safe(omsController.getCustomerAnalytics));
 
-router.get('/:id/history', omsController.getOrderHistory); 
+router.put('/:id/return-order', safe(omsController.returnOrderToCustomer)); 
+router.get('/history/:id', safe(omsController.getOrderHistory));
 
-// =========================================================================
-// 3. ĐỊNH TUYẾN DÀNH RIÊNG CHO PHÒNG KHO (WMS ACTIONS)
-// =========================================================================
-router.get('/wms/all/logs', wmsController.getWarehouseGlobalLogs);
+// 3. LUỒNG KHO BÃI WMS
+router.put('/wms/:id/assign', safe(wmsController.assignWarehouseSlot));
 
-// =========================================================================
-// 4. ĐỊNH TUYẾ原 DÀNH RIÊNG CHO PHÒNG VẬN TẢI ĐỘI XE (TMS ACTIONS)
-// =========================================================================
-router.get('/tms/fleet', tmsController.getTruckFleet);                      
-router.put('/tms/:id/assign', tmsController.assignDeliveryRoute);            
-router.put('/tms/:id/pod-submit', tmsController.submitDriverPod);            
+// 4. LUỒNG VẬN TẢI TMS
+router.get('/tms/fleet', safe(tmsController.getTruckFleet));                      
+router.put('/tms/:id/assign', safe(tmsController.assignDeliveryRoute));            
+router.put('/tms/:id/pod-submit', safe(tmsController.submitDriverPod));            
 
-// =========================================================================
-// 5. ĐỊNH TUYẾN DÀNH RIÊNG CHO PHÒNG KHO & KẾ TOÁN (ACC & GLOBAL READ)
-// =========================================================================
-router.get('/acc/orders', accController.getAccOrders);           
-router.put('/acc/:id/approve', accController.approvePayment);    
+// 5. LUỒNG KẾ TOÁN ACC
+router.get('/acc/orders', safe(accController.getAccOrders));           
+router.put('/acc/:id/approve', safe(accController.approvePayment));    
 
-// =========================================================================
-// 6. LẤY DANH SÁCH ĐƠN HÀNG HÀNG LOẠT THEO TỪNG PHÒNG BAN
-// =========================================================================
-router.get('/oms', omsController.getOmsOrders);           
-router.get('/wms', wmsController.getWmsOrders);           
-router.get('/tms', tmsController.getTmsOrders);           
-router.get('/docs', readOnlyDeptController.getDocsOrders); 
+// 6. LẤY DANH SÁCH THEO PHÒNG BAN
+router.get('/oms', safe(omsController.getOmsOrders));           
+router.get('/wms', safe(wmsController.getWmsOrders));           
+router.get('/tms', safe(tmsController.getTmsOrders));           
+router.get('/docs', safe(readOnlyDeptController.getDocsOrders)); 
+router.put('/docs/:id/lock', safe(readOnlyDeptController.lockArchiveFile));
 
-// =========================================================================
-// 7. CƠ CHẾ CẬP NHẬT TRẠNG THÁI CHUNG CHUNG (Xếp dưới cùng)
-// =========================================================================
-router.put('/:id', omsController.updateOrderStatus); 
+// 7. CẬP NHẬT CHUNG
+router.put('/:id', safe(omsController.updateOrderStatus)); 
 
 module.exports = router;

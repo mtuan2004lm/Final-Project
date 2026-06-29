@@ -1,7 +1,7 @@
 const pool = require('../config/db');
 
 // =========================================================================
-// 1. LẤY TOÀN BỘ ĐƠN HÀNG CỦA KHÁCH (CẬP NHẬT CÁC CỘT MỚI THÊM)
+// 1. LẤY TOÀN BỘ ĐƠN HÀNG CỦA KHÁCH (ĐÃ SỬA: THÊM CỘT DRIVER_NOTES)
 // =========================================================================
 exports.getCustomerOrders = async (req, res) => {
     let { username } = req.query; 
@@ -13,8 +13,9 @@ exports.getCustomerOrders = async (req, res) => {
         }
 
         const searchName = username.trim();
+        // ĐÃ BỔ SUNG: Thêm trường driver_notes vào chuỗi SELECT dưới đây
         const queryText = `
-            SELECT id, username, customer_name, product_name, quantity, status, current_dept, notes,
+            SELECT id, username, customer_name, product_name, quantity, status, current_dept, notes, driver_notes,
                    COALESCE(cargo_type, 'Hàng hóa thông thường') as cargo_type,
                    COALESCE(total_price, 0) as total_price,
                    COALESCE(product_image, '') as product_image
@@ -30,24 +31,21 @@ exports.getCustomerOrders = async (req, res) => {
         res.json(result.rows);
     } catch (err) {
         console.error("🔴 LỖI TRUY XUẤT ĐƠN HÀNG CUSTOMER:", err.message);
-        res.status(500).json({ error: "Lỗi hệ thống khi lấy danh sách đơn ký gửi", detail: err.message });
+        res.status(500).json({ error: "Lỗi hệ thống khi truy xuất đơn hàng" });
     }
 };
 
 // =========================================================================
-// 2. KHỞI TẠO ĐƠN HÀNG MỚI (CHUYỂN THẲNG QUA PHÒNG OMS SAU KHI TẠO)
+// 2. KHỞI TẠO ĐƠN HÀNG MỚI (TỜ KHAI KÝ GỬI HÀNG HÓA CHUYỂN OMS)
 // =========================================================================
 exports.createOrder = async (req, res) => {
     const { username, customer_name, product_name, cargo_type, quantity, total_price } = req.body;
-    
-    // Đọc tên file ảnh hàng hóa từ Multer middleware nếu có upload
     const productImagePath = req.file ? `/uploads/${req.file.filename}` : '';
 
     try {
-        // Ép kiểu dữ liệu số an toàn chống lỗi dữ liệu trống
         const safePrice = parseFloat(total_price) || 0;
-
-        // ĐÃ SỬA: Đổi giá trị tham số phòng ban cuối cùng từ 'CUSTOMER' thành 'OMS'
+        
+        // Thiết lập luân chuyển ban đầu cuối cùng từ 'CUSTOMER' thành 'OMS'
         const queryText = `
             INSERT INTO orders (
                 username, customer_name, product_name, cargo_type, 
@@ -82,7 +80,7 @@ exports.createOrder = async (req, res) => {
             order: newOrder
         });
     } catch (err) {
-        console.error("🔴 LỖI KHỞI TẠO ĐƠN HÀNG PHÍA CUSTOMER:", err.message);
-        res.status(500).json({ error: "Lỗi cơ sở dữ liệu khi đăng ký đơn hàng mới", detail: err.message });
+        console.error("🔴 LỖI KHỞI TẠO ĐƠN HÀNG:", err.message);
+        res.status(500).json({ error: "Lỗi hệ thống khi khởi tạo đơn hàng" });
     }
 };

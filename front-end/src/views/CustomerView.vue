@@ -17,7 +17,7 @@
                ⚠️ Đơn hàng #{{ returnedOrderNotice.id }} bị hoàn trả!
             </p>
             <p style="color: #f1c40f; font-size: 12px; font-style: italic; margin-top: 0; line-height: 1.4; max-height: 60px; overflow-y: auto;">
-               Lý do: {{ returnedOrderNotice.notes || 'Chưa cập nhật lý do cụ thể.' }}
+               Lý do: {{ returnedOrderNotice.driver_notes || 'Chưa cập nhật lý do cụ thể.' }}
             </p>
          </div>
          <p v-else-if="latestNotification">{{ latestNotification }}</p>
@@ -330,13 +330,10 @@ const priceRates = {
 };
 
 // HÀM XỬ LÝ LỖI ĐƠN CŨ BỊ MẤT GIÁ TIỀN:
-// Sẽ tự động tính toán lại thành số $ nhỏ hợp lý nếu database trả về lỗi null hoặc 0
 const getOrderPrice = (order) => {
   if (order.total_price && order.total_price > 0 && order.total_price < 100000) {
-    // Nếu db đã có lưu total_price theo chuẩn hệ $ mới
     return order.total_price;
   }
-  // Nếu là đơn cũ (rỗng hoặc giá to như VNĐ) => Tự động lấy hệ số giá mới nhân số lượng
   const rate = priceRates[order.cargo_type] || 100;
   const qty = order.quantity || 1;
   return rate * qty;
@@ -404,7 +401,7 @@ const createOrder = async () => {
     newOrder.value = { customer_name: '', product_name: '', cargo_type: 'Hàng hóa thông thường', quantity: 1 };
     productImageFile.value = null;
     const fileInput = document.querySelector('.file-input-styled');
-    if (fileInput) fileInput.value = ''; // Reset tên file hiển thị trên thanh
+    if (fileInput) fileInput.value = ''; 
     
     calculateEstimatedPrice();
     fetchOrders();
@@ -453,7 +450,6 @@ const generateQRUrl = (order) => {
   const bankId = "MB"; 
   const accountNo = "099999999999"; 
   const template = "qr_only";
-  // Tỷ giá quy đổi 1$ ~ 25,000 VNĐ để mã QR hợp lệ trên App Ngân Hàng VN
   const amountUsd = getOrderPrice(order);
   const amountVnd = amountUsd * 25000; 
   const description = `Thanh toan don hang ${order.id}`;
