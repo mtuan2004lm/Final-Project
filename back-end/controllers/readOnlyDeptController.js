@@ -3,50 +3,79 @@ const pool = require('../config/db');
 // Lấy danh sách hồ sơ chứng từ nâng cao kèm số liệu KPI tổng hợp
 exports.getDocsOrders = async (req, res) => {
     try {
-        // =========================================================================
-        // 1. ĐÃ SỬA BỘ LỌC SQL: Cho phép phòng DOCS giám sát đơn hàng NGAY TỪ KHÂU OMS ĐÃ DUYỆT
-        // (Bao gồm đơn đang ở kho WMS, xe chạy TMS, Kế toán ACC hay tại phòng DOCS)
-        // =========================================================================
-        const ordersQuery = `
-            SELECT id, customer_name, product_name, quantity, status, current_dept, payment_status, total_cost,
-                   COALESCE(warehouse_location, 'Chưa gán') as warehouse_location,
-                   COALESCE(delivery_route, 'Chưa lập') as delivery_route,
-                   COALESCE(assigned_truck, 'Chưa gán') as assigned_truck,
-                   COALESCE(bot_fee, 0) as bot_fee,
-                   COALESCE(fuel_fee, 0) as fuel_fee,
-                   COALESCE(driver_notes, 'Không có') as driver_notes,
-                   COALESCE(pod_image, '') as pod_image,
-                   created_at
-            FROM orders 
-            WHERE UPPER(current_dept) IN ('DOCS', 'WMS', 'TMS', 'ACC', 'ARCHIVED') 
-               OR UPPER(status) IN ('APPROVED', 'DONE')
-            ORDER BY id DESC
-        `;
-        const ordersResult = await pool.query(ordersQuery);
+        // 1. DÙNG SELECT * : Tuyệt đối chống sập 500 kể cả khi Database thiếu cột mới
+        const ordersResult = await pool.query('SELECT * FROM orders ORDER BY id DESC');
+        const allOrders = ordersResult.rows;
 
-        // 2. Thuật toán tính nhanh số liệu KPI lưu trữ tài liệu
-        const kpiQuery = `
-            SELECT 
-                COUNT(*) as total_archives,
-                COUNT(CASE WHEN status = 'DONE' THEN 1 END) as done_archives,
-                COUNT(CASE WHEN current_dept = 'ARCHIVED' THEN 1 END) as closed_archives,
-                COUNT(CASE WHEN pod_image IS NOT NULL AND pod_image != '' THEN 1 END) as has_pod_proof
-            FROM orders
-        `;
-        const kpiResult = await pool.query(kpiQuery);
-        const kpi = kpiResult.rows[0];
+ 
 
-        res.json({
-            archives: ordersResult.rows,
-            kpi: {
-                totalArchives: parseInt(kpi.total_archives) || 0,
-                doneArchives: parseInt(kpi.done_archives) || 0,
-                closedArchives: parseInt(kpi.closed_archives) || 0,
-                hasPodProof: parseInt(kpi.has_pod_proof) || 0
+        // 2. LỌC DỮ LIỆU BẰNG JAVASCRIPT: Chuẩn hóa chữ để phòng DOCS thấy đơn NGAY KHI OMS DUYỆT
+        const docsOrders = allOrders.filter(order => {
+            const status = (order.status || '').trim().toUpperCase();
+            const dept = (order.current_dept || '').trim().toUpperCase();
+            
+            // Định nghĩa các trạng thái ban đầu (Khi chưa được OMS duyệt)
+            const isPendingStatus = ['PENDING', 'CHỜ DUYỆT', 'CHỜ OMS DUYỆT', 'MỚI TẠO'].includes(status);
+            const isInitialDept = ['OMS', 'CUSTOMER'].includes(dept);
+            
+            // ĐIỀU KIỆN: Chỉ cần đơn đã được duyệt (Không còn Pending) hoặc đã đi qua các phòng ban khác
+            return !isPendingStatus || !isInitialDept;
+        }).map(order => {
+            // Tự động bù đắp dữ liệu (Thay thế COALESCE) để Frontend Vue không bị lỗi render giao diện
+            return {
+                id: order.id,
+                customer_name: order.customer_name,
+                product_name: order.product_name,
+                quantity: order.quantity,
+                status: order.status,
+                current_dept: order.current_dept,
+                payment_status: order.payment_status,
+                total_cost: order.total_cost,
+                warehouse_location: order.warehouse_location || 'Chưa gán',
+                delivery_route: order.delivery_route || 'Chưa lập',
+                assigned_truck: order.assigned_truck || 'Chưa gán',
+                bot_fee: Number(order.bot_fee) || 0,
+                fuel_fee: Number(order.fuel_fee) || 0,
+                driver_notes: order.driver_notes || 'Không có',
+                pod_image: order.pod_image || '',
+                created_at: order.created_at
+            };
+        });
+
+        // 3. TỰ ĐỘNG TÍNH TOÁN KPI BẰNG JAVASCRIPT CHÍNH XÁC
+        let totalArchives = docsOrders.length;
+        let doneArchives = 0;
+        let closedArchives = 0;
+        let hasPodProof = 0;
+
+        docsOrders.forEach(order => {
+            const status = (order.status || '').trim().toUpperCase();
+            const dept = (order.current_dept || '').trim().toUpperCase();
+
+            if (['DONE', 'ĐÃ GIAO HÀNG', 'ĐÃ HOÀN THÀNH'].includes(status)) {
+                doneArchives++;
+            }
+            if (dept === 'ARCHIVED') {
+                closedArchives++;
+            }
+            if (order.pod_image && order.pod_image.trim() !== '') {
+                hasPodProof++;
             }
         });
+
+        // 4. TRẢ VỀ ĐÚNG CẤU TRÚC GÓI TIN MÀ FILE DocsView.vue ĐANG ĐỢI
+        res.json({
+            archives: docsOrders,
+            kpi: {
+                totalArchives: totalArchives,
+                doneArchives: doneArchives,
+                closedArchives: closedArchives,
+                hasPodProof: hasPodProof
+            }
+        });
+
     } catch (err) {
-        console.error("🔴 LỖI TẠI READ_ONLY_DEPT_CONTROLLER:", err.message);
+        console.error("🔴 LỖI NGHIÊM TRỌNG TẠI READ_ONLY_DEPT_CONTROLLER:", err.message);
         res.status(500).json({ error: "Lỗi cơ sở dữ liệu phòng DOCS", detail: err.message });
     }
 };
@@ -69,7 +98,8 @@ exports.lockArchiveFile = async (req, res) => {
 
         // Ghi nhật ký hệ thống
         await pool.query(
-            `INSERT INTO order_logs (order_id, old_status, new_status, notes) \n             VALUES ($1, 'DONE', 'DONE', 'Phòng chứng từ (DOCS) tiến hành kiểm toán dữ liệu và Niêm phong hồ sơ vào kho số vĩnh viễn.')`,
+            `INSERT INTO order_logs (order_id, old_status, new_status, notes) 
+             VALUES ($1, 'DONE', 'DONE', 'Phòng chứng từ (DOCS) tiến hành kiểm toán dữ liệu và Niêm phong hồ sơ vào kho số vĩnh viễn.')`,
             [id]
         );
 

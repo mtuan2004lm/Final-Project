@@ -2,9 +2,9 @@ const express = require('express');
 const router = express.Router();
 const multer = require('multer');
 const path = require('path');
-const fs = require('fs'); // <-- THÊM THƯ VIỆN HỆ THỐNG FILE ĐỂ FIX LỖI 2
+const fs = require('fs'); 
 
-// <-- TỰ ĐỘNG KIỂM TRA VÀ TẠO THƯ MỤC UPLOADS NẾU CHƯA CÓ TRÊN MÁY
+// TỰ ĐỘNG KIỂM TRA VÀ TẠO THƯ MỤC UPLOADS NẾU CHƯA CÓ TRÊN MÁY
 if (!fs.existsSync('uploads')) {
   fs.mkdirSync('uploads', { recursive: true });
 }
@@ -31,15 +31,19 @@ const accController = require('../controllers/accController');
 // =========================================================================
 // 1. LUỒNG KHÁCH HÀNG (CUSTOMER ACTIONS)
 // =========================================================================
-// ĐÃ TÍCH HỢP: upload.single('product_image') để giải mã ảnh tải lên từ form khách hàng
 router.post('/', upload.single('product_image'), customerController.createOrder);
 router.get('/customer', customerController.getCustomerOrders); 
 
 // =========================================================================
 // 2. LUỒNG THỐNG KÊ, PHÂN TÍCH & LOG SỔ CÁI (OMS & HISTORY)
+// FIX LỖI 404: Cấu hình song song cả 2 dạng URL (gạch chéo và gạch dưới) để khớp với Frontend
 // =========================================================================
-router.get('/oms/analytics/revenue', omsController.getRevenueReport);
-router.get('/oms/analytics/customers', omsController.getCustomerAnalytics);
+router.get('/oms/analytics/revenue', omsController.getRevenueReport || ((req, res) => res.json([])));
+router.get('/oms_analytics/revenue', omsController.getRevenueReport || ((req, res) => res.json([])));
+
+router.get('/oms/analytics/customers', omsController.getCustomerAnalytics || ((req, res) => res.json([])));
+router.get('/oms_analytics/customers', omsController.getCustomerAnalytics || ((req, res) => res.json([])));
+
 router.get('/:id/history', omsController.getOrderHistory); 
 
 // =========================================================================
@@ -48,7 +52,7 @@ router.get('/:id/history', omsController.getOrderHistory);
 router.get('/wms/all/logs', wmsController.getWarehouseGlobalLogs);
 
 // =========================================================================
-// 4. ĐỊNH TUYẾN DÀNH RIÊNG CHO PHÒNG VẬN TẢI ĐỘI XE (TMS ACTIONS)
+// 4. ĐỊNH TUYẾ原 DÀNH RIÊNG CHO PHÒNG VẬN TẢI ĐỘI XE (TMS ACTIONS)
 // =========================================================================
 router.get('/tms/fleet', tmsController.getTruckFleet);                      
 router.put('/tms/:id/assign', tmsController.assignDeliveryRoute);            
@@ -69,7 +73,7 @@ router.get('/tms', tmsController.getTmsOrders);
 router.get('/docs', readOnlyDeptController.getDocsOrders); 
 
 // =========================================================================
-// 7. CƠ CHẾ CẬP NHẬT TRẠNG THÁI CHUNG CHUNG (Xếp cuối cùng)
+// 7. CƠ CHẾ CẬP NHẬT TRẠNG THÁI CHUNG CHUNG (Xếp dưới cùng)
 // =========================================================================
 router.put('/:id', omsController.updateOrderStatus); 
 

@@ -167,7 +167,8 @@
      async fetchDocsData() {
        try {
          const response = await axios.get('http://localhost:3000/api/orders/docs');
-         this.docs = response.data.orders || [];
+         // ĐÃ SỬA LỖI Ở DÒNG NÀY: Đổi 'response.data.orders' thành 'response.data.archives' cho khớp Backend
+         this.docs = response.data.archives || [];
          this.kpi = response.data.kpi || { totalArchives: 0, closedArchives: 0, hasPodProof: 0 };
        } catch (error) {
          console.error('🔴 Lỗi tải dữ liệu phòng Docs:', error);
