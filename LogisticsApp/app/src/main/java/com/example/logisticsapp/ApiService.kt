@@ -1,5 +1,6 @@
 package com.example.logisticsapp
 
+import com.google.gson.annotations.SerializedName // 1. NHỚ THÊM DÒNG IMPORT NÀY
 import retrofit2.Call
 import retrofit2.http.Body
 import retrofit2.http.GET
@@ -15,7 +16,11 @@ data class WmsOrder(
     val quantity: Int,
     val status: String,
     val current_dept: String,
-    val is_scanned: Boolean
+    val is_scanned: Boolean,
+
+    // 2. CẬP NHẬT ĐOẠN NÀY: Để Kotlin tự động map với trường warehouse_location của Node.js
+    @SerializedName("warehouse_location")
+    val location: String?
 )
 
 // Model phản hồi của hàm scanBarcode từ Node.js (Chứa chuỗi "message")

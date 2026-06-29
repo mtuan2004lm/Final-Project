@@ -1,13 +1,15 @@
 package com.example.logisticsapp
 
+import android.content.Intent
 import android.os.Bundle
 import android.widget.ArrayAdapter
 import android.widget.Button
+import android.widget.EditText
 import android.widget.ListView
 import android.widget.TextView
 import android.widget.Toast
+import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
-import com.google.mlkit.vision.codescanner.GmsBarcodeScanning
 import retrofit2.Call
 import retrofit2.Callback
 import retrofit2.Response
@@ -30,8 +32,13 @@ class WarehouseActivity : AppCompatActivity() {
         setContentView(R.layout.activity_warehouse)
 
         val btnScan = findViewById<Button>(R.id.btnScan)
+        val btnReload = findViewById<Button>(R.id.btnReload)
+        val btnLogout = findViewById<Button>(R.id.btnLogout) // Ánh xạ nút Đăng xuất mới
         listViewOrders = findViewById(R.id.listViewOrders)
         txtSelectedOrder = findViewById(R.id.txtSelectedOrder)
+
+        // Đổi chữ hiển thị trên nút bấm thành "NHẬP MÃ KIỆN HÀNG" cho đúng thực tế mới
+        btnScan.text = "NHẬP MÃ KIỆN HÀNG"
 
         // Khởi tạo kết nối API Node.js
         val retrofit = Retrofit.Builder()
@@ -40,8 +47,25 @@ class WarehouseActivity : AppCompatActivity() {
             .build()
         apiService = retrofit.create(ApiService::class.java)
 
-        // 1. Tự động tải danh sách đơn hàng từ Web về
+        // 1. Tự động tải danh sách đơn hàng từ Web về khi vừa vào màn hình
         loadWmsOrders()
+
+        // ✨ Sự kiện khi bấm nút TẢI LẠI dữ liệu mới từ OMS
+        btnReload.setOnClickListener {
+            Toast.makeText(this, "🔄 Đang cập nhật dữ liệu mới từ OMS...", Toast.LENGTH_SHORT).show()
+            loadWmsOrders()
+        }
+
+        // ✨ Sự kiện khi bấm nút ĐĂNG XUẤT (Logout)
+        btnLogout.setOnClickListener {
+            // Quay trở về màn hình LoginActivity
+            val intent = Intent(this, LoginActivity::class.java)
+            // Xóa hết lịch sử các màn hình trước đó để không bấm Back quay lại được
+            intent.flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK
+            startActivity(intent)
+            Toast.makeText(this, "🚪 Đã đăng xuất tài khoản!", Toast.LENGTH_SHORT).show()
+            finish()
+        }
 
         // 2. Sự kiện khi Thủ kho bấm chọn trực tiếp vào một dòng đơn hàng trên màn hình
         listViewOrders.setOnItemClickListener { _, _, position, _ ->
@@ -49,50 +73,65 @@ class WarehouseActivity : AppCompatActivity() {
                 val orderClicked = listOrdersFromServer[position]
                 selectedOrderId = orderClicked.id
 
-                // Cập nhật chữ hiển thị cho thủ kho biết đang chọn xử lý đơn hàng nào
-                txtSelectedOrder.text = "Đang xử lý: Đơn hàng #${orderClicked.id} - KH: ${orderClicked.customer_name}"
-                Toast.makeText(this, "Đã chọn Đơn hàng #${orderClicked.id}", Toast.LENGTH_SHORT).show()
+                // CẬP NHẬT: Hiển thị định dạng dạng PKG-600xx cho thủ kho nhìn đồng bộ với danh sách
+                val formattedPackageId = "PKG-600${orderClicked.id}"
+
+                // Lấy thông tin vị trí lưu kho (nếu null hoặc trống thì hiện "Chưa xếp kệ")
+                val locationInfo = if (!orderClicked.location.isNullOrBlank()) orderClicked.location else "Chưa xếp kệ"
+
+                txtSelectedOrder.text = "Đang xử lý: Kiện $formattedPackageId\n📍 Vị trí: $locationInfo"
+                Toast.makeText(this, "Đã chọn Kiện hàng $formattedPackageId", Toast.LENGTH_SHORT).show()
             }
         }
 
-        // Khởi tạo bộ quét mã ML Kit của Google
-        val scanner = GmsBarcodeScanning.getClient(this)
-
-        // 3. Sự kiện bấm nút BẮT ĐẦU QUÉT MÃ ở dưới cùng
+        // 3. Sự kiện bấm nút NHẬP MÃ KIỆN HÀNG ở dưới cùng
         btnScan.setOnClickListener {
-            // Kiểm tra xem thủ kho đã bấm chọn đơn hàng nào ở danh sách phía trên chưa
             if (selectedOrderId == -1) {
                 Toast.makeText(this, "Vui lòng bấm chọn 1 đơn hàng trong danh sách trước!", Toast.LENGTH_LONG).show()
                 return@setOnClickListener
             }
 
-            // Nếu đã chọn rồi thì bật camera lên quét mã vạch
-            scanner.startScan()
-                .addOnSuccessListener { barcode ->
-                    val rawValue = barcode.rawValue
-                    if (!rawValue.isNullOrEmpty()) {
-                        // ĐÃ SỬA ĐỂ TEST TRÊN MÁY ẢO:
-                        // Cứ quét trúng bất kỳ hình ảnh mã vạch nào của Google trong phòng 3D,
-                        // Hệ thống sẽ lấy luôn ID đơn hàng bạn chọn ở danh sách để gửi đồng bộ lên Web!
-                        Toast.makeText(this, "Nhận diện mã vạch máy ảo! Tiến hành đồng bộ đơn hàng #$selectedOrderId", Toast.LENGTH_SHORT).show()
-                        syncScanWithWeb(selectedOrderId)
-                    }
-                }
-                .addOnFailureListener { e ->
-                    Toast.makeText(this, "Lỗi quét camera: ${e.message}", Toast.LENGTH_SHORT).show()
-                }
+            // Hiển thị hộp thoại (Popup) yêu cầu nhập mã kiểm tra
+            showInputDialog()
+        }
+    }
+
+    // Hàm hiển thị Popup nhập mã
+    private fun showInputDialog() {
+        val builder = AlertDialog.Builder(this)
+        builder.setTitle("Xác nhận mã kiện hàng")
+
+        val formattedPackageId = "PKG-600$selectedOrderId"
+        builder.setMessage("Nhập mã vạch in trên thùng (Ví dụ: $formattedPackageId hoặc $selectedOrderId)")
+
+        // Tạo một ô nhập chữ (EditText) nằm trong Popup
+        val input = EditText(this)
+        input.hint = "Nhập mã kiện hàng tại đây..."
+        builder.setView(input)
+
+        // Nút bấm xác nhận trên Popup
+        builder.setPositiveButton("XÁC NHẬN") { dialog, _ ->
+            val userInput = input.text.toString().trim().uppercase()
+
+            // Chấp nhận cả 2 trường hợp gõ đầy đủ "PKG-60016" hoặc gõ nhanh số ID "16"
+            val isMatch = userInput == formattedPackageId || userInput == selectedOrderId.toString()
+
+            if (isMatch) {
+                // Khớp mã -> Gọi API đồng bộ thẳng lên Web
+                syncScanWithWeb(selectedOrderId)
+                dialog.dismiss()
+            } else {
+                // Nhập sai mã
+                Toast.makeText(this, "Sai mã! Bạn gõ là: '$userInput' nhưng mã cần nhập là: '$formattedPackageId'", Toast.LENGTH_LONG).show()
+            }
         }
 
-        // 🛠️ TÍNH NĂNG PHỤ (MẸO TEST NHANH): Nhấn giữ nút quét 2 giây để tự động duyệt luôn không cần camera
-        btnScan.setOnLongClickListener {
-            if (selectedOrderId == -1) {
-                Toast.makeText(this, "Vui lòng bấm chọn 1 đơn hàng trước!", Toast.LENGTH_SHORT).show()
-                return@setOnLongClickListener true
-            }
-            Toast.makeText(this, "Chế độ giả lập: Tự động gửi lệnh quét đơn #$selectedOrderId lên Web...", Toast.LENGTH_SHORT).show()
-            syncScanWithWeb(selectedOrderId)
-            true
+        // Nút hủy bỏ Popup
+        builder.setNegativeButton("HỦY") { dialog, _ ->
+            dialog.cancel()
         }
+
+        builder.show()
     }
 
     // Hàm gọi API lấy danh sách đơn hàng chờ xử lý kho
@@ -106,12 +145,16 @@ class WarehouseActivity : AppCompatActivity() {
                         listOrdersFromServer = body.filter { !it.is_scanned }
 
                         if (listOrdersFromServer.isNotEmpty()) {
-                            // Tạo mảng chuỗi định dạng đẹp để đưa vào ListView hiển thị
                             val listDisplayStrings = listOrdersFromServer.map { order ->
-                                "Mã Kiện: #${order.id}\nKH: ${order.customer_name} | Sản phẩm: ${order.product_name} (SL: ${order.quantity})"
+                                val formattedPackageId = "PKG-600${order.id}"
+
+                                // ✨ CẬP NHẬT: Lấy thông tin vị trí lưu kho từ thực tế Backend trả về
+                                val locationInfo = if (!order.location.isNullOrBlank()) order.location else "Chưa xếp kệ"
+
+                                // Đưa thông tin vị trí hiển thị trực quan ngay trên danh sách đơn hàng
+                                "Mã Kiện: $formattedPackageId  |  📍 Vị trí: $locationInfo\nKH: ${order.customer_name} | Sản phẩm: ${order.product_name} (SL: ${order.quantity})"
                             }
 
-                            // Đổ dữ liệu chuỗi vào ListView thông qua ArrayAdapter mặc định của Android
                             val adapter = ArrayAdapter(
                                 this@WarehouseActivity,
                                 android.R.layout.simple_list_item_1,
@@ -119,7 +162,6 @@ class WarehouseActivity : AppCompatActivity() {
                             )
                             listViewOrders.adapter = adapter
                         } else {
-                            // Không có đơn hàng nào
                             val emptyAdapter = ArrayAdapter(this@WarehouseActivity, android.R.layout.simple_list_item_1, arrayOf("Hiện tại không có kiện hàng nào chờ xử lý xuất kho."))
                             listViewOrders.adapter = emptyAdapter
                             resetSelection()
@@ -134,7 +176,7 @@ class WarehouseActivity : AppCompatActivity() {
         })
     }
 
-    // Hàm gửi kết quả đồng bộ lên Web khi quét chuẩn xác mã thùng hàng
+    // Hàm gửi kết quả đồng bộ lên Web
     private fun syncScanWithWeb(orderId: Int) {
         apiService.scanWmsBarcode(orderId).enqueue(object : Callback<ScanResponse> {
             override fun onResponse(call: Call<ScanResponse>, response: Response<ScanResponse>) {
@@ -142,9 +184,8 @@ class WarehouseActivity : AppCompatActivity() {
                     val serverMessage = response.body()?.message ?: "Thành công"
                     Toast.makeText(this@WarehouseActivity, "🎉 Thành công: $serverMessage", Toast.LENGTH_LONG).show()
 
-                    // Xóa trạng thái đang chọn sau khi hoàn thành
+                    // Xóa trạng thái đang chọn và tải lại danh sách mới
                     resetSelection()
-                    // Tải lại danh sách mới (đơn hàng vừa quét sẽ biến mất khỏi danh sách)
                     loadWmsOrders()
                 } else {
                     Toast.makeText(this@WarehouseActivity, "Lỗi đồng bộ phía máy chủ!", Toast.LENGTH_SHORT).show()
@@ -157,7 +198,6 @@ class WarehouseActivity : AppCompatActivity() {
         })
     }
 
-    // Đưa trạng thái chọn về ban đầu
     private fun resetSelection() {
         selectedOrderId = -1
         txtSelectedOrder.text = "Chưa chọn đơn hàng nào - Vui lòng bấm chọn bên dưới!"
