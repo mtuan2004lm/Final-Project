@@ -9,7 +9,7 @@ exports.getWmsOrders = async (req, res) => {
             `SELECT id, customer_name, product_name, quantity, status, current_dept,
                     COALESCE(warehouse_location, '') as warehouse_location,
                     COALESCE(cargo_condition, '') as cargo_condition,
-                    COALESCE(cargo_image, false) as cargo_image,
+                    COALESCE(cargo_image, '') as cargo_image, -- SỬA THÀNH CHUỖI RỖNG
                     COALESCE(is_scanned, false) as is_scanned
              FROM orders 
              WHERE UPPER(current_dept) = 'WMS' AND UPPER(status) = 'APPROVED' 
@@ -23,32 +23,24 @@ exports.getWmsOrders = async (req, res) => {
 };
 
 // =========================================================================
-// 2. QUẢN LÝ VỊ TRÍ LƯU KHO (Gán ô kệ/Aisle/Shelf/Slot cho kiện hàng)
+// 2. QUẢN LÝ VỊ TRÍ LƯU KHO (Giữ nguyên theo yêu cầu)
 // =========================================================================
 exports.updateOrderLocation = async (req, res) => {
     const { id } = req.params;
     const { location } = req.body;
-
     try {
         const result = await pool.query(
-            `UPDATE orders 
-             SET warehouse_location = $1 
-             WHERE id = $2 
-             RETURNING *`,
+            `UPDATE orders SET warehouse_location = $1 WHERE id = $2 RETURNING *`,
             [location, id]
         );
-
         if (result.rows.length === 0) {
             return res.status(404).json({ error: "Không tìm thấy mã đơn hàng!" });
         }
-
-        // Tạo một log lịch sử put-away ô kệ vào DB
         await pool.query(
             `INSERT INTO order_logs (order_id, old_status, new_status, notes) 
              VALUES ($1, 'APPROVED', 'APPROVED', $2)`,
             [id, `Nhân viên kho thực hiện Put-away phân bổ kiện hàng vào ô kệ lưu kho: ${location}`]
         );
-
         res.json({ message: `📍 Đã gán vị trí kho thành công: ${location}`, order: result.rows[0] });
     } catch (err) {
         console.error("🔴 LỖI CẬP NHẬT VỊ TRÍ Ô KỆ WMS:", err.message);
@@ -57,35 +49,37 @@ exports.updateOrderLocation = async (req, res) => {
 };
 
 // =========================================================================
-// 3. BÁO CÁO TÌNH TRẠNG HƯ HẠI NGOẠI QUAN (Cargo Condition Report)
+// 3. BÁO CÁO TÌNH TRẠNG HƯ HẠI NGOẠI QUAN (Cập nhật xử lý lưu Tên File Ảnh)
 // =========================================================================
 exports.updateCargoCondition = async (req, res) => {
     const { id } = req.params;
-    const { condition, has_image } = req.body;
+    const { condition } = req.body; 
+    
+    // Đọc tên file ảnh từ Multer middleware nếu có người dùng tải lên
+    const imagePath = req.file ? `/uploads/${req.file.filename}` : '';
 
     try {
         const result = await pool.query(
             `UPDATE orders 
              SET cargo_condition = $1, 
-                 cargo_image = $2,
+                 cargo_image = CASE WHEN $2 <> '' THEN $2 ELSE cargo_image END, -- Giữ ảnh cũ nếu không up ảnh mới
                  is_scanned = true
              WHERE id = $3 
              RETURNING *`,
-            [condition, has_image, id]
+            [condition, imagePath, id]
         );
 
         if (result.rows.length === 0) {
             return res.status(404).json({ error: "Không tìm thấy đơn hàng!" });
         }
 
-        // Lưu vết lập biên bản sự cố rách móp hàng hóa
         await pool.query(
             `INSERT INTO order_logs (order_id, old_status, new_status, notes) 
              VALUES ($1, 'APPROVED', 'APPROVED', $2)`,
             [id, `🚨 Khảo sát ngoại quan phát hiện bất thường và lập biên bản hư hại: ${condition}`]
         );
 
-        res.json({ message: "⚠️ Đã ghi nhận biên bản và hình ảnh hư hại ngoại quan vào hệ thống!", order: result.rows[0] });
+        res.json({ message: "⚠️ Đã ghi nhận biên bản và tải ảnh hình ảnh hư hại lên hệ thống!", order: result.rows[0] });
     } catch (err) {
         console.error("🔴 LỖI BÁO CÁO HƯ HẠI NGOẠI QUAN WMS:", err.message);
         res.status(500).json({ error: "Lỗi lưu báo cáo tình trạng hàng hóa", detail: err.message });
@@ -93,7 +87,7 @@ exports.updateCargoCondition = async (req, res) => {
 };
 
 // =========================================================================
-// 4. XỬ LÝ QUÉT MÃ BARCODE XÁC NHẬN NHẬP BÃI HOẶC ĐÓNG GÓI (LOG LỊCH SỬ)
+// 4. XỬ LÝ NHẬP MÃ ĐƠN XÁC NHẬN NHẬP KHO (Đã đổi tên logic từ Quét Barcode thành Nhập Mã)
 // =========================================================================
 exports.scanBarcode = async (req, res) => {
     const { id } = req.params;
@@ -104,37 +98,32 @@ exports.scanBarcode = async (req, res) => {
         );
 
         if (result.rows.length === 0) {
-            return res.status(404).json({ error: "Không tìm thấy kiện hàng cần quét mã!" });
+            return res.status(404).json({ error: "Không tìm thấy kiện hàng cần xác nhận!" });
         }
 
         await pool.query(
             `INSERT INTO order_logs (order_id, old_status, new_status, notes) 
              VALUES ($1, 'APPROVED', 'APPROVED', $2)`,
-            [id, 'Máy PDA Kho quét mã Barcode thành công: Xác nhận nhập bãi kho thành công, kiện hàng sẵn sàng xuất bến giao xe tải.']
+            [id, 'Hệ thống ghi nhận mã kiện hàng: Xác nhận hoàn tất nhập bãi kho trung chuyển thành công.']
         );
 
-        res.json({ message: "⚡ Thiết bị PDA quét mã Barcode và ghi sổ cái lịch sử thành công!", order: result.rows[0] });
+        res.json({ message: "⚡ Đã xác nhận mã kiện nhập kho thành công vào hệ thống!", order: result.rows[0] });
     } catch (err) {
         console.error("🔴 LỖI TẠI WMS_CONTROLLER (scanBarcode):", err.message);
-        res.status(500).json({ error: "Lỗi hệ thống ghi nhận máy quét Barcode", detail: err.message });
+        res.status(500).json({ error: "Lỗi hệ thống ghi nhận mã kiện nhập kho", detail: err.message });
     }
 };
 
 // =========================================================================
-// 5. MỚI THÊM: TRUY XUẤT TẤT CẢ LỊCH SỬ LIÊN QUAN ĐẾN KHO (TẬP HỢP LOGS)
+// 5. TRUY XUẤT TẤT CẢ LỊCH SỬ LIÊN QUAN ĐẾN KHO (Giữ nguyên theo yêu cầu)
 // =========================================================================
 exports.getWarehouseGlobalLogs = async (req, res) => {
     try {
-        // Lấy toàn bộ các log có chứa từ khóa liên quan đến Kho như 'Kho', 'PDA', 'kệ', 'ngoại quan', 'đóng gói', 'WMS'
         const result = await pool.query(
             `SELECT order_id, old_status, new_status, notes, changed_at 
              FROM order_logs 
-             WHERE notes ILIKE '%kho%' 
-                OR notes ILIKE '%pda%' 
-                OR notes ILIKE '%kệ%' 
-                OR notes ILIKE '%ngoại quan%' 
-                OR notes ILIKE '%đóng gói%'
-                OR notes ILIKE '%WMS%'
+             WHERE notes ILIKE '%kho%' OR notes ILIKE '%pda%' OR notes ILIKE '%kệ%' 
+                OR notes ILIKE '%ngoại quan%' OR notes ILIKE '%đóng gói%' OR notes ILIKE '%WMS%'
              ORDER BY changed_at DESC`
         );
         res.json(result.rows);
