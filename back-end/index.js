@@ -7,6 +7,11 @@ app.use(cors());
 app.use(express.json()); // Đọc dữ liệu body JSON gửi từ Frontend
 
 // =================================================================
+// CẤU HÌNH PHỤC VỤ FILE ẢNH TĨNH (ĐÃ THÊM ĐỂ FIX LỖI ẨN HÌNH ẢNH)
+// =================================================================
+app.use('/uploads', express.static('uploads'));
+
+// =================================================================
 // 1. IMPORT CÁC ĐƯỜNG DẪN ĐỊNH TUYẾN (ROUTES)
 // =================================================================
 const authRoutes = require('./routes/authRoutes'); // Route xử lý đăng nhập/đăng ký

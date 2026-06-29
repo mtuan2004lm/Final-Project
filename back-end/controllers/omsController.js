@@ -4,8 +4,9 @@ const pool = require('../config/db');
 // 1. Hàm lấy danh sách đơn hàng mới cho phòng OMS xử lý ban đầu
 exports.getOmsOrders = async (req, res) => {
     try {
+        // ĐÃ SỬA: Thay điều kiện thành OR để quét được toàn bộ các đơn hàng cũ chưa qua duyệt khâu OMS
         const result = await pool.query(
-            "SELECT * FROM orders WHERE UPPER(current_dept) = 'OMS' AND status = 'NEW' ORDER BY id ASC"
+            "SELECT * FROM orders WHERE UPPER(current_dept) = 'OMS' OR UPPER(status) = 'NEW' ORDER BY id ASC"
         );
         res.json(result.rows);
     } catch (err) {
@@ -23,9 +24,7 @@ exports.updateOrderStatus = async (req, res) => {
     try {
         const queryText = `
             UPDATE orders 
-            SET status = $1, current_dept = $2 
-            WHERE id = $3 
-            RETURNING *
+            SET status = $1, current_dept = $2 \n            WHERE id = $3 \n            RETURNING *
         `;
         const values = [status, current_dept, id];
         const result = await pool.query(queryText, values);

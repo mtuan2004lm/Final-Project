@@ -12,7 +12,6 @@
       
       <div class="notification-box">
          <h4>🔔 Thông báo hệ thống</h4>
-         
          <div v-if="returnedOrderNotice">
             <p style="color: #ff7675; font-weight: bold; margin-bottom: 4px; font-size: 13px;">
                ⚠️ Đơn hàng #{{ returnedOrderNotice.id }} bị hoàn trả!
@@ -21,9 +20,7 @@
                Lý do: {{ returnedOrderNotice.notes || 'Chưa cập nhật lý do cụ thể.' }}
             </p>
          </div>
-
          <p v-else-if="latestNotification">{{ latestNotification }}</p>
-         
          <p v-else style="color: #bdc3c7;">Chưa có biến động trạng thái.</p>
       </div>
 
@@ -31,17 +28,14 @@
         <button :class="{'active-nav': currentTab === 'create'}" @click="currentTab = 'create'">
           ➕ Tạo đơn hàng mới
         </button>
-        <button :class="{'active-nav': currentTab === 'current-orders'}" @click="currentTab = 'current-orders'">
-          ⏳ Đơn hàng hiện tại
+        <button :class="{'active-nav': currentTab === 'list'}" @click="currentTab = 'list'">
+          📦 Đơn hàng hiện tại
         </button>
         <button :class="{'active-nav': currentTab === 'history'}" @click="currentTab = 'history'">
-          📜 Lịch sử dịch vụ (Giỏ hàng)
+          📜 Lịch sử đơn hàng & Đánh giá
         </button>
         <button :class="{'active-nav': currentTab === 'payment'}" @click="currentTab = 'payment'">
-          💳 Cổng thanh toán <span v-if="activePaymentOrder" class="dot-alert">!</span>
-        </button>
-        <button :class="{'active-nav': currentTab === 'feedback'}" @click="currentTab = 'feedback'">
-          ⭐ Đánh giá dịch vụ
+          💳 Cổng thanh toán hóa đơn
         </button>
       </div>
 
@@ -49,305 +43,456 @@
     </div>
 
     <div class="main-content">
-      <div v-if="currentTab === 'create'" class="card form-card">
-        <h2>📝 Khởi Tạo Yêu Cầu Vận Chuyển Hàng Hóa</h2>
-        <p style="color: #7f8c8d; font-size: 14px;">Hệ thống tự động liên kết dữ liệu liên phòng ban (OMS -> WMS -> TMS)</p>
-        
-        <div class="form-group">
-          <label>Tên khách hàng / Đối tác doanh nghiệp:</label>
-          <input type="text" v-model="newOrder.customer_name" placeholder="Nhập tên của bạn hoặc để trống dùng tài khoản mặc định" />
-        </div>
+      
+      <div v-if="currentTab === 'create'">
+        <header>
+          <h1>KHỞI TẠO YÊU CẦU VẬN CHUYỂN HÀNG HÓA KÝ GỬI</h1>
+        </header>
 
-        <div class="form-group">
-          <label>Tên mặt hàng cần vận chuyển:</label>
-          <input type="text" v-model="newOrder.product_name" placeholder="Ví dụ: Linh kiện điện tử, Hóa chất, Vải cuộn..." />
-        </div>
-
-        <div class="form-group-row">
-          <div class="form-group">
-            <label>Số lượng (Khối lượng / Thùng):</label>
-            <input type="number" v-model.number="newOrder.quantity" min="1" />
+        <div class="create-order-layout">
+          <div class="price-table-card">
+            <h3>📊 BẢNG GIÁ DỊCH VỤ VẬN CHUYỂN</h3>
+            <p class="price-note">* Giá thực tế = Đơn giá loại hàng × Số lượng kiện</p>
+            <table class="price-mini-table">
+              <thead>
+                <tr>
+                  <th>Loại Hàng Hóa</th>
+                  <th>Đơn Giá / Kiện</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr :class="{'highlight-row': newOrder.cargo_type === 'Hàng hóa thông thường'}">
+                  <td>📦 Hàng thông thường</td>
+                  <td class="price-tag-green">$100</td>
+                </tr>
+                <tr :class="{'highlight-row': newOrder.cargo_type === 'Hàng hóa điện tử'}">
+                  <td>⚡ Hàng điện tử</td>
+                  <td class="price-tag-green">$250</td>
+                </tr>
+                <tr :class="{'highlight-row': newOrder.cargo_type === 'Hàng hóa nguy hiểm'}">
+                  <td>☣️ Hàng nguy hiểm</td>
+                  <td class="price-tag-green">$180</td>
+                </tr>
+                <tr :class="{'highlight-row': newOrder.cargo_type === 'Hàng hóa nhanh'}">
+                  <td>🚀 Hàng hỏa tốc</td>
+                  <td class="price-tag-green">$400</td>
+                </tr>
+              </tbody>
+            </table>
           </div>
-          <div class="form-group">
-            <label>Phân loại tính chất hàng hóa:</label>
-            <select v-model="newOrder.cargo_type">
-              <option value="Standard">Standard (Hàng hóa thông thường - $50/đơn vị)</option>
-              <option value="Dangerous">Dangerous (Hàng hóa nguy hiểm/Hóa chất - $120/đơn vị)</option>
-            </select>
+
+          <div class="form-card">
+            <h3>📝 Thông tin tờ khai hàng hóa</h3>
+            <form @submit.prevent="createOrder" class="grid-form">
+              <div class="form-group">
+                <label>Tên khách hàng / Đối tác doanh nghiệp:</label>
+                <input type="text" v-model="newOrder.customer_name" required placeholder="Nhập tên công ty..." />
+              </div>
+
+              <div class="form-group">
+                <label>Tên mặt hàng cần vận chuyển:</label>
+                <input type="text" v-model="newOrder.product_name" required placeholder="Ví dụ: Thùng gỗ linh kiện..." />
+              </div>
+
+              <div class="form-group">
+                <label>Phân loại nhóm hàng hóa:</label>
+                <select v-model="newOrder.cargo_type" @change="calculateEstimatedPrice">
+                  <option value="Hàng hóa thông thường">📦 Hàng hóa thông thường</option>
+                  <option value="Hàng hóa điện tử">⚡ Hàng hóa điện tử</option>
+                  <option value="Hàng hóa nguy hiểm">☣️ Hàng hóa nguy hiểm</option>
+                  <option value="Hàng hóa nhanh">🚀 Hàng hóa nhanh</option>
+                </select>
+              </div>
+
+              <div class="form-group">
+                <label>Số lượng kiện hàng (Pcs):</label>
+                <input type="number" v-model.number="newOrder.quantity" min="1" required @input="calculateEstimatedPrice" />
+              </div>
+
+              <div class="form-group full-width">
+                <label>Hình ảnh thực tế hàng hóa:</label>
+                <input type="file" accept="image/*" required @change="onProductImageChange" class="file-input-styled" />
+              </div>
+
+              <div class="price-estimate-box full-width">
+                <span>Ước tính chi phí vận chuyển: </span>
+                <strong style="color: #e67e22; font-size: 18px;">{{ formatCurrency(estimatedPrice) }}</strong>
+              </div>
+
+              <button type="submit" class="btn-submit full-width">🚀 Gửi yêu cầu tiếp nhận</button>
+            </form>
           </div>
-        </div>
-
-        <button @click="submitOrder" class="btn-submit">🚀 Gửi Yêu Cầu Duyệt Đơn Hệ Thống</button>
-      </div>
-
-      <div v-if="currentTab === 'current-orders'" class="card table-card">
-        <h2>⏳ Tiến Độ Xử Lý Đơn Hàng Hiện Tại</h2>
-        <p style="color: #7f8c8d; font-size: 14px; margin-bottom: 20px;">Đơn hàng luân chuyển qua các phòng ban theo thời gian thực (Realtime)</p>
-        
-        <table class="orders-table">
-          <thead>
-            <tr>
-              <th>Mã Đơn</th>
-              <th>Mặt Hàng</th>
-              <th>Số Lượng</th>
-              <th>Phòng Ban Xử Lý</th>
-              <th>Trạng Thái Luồng</th>
-              <th>Tổng Chi Phí</th>
-              <th>Thanh Toán</th>
-            </tr>
-          </thead>
-          <tbody>
-            <tr v-for="order in activeOrders" :key="order.id">
-              <td><b>#{{ order.id }}</b></td>
-              <td>{{ order.product_name }}</td>
-              <td>{{ order.quantity }}</td>
-              <td><span class="dept-tag">{{ order.current_dept }}</span></td>
-              <td>
-                <span :class="'status-badge ' + order.status.toLowerCase()">
-                  {{ order.status }}
-                </span>
-              </td>
-              <td class="price-txt">${{ order.total_cost }}</td>
-              <td>
-                <span v-if="order.payment_status === 'PAID'" class="txt-pay-done">✅ Đã duyệt tiền</span>
-                <span v-else style="color: #e67e22; font-weight: bold; font-size: 13px;">⚠️ Chưa thanh toán</span>
-              </td>
-            </tr>
-            <tr v-if="activeOrders.length === 0">
-              <td colspan="7" style="text-align:center; padding:30px; color:#95a5a6; font-style:italic;">
-                Bạn không có đơn hàng nào đang trong quá trình luân chuyển xử lý.
-              </td>
-            </tr>
-          </tbody>
-        </table>
-      </div>
-
-      <div v-if="currentTab === 'history'" class="card table-card">
-        <h2>📜 Lịch Sử Giao Dịch & Lưu Trữ Đơn Hàng Hoàn Thành</h2>
-        <table class="orders-table">
-          <thead>
-            <tr>
-              <th>Mã Đơn</th>
-              <th>Mặt Hàng</th>
-              <th>Số Lượng</th>
-              <th>Trạng Thái Cuối</th>
-              <th>Sổ Sách Kế Toán</th>
-              <th>Ngày Hoàn Thành</th>
-            </tr>
-          </thead>
-          <tbody>
-            <tr v-for="order in historyOrders" :key="order.id">
-              <td>#{{ order.id }}</td>
-              <td>{{ order.product_name }}</td>
-              <td>{{ order.quantity }}</td>
-              <td><span class="status-badge done">{{ order.status }}</span></td>
-              <td><span class="txt-pay-done">💰 {{ order.payment_status }}</span></td>
-              <td>{{ new Date(order.created_at).toLocaleString() }}</td>
-            </tr>
-            <tr v-if="historyOrders.length === 0">
-              <td colspan="6" style="text-align:center; padding:30px; color:#95a5a6; font-style:italic;">
-                Chưa có đơn hàng nào hoàn thành chuỗi logistics.
-              </td>
-            </tr>
-          </tbody>
-        </table>
-      </div>
-
-      <div v-if="currentTab === 'payment'" class="card payment-card-main">
-        <div class="payment-header-flex">
-          <h2>💳 Trung Tâm Thanh Toán Trực Tuyến Đơn Hàng</h2>
-          <div class="price-badge-large">
-            Số tiền cần nộp: ${{ selectedPaymentOrder ? selectedPaymentOrder.total_cost : 0 }}
-          </div>
-        </div>
-
-        <div class="form-group" style="margin-bottom: 25px; padding-bottom: 20px; border-bottom: 1px dashed #cbd5e1;">
-          <label style="font-size: 14px; color: #e67e22;">Danh sách đơn hàng đang chờ thanh toán:</label>
-          <select v-model="selectedPaymentOrder" style="border-color: #f39c12; background-color: #fdfefe;">
-            <option :value="null">-- Vui lòng chọn một đơn hàng để tiếp tục --</option>
-            <option v-for="order in unpaidOrders" :key="order.id" :value="order">
-              Mã đơn #{{ order.id }} - {{ order.product_name }} - Tổng tiền: ${{ order.total_cost }}
-            </option>
-          </select>
-        </div>
-
-        <div v-if="selectedPaymentOrder" class="payment-layout-split">
-          <div class="method-selector-tabs">
-            <button class="active-p-tab">🏢 Chuyển khoản ngân hàng doanh nghiệp</button>
-            <button style="opacity:0.5; cursor:not-allowed;">💳 Thẻ Visa/Mastercard (Bảo trì)</button>
-            <button style="opacity:0.5; cursor:not-allowed;">📱 Ví điện tử E-Wallet (Bảo trì)</button>
-          </div>
-          
-          <div style="flex:1; background:#fdfefe; border:1px solid #e2e8f0; padding:20px; border-radius:6px;">
-             <h3>Thông tin đơn hàng thanh toán: #{{ selectedPaymentOrder.id }}</h3>
-             <p><b>Sản phẩm vận chuyển:</b> {{ selectedPaymentOrder.product_name }}</p>
-             <p><b>Tổng số lượng:</b> {{ selectedPaymentOrder.quantity }} kiện</p>
-             <hr style="border:0; border-top:1px solid #eee; margin:15px 0;" />
-             <p style="color:#e67e22; font-weight:bold;">📌 Ghi chú chuyển khoản:</p>
-             <div style="background:#f8f9fa; padding:12px; border-left:4px solid #f39c12; font-family:monospace; font-size:14px;">
-                Nội dung: THANH TOAN DON HANG {{ selectedPaymentOrder.id }}
-             </div>
-             <button @click="processMockPayment" class="btn-submit" style="background:#27ae60; margin-top:20px;">
-                Xác nhận đã chuyển khoản (Gửi yêu cầu tới Kế toán ACC)
-             </button>
-          </div>
-        </div>
-        <div v-else style="text-align:center; padding:20px; color:#7f8c8d;">
-           <p style="font-size:48px; margin:0;">📭</p>
-           <p>Vui lòng chọn một đơn hàng từ danh sách phía trên để hiển thị thông tin hóa đơn.</p>
         </div>
       </div>
 
-      <div v-if="currentTab === 'feedback'" class="card form-card">
-         <h2>⭐ Khảo Sát & Đánh Giá Chất Lượng Dịch Vụ Logistics</h2>
-         <p style="color:#7f8c8d; font-size:14px; margin-bottom:20px;">Ý kiến đóng góp của bạn giúp chúng tôi tối ưu luồng chuyển tiếp liên phòng ban tốt hơn.</p>
-         
-         <div class="form-group">
-            <label>Chọn mã đơn hàng bạn muốn đánh giá:</label>
-            <select v-model="feedbackData.orderId">
-               <option v-for="o in orders" :key="o.id" :value="o.id">Đơn hàng #{{ o.id }} - {{ o.product_name }} ({{ o.status }})</option>
-            </select>
-         </div>
-         <div class="form-group">
-            <label>Mức độ hài lòng (1 - 5 Sao):</label>
-            <select v-model.number="feedbackData.rating">
-               <option value="5">⭐⭐⭐⭐⭐ 5 Sao - Quá xuất sắc, luân chuyển cực nhanh</option>
-               <option value="4">⭐⭐⭐⭐ 4 Sao - Hài lòng, thủ tục tinh gọn</option>
-               <option value="3">⭐⭐⭐ 3 Sao - Bình thường, khâu xử lý chứng từ còn chậm</option>
-               <option value="2">⭐⭐ 2 Sao - Chưa tốt, hay bị trả đơn khâu OMS</option>
-               <option value="1">⭐ 1 Sao - Kém, cần cải tiến nhiều</option>
-            </select>
-         </div>
-         <div class="form-group">
-            <label>Nội dung phản hồi / Góp ý chi tiết:</label>
-            <textarea v-model="feedbackData.comment" rows="4" placeholder="Nhập ý kiến đóng góp của bạn tại đây..."></textarea>
-         </div>
-         <button @click="submitFeedback" class="btn-submit" style="background:#9b59b6;">📤 Gửi Ý Kiến Phản Hồi</button>
+      <div v-if="currentTab === 'list'">
+        <header>
+          <h1>DANH SÁCH ĐƠN HÀNG VẬN HÀNH HIỆN TẠI</h1>
+        </header>
+        <div class="card">
+          <table class="data-table">
+            <thead>
+              <tr>
+                <th>Mã Đơn</th>
+                <th>Hình Ảnh</th>
+                <th>Mặt Hàng</th>
+                <th>Phân Loại</th>
+                <th>Số Lượng</th>
+                <th>Tổng Tiền</th>
+                <th>Trạng Thái</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr v-for="order in activeOrders" :key="order.id">
+                <td><b class="order-tag">#{{ order.id }}</b></td>
+                <td>
+                  <img v-if="order.product_image" :src="'http://localhost:3000' + order.product_image" class="table-img-preview" alt="Hàng hóa" />
+                  <span v-else style="color: #95a5a6; font-style: italic; font-size: 12px;">Không có ảnh</span>
+                </td>
+                <td><b>{{ order.product_name }}</b><br><small style="color: #7f8c8d;">Khách: {{ order.customer_name }}</small></td>
+                <td><span class="type-badge">{{ order.cargo_type || 'Hàng hóa thông thường' }}</span></td>
+                <td>{{ order.quantity }} pcs</td>
+                <td><b style="color: #2c3e50;">{{ formatCurrency(getOrderPrice(order)) }}</b></td>
+                <td>
+                  <span :class="'status-badge ' + (order.status ? order.status.toLowerCase() : 'new')">
+                    {{ translateStatus(order.status) }}
+                  </span>
+                </td>
+              </tr>
+              <tr v-if="activeOrders.length === 0">
+                <td colspan="7" style="text-align: center; color: #7f8c8d; padding: 20px;">Không có đơn hàng nào đang trong quá trình xử lý.</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      <div v-if="currentTab === 'history'">
+        <header>
+          <h1>LỊCH SỬ ĐƠN HÀNG ĐÃ GIAO NHẬN THÀNH CÔNG</h1>
+        </header>
+        <div class="card">
+          <table class="data-table">
+            <thead>
+              <tr>
+                <th>Mã Đơn</th>
+                <th>Mặt Hàng</th>
+                <th>Phân Loại</th>
+                <th>Tổng Tiền</th>
+                <th>Trạng Thái</th>
+                <th>Đánh Giá Dịch Vụ</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr v-for="order in completedOrders" :key="order.id">
+                <td><b class="order-tag">#{{ order.id }}</b></td>
+                <td><b>{{ order.product_name }}</b></td>
+                <td><span class="type-badge">{{ order.cargo_type || 'Hàng hóa thông thường' }}</span></td>
+                <td><b>{{ formatCurrency(getOrderPrice(order)) }}</b></td>
+                <td><span class="status-badge done">🏁 HOÀN THÀNH</span></td>
+                <td>
+                  <div v-if="order.rating">
+                    <span class="stars-display">{{ '⭐'.repeat(order.rating) }}</span>
+                    <p class="feedback-txt-preview" v-if="order.feedback">💬 {{ order.feedback }}</p>
+                  </div>
+                  <button v-else @click="openFeedbackModal(order)" class="btn-review-trigger">
+                    ⭐ Viết đánh giá
+                  </button>
+                </td>
+              </tr>
+              <tr v-if="completedOrders.length === 0">
+                <td colspan="6" style="text-align: center; color: #7f8c8d; padding: 20px;">Chưa có đơn hàng nào hoàn thành chuỗi cung ứng logistics.</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      <div v-if="currentTab === 'payment'">
+        <header>
+          <h1>CỔNG THANH TOÁN HÓA ĐƠN ĐIỀU PHỐI VẬN TẢI</h1>
+        </header>
+        <div class="payment-layout">
+          <div class="card payment-card-main">
+            <h3>💳 Các hóa đơn đang chờ quyết toán cước phí</h3>
+            <table class="data-table">
+              <thead>
+                <tr>
+                  <th>Mã Đơn</th>
+                  <th>Mặt Hàng</th>
+                  <th>Phân Loại</th>
+                  <th>Thành Tiền</th>
+                  <th>Hành Động</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr v-for="order in unpaidOrders" :key="order.id" :class="{'selected-payment-row': selectedOrderForPay && selectedOrderForPay.id === order.id}">
+                  <td><b class="order-tag">#{{ order.id }}</b></td>
+                  <td>{{ order.product_name }}</td>
+                  <td><small class="type-badge">{{ order.cargo_type || 'Hàng hóa thông thường' }}</small></td>
+                  <td><b class="price-txt">{{ formatCurrency(getOrderPrice(order)) }}</b></td>
+                  <td>
+                    <button @click="selectOrderToPay(order)" class="btn-pay-action">
+                      💸 Chọn thanh toán
+                    </button>
+                  </td>
+                </tr>
+                <tr v-if="unpaidOrders.length === 0">
+                  <td colspan="5" style="text-align: center; color: #7f8c8d; padding: 20px;">Không có hóa đơn tồn đọng.</td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+
+          <div class="qr-payment-box" v-if="selectedOrderForPay && selectedOrderForPay.id">
+            <h3>📥 THÔNG TIN CHUYỂN KHOẢN QUA QR CODE</h3>
+            <div class="qr-card-body">
+              <p>Mã hóa đơn: <b>#{{ selectedOrderForPay.id }}</b></p>
+              <p>Loại hàng: <span class="type-badge">{{ selectedOrderForPay.cargo_type || 'Hàng hóa thông thường' }}</span></p>
+              <p>Số tiền: <b style="color: #e74c3c; font-size: 16px;">{{ formatCurrency(getOrderPrice(selectedOrderForPay)) }}</b></p>
+              
+              <div class="qr-container">
+                <img :src="generateQRUrl(selectedOrderForPay)" alt="Mã QR" class="qr-image" />
+                <div class="qr-scan-guide">Mở ứng dụng Ngân hàng quét để thanh toán nhanh</div>
+              </div>
+
+              <button @click="mockConfirmPayment(selectedOrderForPay.id)" class="btn-confirm-payment">
+                ✓ Tôi đã hoàn tất chuyển khoản
+              </button>
+            </div>
+          </div>
+        </div>
       </div>
 
     </div>
+
+    <div v-if="showReviewModal" class="review-modal-backdrop">
+      <div class="review-modal-box">
+        <div class="modal-header-review">
+          <h3>✍️ ĐÁNH GIÁ ĐƠN HÀNG #{{ activeReviewOrder.id }}</h3>
+          <button @click="closeFeedbackModal" class="close-review-btn">&times;</button>
+        </div>
+        <div class="modal-body-review">
+          <label class="block-label">Mức độ hài lòng của bạn:</label>
+          <div class="stars-selector-row">
+            <span v-for="star in 5" :key="star" @click="feedbackRating = star" class="star-clickable">
+              {{ star <= feedbackRating ? '★' : '☆' }}
+            </span>
+          </div>
+          
+          <label class="block-label">Nội dung phản hồi góp ý:</label>
+          <textarea v-model="feedbackText" placeholder="Hãy để lại ý kiến..." rows="4" class="review-textarea"></textarea>
+          
+          <button @click="submitOrderFeedback" class="btn-send-review">🚀 Gửi đánh giá dịch vụ</button>
+        </div>
+      </div>
+    </div>
+
   </div>
 </template>
 
 <script setup>
-import { ref, onMounted, computed } from 'vue';
+import { ref, onMounted, onUnmounted, computed } from 'vue';
 import axios from 'axios';
 import { useRouter } from 'vue-router';
 
 const router = useRouter();
-// Lấy username thực tế từ localStorage (nếu không có thì để mặc định là 'CUSTOMER')
-const username = ref(localStorage.getItem('username') || 'CUSTOMER');
-const currentTab = ref('current-orders');
+const username = ref(localStorage.getItem('username') || 'Khách hàng');
+const currentTab = ref('create');
 
-// Quản lý trạng thái đơn hàng
 const orders = ref([]);
+const estimatedPrice = ref(100); 
+const selectedOrderForPay = ref(null);
+const productImageFile = ref(null);
+
+const showReviewModal = ref(false);
+const activeReviewOrder = ref(null);
+const feedbackRating = ref(5);
+const feedbackText = ref('');
+
+let customerInterval = null;
+const returnedOrderNotice = ref(null);
 const latestNotification = ref('');
 
-// Form tạo đơn hàng mới
 const newOrder = ref({
   customer_name: '',
   product_name: '',
-  quantity: 1,
-  cargo_type: 'Standard'
+  cargo_type: 'Hàng hóa thông thường',
+  quantity: 1
 });
 
-// Quản lý thanh toán
-const selectedPaymentOrder = ref(null);
+// Chuyển đổi toàn bộ bảng giá dịch vụ logistics sang USD ($)
+const priceRates = {
+  'Hàng hóa thông thường': 100,
+  'Hàng hóa điện tử': 250,
+  'Hàng hóa nguy hiểm': 180,
+  'Hàng hóa nhanh': 400
+};
 
-// Form đánh giá dịch vụ
-const feedbackData = ref({
-   orderId: '',
-   rating: 5,
-   comment: ''
-});
+// HÀM XỬ LÝ LỖI ĐƠN CŨ BỊ MẤT GIÁ TIỀN:
+// Sẽ tự động tính toán lại thành số $ nhỏ hợp lý nếu database trả về lỗi null hoặc 0
+const getOrderPrice = (order) => {
+  if (order.total_price && order.total_price > 0 && order.total_price < 100000) {
+    // Nếu db đã có lưu total_price theo chuẩn hệ $ mới
+    return order.total_price;
+  }
+  // Nếu là đơn cũ (rỗng hoặc giá to như VNĐ) => Tự động lấy hệ số giá mới nhân số lượng
+  const rate = priceRates[order.cargo_type] || 100;
+  const qty = order.quantity || 1;
+  return rate * qty;
+};
 
-// TỰ ĐỘNG LỌC RA ĐƠN HÀNG BỊ PHÒNG OMS HOÀN TRẢ
-const returnedOrderNotice = computed(() => {
-   if (!orders.value || orders.value.length === 0) return null;
-   return orders.value.find(order => order.status === 'RETURNED');
-});
-
-// Tính toán phân tách mảng đơn hàng hiển thị theo từng Tab
 const activeOrders = computed(() => {
   return orders.value.filter(o => o.status !== 'DONE');
 });
 
-const historyOrders = computed(() => {
+const completedOrders = computed(() => {
   return orders.value.filter(o => o.status === 'DONE');
 });
 
-const activePaymentOrder = computed(() => {
-  return orders.value.find(o => o.payment_status === 'UNPAID' && o.status !== 'DONE');
-});
-
-// Lọc các đơn hàng chưa thanh toán để chọn trong tab Cổng thanh toán
 const unpaidOrders = computed(() => {
-  return orders.value.filter(o => o.payment_status === 'UNPAID' && o.status !== 'DONE');
+  return orders.value.filter(o => o.status === 'NEW' || o.status === 'APPROVED' || o.status === 'WMS' || o.status === 'TMS');
 });
 
-// Hàm gọi API lấy danh sách đơn hàng từ Backend (Đã thêm query param lọc theo username)
+const calculateEstimatedPrice = () => {
+  const rate = priceRates[newOrder.value.cargo_type] || 100;
+  const qty = newOrder.value.quantity || 1;
+  estimatedPrice.value = rate * qty;
+};
+
+const onProductImageChange = (e) => {
+  if (e.target.files && e.target.files[0]) {
+    productImageFile.value = e.target.files[0];
+  }
+};
+
 const fetchOrders = async () => {
   try {
-    const currentUsername = localStorage.getItem('username') || '';
-    const res = await axios.get(`http://localhost:3000/api/orders/customer`, {
-      params: { username: currentUsername }
-    });
+    const res = await axios.get(`http://localhost:3000/api/orders/customer?username=${username.value}`);
     orders.value = res.data;
+    
+    const returned = res.data.find(o => o.status === 'RETURNED');
+    returnedOrderNotice.value = returned || null;
   } catch (error) {
     console.error("Lỗi lấy danh sách đơn hàng:", error);
   }
 };
 
-// Hàm gửi đơn hàng mới lên hệ thống (Đã nhúng thêm thuộc tính username vào dữ liệu gửi đi)
-const submitOrder = async () => {
-  if (!newOrder.value.product_name || !newOrder.value.quantity) {
-    alert("Vui lòng điền đầy đủ thông tin mặt hàng!");
+const createOrder = async () => {
+  if (!productImageFile.value) {
+    alert("⚠️ Vui lòng tải lên hình ảnh thực tế của hàng hóa để tạo tờ khai bến bãi!");
     return;
   }
+
+  const formData = new FormData();
+  formData.append('username', username.value);
+  formData.append('customer_name', newOrder.value.customer_name);
+  formData.append('product_name', newOrder.value.product_name);
+  formData.append('cargo_type', newOrder.value.cargo_type);
+  formData.append('quantity', newOrder.value.quantity);
+  
+  const rate = priceRates[newOrder.value.cargo_type] || 100;
+  formData.append('total_price', rate * newOrder.value.quantity);
+  formData.append('product_image', productImageFile.value); 
+
   try {
-    const orderPayload = {
-      ...newOrder.value,
-      username: localStorage.getItem('username') || '' // Gửi kèm thông tin định danh người tạo
-    };
-    await axios.post('http://localhost:3000/api/orders', orderPayload);
-    alert("Khởi tạo đơn hàng thành công! Đã gửi hồ sơ sang phòng OMS thẩm định luồng.");
-    newOrder.value = { customer_name: '', product_name: '', quantity: 1, cargo_type: 'Standard' };
+    await axios.post('http://localhost:3000/api/orders', formData, {
+      headers: { 'Content-Type': 'multipart/form-data' }
+    });
+    alert("🚀 Khởi tạo yêu cầu ký gửi hàng hóa thành công!");
+    
+    newOrder.value = { customer_name: '', product_name: '', cargo_type: 'Hàng hóa thông thường', quantity: 1 };
+    productImageFile.value = null;
+    const fileInput = document.querySelector('.file-input-styled');
+    if (fileInput) fileInput.value = ''; // Reset tên file hiển thị trên thanh
+    
+    calculateEstimatedPrice();
     fetchOrders();
-    currentTab.value = 'current-orders';
-  } catch (error) {
-    alert("Khởi tạo yêu cầu đơn hàng thất bại!");
+    currentTab.value = 'list';
+  } catch (err) {
+    console.error("Lỗi gửi dữ liệu Multipart:", err);
+    alert("Lỗi khi gửi đơn hàng lên hệ thống!");
   }
 };
 
-// Khách hàng bấm gửi yêu cầu đã chuyển khoản thành công
-const processMockPayment = async () => {
-   if (!selectedPaymentOrder.value) return;
-   try {
-      await axios.put(`http://localhost:3000/api/orders/acc/${selectedPaymentOrder.value.id}/approve`, {
-         payment_status: 'PAID'
-      });
-      alert(`Yêu cầu thanh toán đơn #${selectedPaymentOrder.value.id} đã được gửi! Chờ Kế toán duyệt sổ.`);
-      selectedPaymentOrder.value = null; // Tự động reset form
-      fetchOrders();
-      currentTab.value = 'current-orders';
-   } catch (error) {
-      alert("Cổng kết nối thanh toán gặp lỗi kỹ thuật!");
-   }
+const openFeedbackModal = (order) => {
+  activeReviewOrder.value = order;
+  feedbackRating.value = 5;
+  feedbackText.value = '';
+  showReviewModal.value = true;
 };
 
-// Khách hàng gửi form đánh giá dịch vụ
-const submitFeedback = async () => {
-   if (!feedbackData.value.orderId) return alert("Vui lòng chọn một mã đơn hàng cụ thể!");
-   try {
-      await axios.put(`http://localhost:3000/api/orders/feedback/${feedbackData.value.orderId}`, {
-         rating: feedbackData.value.rating,
-         feedback: feedbackData.value.comment
-      });
-      alert("Cảm ơn bạn đã gửi đánh giá! Ý kiến của bạn đã được ghi nhận.");
-      feedbackData.value = { orderId: '', rating: 5, comment: '' };
-   } catch (error) {
-      alert("Không thể gửi đánh giá lỗi hệ thống!");
-   }
+const closeFeedbackModal = () => {
+  showReviewModal.value = false;
+  activeReviewOrder.value = null;
+};
+
+const submitOrderFeedback = async () => {
+  if (!activeReviewOrder.value) return;
+  try {
+    await axios.post(`http://localhost:3000/api/orders/${activeReviewOrder.value.id}/feedback`, {
+      rating: feedbackRating.value,
+      feedback: feedbackText.value
+    });
+    alert("✓ Cảm ơn bạn đã gửi phản hồi dịch vụ!");
+    closeFeedbackModal();
+    fetchOrders();
+  } catch (err) {
+    alert("Không thể gửi đánh giá, xin hãy thử lại sau!");
+  }
+};
+
+const selectOrderToPay = (order) => {
+  if (order && order.id) {
+    selectedOrderForPay.value = order;
+  }
+};
+
+const generateQRUrl = (order) => {
+  if (!order || !order.id) return '';
+  const bankId = "MB"; 
+  const accountNo = "099999999999"; 
+  const template = "qr_only";
+  // Tỷ giá quy đổi 1$ ~ 25,000 VNĐ để mã QR hợp lệ trên App Ngân Hàng VN
+  const amountUsd = getOrderPrice(order);
+  const amountVnd = amountUsd * 25000; 
+  const description = `Thanh toan don hang ${order.id}`;
+  return `https://img.vietqr.io/image/${bankId}-${accountNo}-${template}.png?amount=${amountVnd}&addInfo=${encodeURIComponent(description)}`;
+};
+
+const mockConfirmPayment = async (orderId) => {
+  if (!orderId || isNaN(orderId)) return;
+  try {
+    await axios.put(`http://localhost:3000/api/orders/${orderId}/pay`);
+    alert("✓ Đã gửi yêu cầu xác nhận thanh toán thành công!");
+    selectedOrderForPay.value = null;
+    fetchOrders();
+  } catch (err) {
+    alert("Thao tác thất bại!");
+  }
+};
+
+const translateStatus = (status) => {
+  const dict = {
+    'NEW': '⏳ Đợi duyệt đơn',
+    'APPROVED': '✅ Điều độ tiếp nhận',
+    'WMS': '🏬 Đang ở phòng Kho',
+    'PACKED': '📦 Đã đóng gói',
+    'TMS': '🚛 Đang vận chuyển',
+    'DONE': '🏁 Hoàn thành',
+    'RETURNED': '⚠️ Bị hoàn trả'
+  };
+  return dict[status] || '⏳ Đợi duyệt đơn';
+};
+
+const formatCurrency = (val) => {
+  if (!val) return '$0';
+  return new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD', maximumFractionDigits: 0 }).format(val);
+};
+
+const logout = () => {
+  localStorage.clear();
+  router.push('/');
 };
 
 onMounted(() => {
@@ -355,75 +500,94 @@ onMounted(() => {
     router.push('/');
   } else {
     fetchOrders();
-    // Thiết lập cơ chế tự động đồng bộ hóa liên tục sau mỗi 5 giây
-    setInterval(fetchOrders, 5000);
+    customerInterval = setInterval(fetchOrders, 5000);
   }
 });
 
-const logout = () => {
-  localStorage.clear();
-  router.push('/');
-};
+onUnmounted(() => {
+  if (customerInterval) clearInterval(customerInterval);
+});
 </script>
 
 <style scoped>
 .dashboard-container { display: flex; height: 100vh; font-family: 'Segoe UI', sans-serif; background: #f4f6f9; }
-.sidebar { width: 260px; background: #2c3e50; color: white; padding: 25px 20px; display: flex; flex-direction: column; box-sizing: border-box; }
-.brand { font-size: 22px; font-weight: 800; text-align: center; margin-bottom: 25px; letter-spacing: 1px; color: #fff; }
-.user-info { display: flex; align-items: center; gap: 12px; padding-bottom: 15px; border-bottom: 1px solid #34495e; }
-.avatar { width: 42px; height: 42px; background: #3498db; border-radius: 50%; display: flex; justify-content: center; align-items: center; font-weight: bold; font-size: 18px; text-transform: uppercase; }
-.user-info h3 { margin: 0; font-size: 15px; letter-spacing: 0.5px; }
-.user-info small { color: #2ecc71; font-weight: 600; }
+.sidebar { width: 260px; background: #2c3e50; color: white; padding: 20px; display: flex; flex-direction: column; flex-shrink: 0; }
+.brand { font-size: 22px; font-weight: 800; text-align: center; margin-bottom: 25px; color: #ecf0f1; }
+.user-info { display: flex; align-items: center; gap: 12px; padding-bottom: 15px; border-bottom: 1px solid #34495e; margin-bottom: 15px; }
+.avatar { width: 45px; height: 45px; background: #3498db; border-radius: 50%; display: flex; justify-content: center; align-items: center; font-weight: bold; }
+.notification-box { background: #34495e; padding: 12px; border-radius: 6px; margin-bottom: 20px; font-size: 13px; border-left: 4px solid #f1c40f; }
+.notification-box h4 { margin: 0 0 6px 0; color: #ecf0f1; }
+.navigation-menu { display: flex; flex-direction: column; gap: 10px; }
+.navigation-menu button { padding: 12px; text-align: left; background: none; border: none; color: #bdc3c7; font-weight: bold; cursor: pointer; border-radius: 4px; }
+.navigation-menu button:hover, .navigation-menu button.active-nav { background: #1a252f; color: white; }
+.btn-logout { margin-top: auto; padding: 12px; background: #e74c3c; color: white; border: none; border-radius: 4px; font-weight: bold; cursor: pointer; }
 
-/* Hộp Thông báo Hệ thống bên Menu trái */
-.notification-box { background: #34495e; padding: 12px; border-radius: 6px; margin: 20px 0; border-left: 4px solid #3498db; }
-.notification-box h4 { margin: 0 0 6px 0; font-size: 13px; color: #f1c40f; font-weight: bold; }
-.notification-box p { margin: 0; font-size: 12px; color: #ecf0f1; line-height: 1.3; }
+.main-content { flex: 1; padding: 30px; overflow-y: auto; }
+header h1 { font-size: 24px; font-weight: 800; color: #2c3e50; margin-bottom: 25px; border-left: 5px solid #2980b9; padding-left: 10px; }
+.card { background: white; padding: 25px; border-radius: 8px; box-shadow: 0 4px 15px rgba(0,0,0,0.05); }
 
-.navigation-menu { display: flex; flex-direction: column; gap: 8px; margin-top: 10px; }
-.navigation-menu button { padding: 12px 15px; background: none; border: none; color: #bdc3c7; text-align: left; font-size: 14px; font-weight: bold; cursor: pointer; border-radius: 4px; transition: all 0.2s; position: relative; }
-.navigation-menu button:hover, .navigation-menu button.active-nav { background: #34495e; color: white; }
-.dot-alert { position: absolute; right: 15px; top: 12px; background: #e74c3c; color: white; border-radius: 50%; width: 16px; height: 16px; font-size: 10px; display: flex; justify-content: center; align-items: center; font-weight: bold; }
+.create-order-layout { display: flex; gap: 25px; align-items: flex-start; }
+.price-table-card { width: 320px; background: white; border-radius: 8px; padding: 20px; box-shadow: 0 4px 15px rgba(0,0,0,0.05); border: 1px solid #e2e8f0; flex-shrink: 0; }
+.price-table-card h3 { margin-top: 0; color: #2c3e50; font-size: 15px; border-bottom: 2px solid #edf2f7; padding-bottom: 10px; }
+.price-note { font-size: 11px; color: #7f8c8d; font-style: italic; margin-bottom: 12px; }
+.price-mini-table { width: 100%; border-collapse: collapse; }
+.price-mini-table th, .price-mini-table td { padding: 10px; font-size: 13px; border-bottom: 1px solid #f1f5f9; }
+.price-mini-table th { background: #f8fafc; color: #64748b; font-weight: bold; text-align: left; }
+.price-tag-green { color: #27ae60; font-weight: bold; text-align: right; }
+.highlight-row { background-color: #f0fdf4; font-weight: bold; border-left: 3px solid #22c55e; }
 
-.btn-logout { margin-top: auto; padding: 11px; background: #e74c3c; color: white; border: none; border-radius: 4px; cursor: pointer; font-weight: bold; font-size: 13px; transition: background 0.2s; }
-.btn-logout:hover { background: #c0392b; }
+.form-card { flex: 1; background: white; border-radius: 8px; padding: 20px; box-shadow: 0 4px 15px rgba(0,0,0,0.05); }
+.form-card h3 { margin-top: 0; color: #2c3e50; font-size: 15px; border-bottom: 2px solid #edf2f7; padding-bottom: 10px; }
+.grid-form { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; }
+.form-group { display: flex; flex-direction: column; gap: 6px; }
+.form-group label { font-size: 13px; font-weight: 600; color: #4a5568; }
+.form-group input, .form-group select { padding: 10px; border: 1px solid #cbd5e1; border-radius: 4px; font-size: 14px; background: #fff; }
+.file-input-styled { background: #f8fafc; padding: 8px; border: 1px dashed #cbd5e1; cursor: pointer; }
+.full-width { grid-column: span 2; }
+.price-estimate-box { background: #fff9db; padding: 12px; border-radius: 4px; border: 1px solid #ffe3e3; font-weight: bold; text-align: right; }
+.btn-submit { background: #27ae60; color: white; border: none; padding: 12px; font-weight: bold; border-radius: 4px; cursor: pointer; }
 
-.main-content { flex: 1; padding: 35px; overflow-y: auto; background: #ffffff; }
-.card { background: white; padding: 30px; border-radius: 8px; box-shadow: 0 4px 16px rgba(0,0,0,0.04); border: 1px solid #eef2f5; }
-.form-card { max-width: 700px; }
-h2 { margin-top: 0; color: #2c3e50; font-size: 22px; font-weight: 700; }
-
-.form-group { display: flex; flex-direction: column; gap: 8px; margin-bottom: 18px; }
-.form-group-row { display: flex; gap: 20px; }
-.form-group-row .form-group { flex: 1; }
-label { font-size: 13px; font-weight: bold; color: #34495e; text-transform: uppercase; }
-input, select, textarea { padding: 12px; border: 1px solid #cbd5e1; border-radius: 5px; font-size: 14px; color: #334155; box-sizing: border-box; }
-input:focus, select:focus, textarea:focus { outline: none; border-color: #3498db; box-shadow: 0 0 0 3px rgba(52,152,219,0.15); }
-
-.btn-submit { padding: 12px 20px; background: #3498db; color: white; border: none; border-radius: 5px; font-size: 14px; font-weight: bold; cursor: pointer; width: 100%; transition: background 0.2s; }
-.btn-submit:hover { background: #2980b9; }
-
-.orders-table { width: 100%; border-collapse: collapse; margin-top: 15px; }
-.orders-table th, .orders-table td { padding: 14px 16px; border-bottom: 1px solid #eef2f5; text-align: left; font-size: 14px; }
-.orders-table th { background: #f8f9fa; color: #64748b; font-size: 12px; font-weight: bold; text-transform: uppercase; }
-.dept-tag { background: #e0f2fe; color: #0369a1; padding: 2px 6px; border-radius: 4px; font-size: 12px; font-weight: bold; }
-
-.status-badge { padding: 4px 10px; border-radius: 20px; font-size: 11px; font-weight: bold; text-transform: uppercase; display: inline-block; }
+.data-table { width: 100%; border-collapse: collapse; }
+.data-table th, .data-table td { padding: 12px 15px; text-align: left; border-bottom: 1px solid #e2e8f0; font-size: 14px; }
+.data-table th { background: #f8fafc; color: #64748b; font-size: 12px; text-transform: uppercase; font-weight: bold; }
+.order-tag { background: #e2e8f0; color: #4a5568; padding: 2px 6px; border-radius: 3px; font-family: monospace; }
+.type-badge { background: #eff6ff; color: #1e40af; padding: 2px 6px; border-radius: 4px; font-size: 12px; font-weight: bold; }
+.table-img-preview { width: 60px; height: 45px; object-fit: cover; border-radius: 4px; border: 1px solid #e2e8f0; }
+.status-badge { padding: 4px 8px; border-radius: 4px; font-size: 12px; font-weight: bold; text-transform: uppercase; }
 .status-badge.new { background: #fef3c7; color: #d97706; }
 .status-badge.approved { background: #e0f2fe; color: #0369a1; }
-.status-badge.returned { background: #fee2e2; color: #dc2626; font-weight: 800; border: 1px dashed #ef4444; }
+.status-badge.returned { background: #fee2e2; color: #dc2626; border: 1px dashed #ef4444; }
 .status-badge.done { background: #dcfce7; color: #15803d; }
 
-.price-txt { font-weight: bold; color: #2c3e50; }
-.btn-pay-action { padding: 5px 10px; background: #f39c12; color: white; border: none; border-radius: 4px; font-weight: bold; font-size: 11px; cursor: pointer; }
-.btn-pay-action:hover { background: #d35400; }
-.txt-pay-done { color: #27ae60; font-weight: bold; font-size: 13px; }
+.btn-review-trigger { padding: 6px 12px; background: #e67e22; color: white; border: none; border-radius: 4px; font-weight: bold; font-size: 12px; cursor: pointer; }
+.stars-display { color: #f1c40f; font-size: 16px; letter-spacing: 2px; font-weight: bold; }
+.feedback-txt-preview { margin: 4px 0 0 0; font-size: 12px; color: #555; font-style: italic; }
 
-.payment-card-main { max-width: 900px; }
-.payment-header-flex { display: flex; justify-content: space-between; align-items: center; border-bottom: 2px solid #eee; padding-bottom: 15px; margin-bottom: 20px; }
-.price-badge-large { font-size: 20px; font-weight: 800; color: #f39c12; background: #fef5e7; padding: 10px 20px; border-radius: 5px; border: 1px solid #fdebd0; }
-.payment-layout-split { display: flex; gap: 25px; }
-.method-selector-tabs { width: 260px; display: flex; flex-direction: column; gap: 10px; }
-.method-selector-tabs button { padding: 12px; background: #f8f9fa; border: 1px solid #e2e8f0; text-align: left; border-radius: 5px; font-weight: bold; cursor: pointer; font-size: 13px; color: #4a5568; }
-.method-selector-tabs button.active-p-tab { background: #f39c12; color: white; border-color: #d35400; }
+.payment-layout { display: flex; gap: 20px; align-items: flex-start; }
+.payment-card-main { flex: 1; }
+.selected-payment-row { background-color: #f1f5f9; }
+.btn-pay-action { background: #f39c12; color: white; border: none; padding: 6px 12px; font-size: 12px; font-weight: bold; border-radius: 4px; cursor: pointer; }
+.qr-payment-box { width: 360px; background: white; border-radius: 8px; padding: 20px; box-shadow: 0 4px 15px rgba(0,0,0,0.08); border: 1px solid #cbd5e1; text-align: center; }
+.qr-payment-box h3 { margin-top: 0; color: #2c3e50; font-size: 14px; border-bottom: 2px solid #cbd5e1; padding-bottom: 10px; }
+.qr-card-body p { margin: 6px 0; font-size: 13px; text-align: left; }
+.qr-container { background: #f8fafc; border: 1px solid #e2e8f0; padding: 15px; border-radius: 6px; margin: 15px 0; }
+.qr-image { width: 190px; height: 190px; object-fit: contain; margin: 0 auto; display: block; }
+.qr-scan-guide { font-size: 11px; color: #7f8c8d; font-style: italic; margin-top: 10px; }
+.btn-confirm-payment { width: 100%; background: #2980b9; color: white; border: none; padding: 10px; font-weight: bold; border-radius: 4px; cursor: pointer; }
+
+.review-modal-backdrop { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); display: flex; justify-content: center; align-items: center; z-index: 9999; }
+.review-modal-box { background: white; width: 420px; border-radius: 8px; box-shadow: 0 10px 25px rgba(0,0,0,0.2); overflow: hidden; animation: fadeIn 0.2s ease-out; }
+.modal-header-review { background: #2c3e50; color: white; padding: 15px; display: flex; justify-content: space-between; align-items: center; }
+.modal-header-review h3 { margin: 0; font-size: 14px; letter-spacing: 0.5px; }
+.close-review-btn { background: none; border: none; color: white; font-size: 24px; cursor: pointer; line-height: 1; }
+.modal-body-review { padding: 20px; display: flex; flex-direction: column; gap: 15px; }
+.block-label { font-size: 13px; font-weight: bold; color: #34495e; }
+.stars-selector-row { display: flex; gap: 8px; font-size: 30px; color: #f1c40f; justify-content: center; margin: 5px 0; }
+.star-clickable { cursor: pointer; user-select: none; transition: transform 0.1s; }
+.star-clickable:hover { transform: scale(1.2); }
+.review-textarea { width: 100%; padding: 10px; border: 1px solid #cbd5e1; border-radius: 4px; font-size: 13px; resize: none; box-sizing: border-box; }
+.btn-send-review { background: #27ae60; color: white; border: none; padding: 12px; font-weight: bold; border-radius: 4px; cursor: pointer; transition: 0.2s; font-size: 14px; }
+.btn-send-review:hover { background: #219653; }
+
+@keyframes fadeIn { from { opacity: 0; transform: translateY(-10px); } to { opacity: 1; transform: translateY(0); } }
 </style>
