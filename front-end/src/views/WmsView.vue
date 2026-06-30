@@ -50,7 +50,7 @@
                 </thead>
                 <tbody>
                    <tr v-for="order in wmsOrders" :key="order.id">
-                      <td><b class="order-id-tag">#{{ order.id }}</b></td>
+                      <td><b class="order-id-tag">{{ formatOrderId(order.id) }}</b></td>
                       <td>
                          <img :src="getImageUrl(order.cargo_image || order.product_image)" class="table-img-preview" alt="Ảnh hàng hóa" />
                       </td>
@@ -85,7 +85,7 @@
                 </thead>
                 <tbody>
                    <tr v-for="order in wmsOrders" :key="order.id">
-                      <td><b>#{{ order.id }}</b></td>
+                      <td><b class="order-id-tag">{{ formatOrderId(order.id) }}</b></td>
                       <td>
                          <img :src="getImageUrl(order.cargo_image || order.product_image)" class="table-img-preview" />
                       </td>
@@ -95,15 +95,15 @@
                          <span v-else style="color: #e74c3c; font-style: italic;">⚠️ Chưa xếp kệ</span>
                       </td>
                       <td>
-                        <select v-model="order.warehouse_location" class="table-input">
-    <option value="" disabled>-- Chọn Ô / Kệ lưu trữ --</option>
-    <option value="Khu A - Kệ 01 (Hàng Thường)">Khu A - Kệ 01 (Hàng Thường)</option>
-    <option value="Khu A - Kệ 02 (Hàng Thường)">Khu A - Kệ 02 (Hàng Thường)</option>
-    <option value="Khu B - Kệ 01 (Hàng Nặng/Cồng kềnh)">Khu B - Kệ 01 (Hàng Nặng/Cồng kềnh)</option>
-    <option value="Khu C - Kệ Lạnh (Nhiệt độ thấp)">Khu C - Kệ Lạnh (Nhiệt độ thấp)</option>
-    <option value="Khu D - Kệ Hàng Dễ Vỡ (VIP)">Khu D - Kệ Hàng Dễ Vỡ (VIP)</option>
-    <option value="Khu E - Kệ Hàng đi nhanh (VIP)">Khu E - Kệ Hàng giao gấp (VVIP)</option>
-</select>
+                        <select v-model="locationInputs[order.id]" class="table-input">
+                            <option value="" disabled>-- Chọn Ô / Kệ lưu trữ --</option>
+                            <option value="Khu A - Kệ 01 (Hàng Thường)">Khu A - Kệ 01 (Hàng Thường)</option>
+                            <option value="Khu A - Kệ 02 (Hàng Thường)">Khu A - Kệ 02 (Hàng Thường)</option>
+                            <option value="Khu B - Kệ 01 (Hàng Nặng/Cồng kềnh)">Khu B - Kệ 01 (Hàng Nặng/Cồng kềnh)</option>
+                            <option value="Khu C - Kệ Lạnh (Nhiệt độ thấp)">Khu C - Kệ Lạnh (Nhiệt độ thấp)</option>
+                            <option value="Khu D - Kệ Hàng Dễ Vỡ (VIP)">Khu D - Kệ Hàng Dễ Vỡ (VIP)</option>
+                            <option value="Khu E - Kệ Hàng đi nhanh (VIP)">Khu E - Kệ Hàng giao gấp (VVIP)</option>
+                        </select>
                       </td>
                       <td>
                          <button @click="updateLocation(order.id)" class="btn-action-cyan">🎯 Lưu vị trí</button>
@@ -131,7 +131,7 @@
                 </thead>
                 <tbody>
                    <tr v-for="order in wmsOrders" :key="order.id">
-                      <td><b>#{{ order.id }}</b></td>
+                      <td><b class="order-id-tag">{{ formatOrderId(order.id) }}</b></td>
                       <td>
                          <img :src="getImageUrl(order.cargo_image || order.product_image)" class="table-img-preview" />
                       </td>
@@ -165,25 +165,45 @@
                       <th>Ảnh Bàn Giao</th>
                       <th>Mặt Hàng</th>
                       <th>Vị Trí Lưu Kho</th>
-                      <th>Tình Trạng Hàng</th>
+                      <th>Tình Trạng & Quét Mã</th>
                       <th>Lệnh Vận Hành</th>
                    </tr>
                 </thead>
                 <tbody>
                    <tr v-for="order in wmsOrders" :key="order.id">
-                      <td><b>#{{ order.id }}</b></td>
+                      <td><b class="order-id-tag">{{ formatOrderId(order.id) }}</b></td>
                       <td>
                          <img :src="getImageUrl(order.cargo_image || order.product_image)" class="table-img-preview" />
                       </td>
                       <td><b>{{ order.product_name }}</b></td>
                       <td><span class="location-tag">📍 {{ order.warehouse_location || 'Kho chung' }}</span></td>
                       <td>
-                         <span v-if="order.cargo_condition" style="color: #e67e22; font-size: 13px;">⚠️ {{ order.cargo_condition }}</span>
-                         <span v-else style="color: #27ae60; font-size: 13px;">💚 Bình thường</span>
+                         <div style="margin-bottom: 6px;">
+                            <span v-if="order.cargo_condition" style="color: #e67e22; font-size: 13px;">⚠️ {{ order.cargo_condition }}</span>
+                            <span v-else style="color: #27ae60; font-size: 13px;">💚 Bình thường</span>
+                         </div>
+                         <div>
+                            <span v-if="order.is_scanned" style="color: #2ecc71; font-size: 12px; font-weight: bold;">✔️ Đã quét mã kiện</span>
+                            <span v-else style="color: #e74c3c; font-size: 12px; font-weight: bold;">❌ Chưa quét mã kiện</span>
+                         </div>
                       </td>
                       <td>
-                         <button @click="releaseToTms(order.id)" class="btn-action-green">📤 Xuất kho & Giao TMS</button>
+                         <div style="display: flex; flex-direction: column; gap: 6px;">
+                            <button v-if="!order.is_scanned" @click="scanOrder(order.id)" class="btn-action-blue">🔍 Quét Xác Nhận Đơn</button>
+                            
+                            <button 
+                               @click="releaseToTms(order.id)" 
+                               :disabled="!order.is_scanned" 
+                               :class="{ 'btn-disabled': !order.is_scanned }" 
+                               class="btn-action-green"
+                            >
+                               📤 Xuất kho & Giao TMS
+                            </button>
+                         </div>
                       </td>
+                   </tr>
+                   <tr v-if="wmsOrders.length === 0">
+                      <td colspan="6" style="text-align: center; color: #7f8c8d; padding: 20px;">Hiện tại không có kiện hàng nào.</td>
                    </tr>
                 </tbody>
              </table>
@@ -207,7 +227,7 @@
                 </thead>
                 <tbody>
                    <tr v-for="(log, idx) in warehouseLogs" :key="idx">
-                      <td><b class="order-id-tag">#{{ log.order_id }}</b></td>
+                      <td><b class="order-id-tag">{{ formatOrderId(log.order_id) }}</b></td>
                       <td><span class="log-notes-txt">{{ log.notes }}</span></td>
                       <td><span class="status-badge-old">{{ log.old_status }}</span></td>
                       <td><span class="status-badge-new">{{ log.new_status }}</span></td>
@@ -241,6 +261,11 @@ const conditionInputs = ref({});
 const fileInputs = ref({}); 
  
 let wmsInterval = null;
+
+const formatOrderId = (id) => {
+   if (!id) return '';
+   return `PKG-${60000 + Number(id)}`;
+};
  
 const getImageUrl = (path) => {
    if (!path) return 'https://placehold.co/60x45?text=No+Image';
@@ -258,7 +283,6 @@ const fetchWmsOrders = async () => {
  
 const fetchWarehouseLogs = async () => {
    try {
-      // ĐÃ SỬA: Gọi đúng URL đã được cấu hình đồng bộ ở Backend
       const res = await axios.get('http://localhost:3000/api/orders/wms/logs');
       warehouseLogs.value = res.data;
    } catch (err) {
@@ -270,17 +294,28 @@ const switchToHistoryTab = () => {
    activeTab.value = 'warehouse_history';
    fetchWarehouseLogs(); 
 };
+
+// ĐÃ SỬA CHUẨN: Đổi từ đuôi /scan thành /scan-barcode để gọi đúng API Node.js
+const scanOrder = async (id) => {
+   try {
+      await axios.put(`http://localhost:3000/api/orders/wms/${id}/scan-barcode`);
+      alert("⚡ Xác nhận quét mã kiện hàng nhập bãi thành công!");
+      fetchWmsOrders(); 
+   } catch (err) {
+      console.error(err);
+      alert("Lỗi hệ thống khi quét mã kiện hàng!");
+   }
+};
  
 const updateLocation = async (id) => {
    const loc = locationInputs.value[id];
    if (!loc || loc.trim() === '') {
-      alert("⚠️ Vui lòng điền mã tọa độ Ô / Kệ trước khi xác nhận lưu vị trí!");
+      alert("⚠️ Vui lòng chọn vị trí Ô / Kệ trước khi xác nhận lưu vị trí!");
       return;
    }
    try {
       await axios.put(`http://localhost:3000/api/orders/wms/${id}/location`, { warehouse_location: loc });
       alert("🎯 Xác nhận định vị sắp xếp kiện hàng vào vị trí thành công!");
-      locationInputs.value[id] = '';
       fetchWmsOrders();
    } catch (err) {
       alert("Lỗi cập nhật vị trí kho bãi!");
@@ -382,7 +417,7 @@ header h1 { font-size: 22px; font-weight: 800; color: #2c3e50; margin-bottom: 25
 .status-badge.process { background: #e0f2fe; color: #0369a1; }
  
 .location-tag { background: #ecfdf5; color: #065f46; font-weight: bold; padding: 4px 8px; border-radius: 4px; border: 1px solid #a7f3d0; font-size: 13px; }
-.table-input { padding: 8px 12px; border: 1px solid #cbd5e1; border-radius: 4px; font-size: 13px; width: 140px; }
+.table-input { padding: 8px 12px; border: 1px solid #cbd5e1; border-radius: 4px; font-size: 13px; width: 160px; }
 .mini-file-input { font-size: 11px; color: #7f8c8d; max-width: 150px; }
 .report-box-grid { display: flex; flex-direction: column; gap: 6px; max-width: 220px; }
 .condition-text { margin: 0; font-size: 13px; color: #d35400; font-style: italic; font-weight: 500; }
@@ -390,6 +425,10 @@ header h1 { font-size: 22px; font-weight: 800; color: #2c3e50; margin-bottom: 25
 .btn-action-cyan { background: #16a085; color: white; border: none; padding: 8px 14px; font-weight: bold; font-size: 12px; border-radius: 4px; cursor: pointer; }
 .btn-action-orange { background: #e67e22; color: white; border: none; padding: 8px 14px; font-weight: bold; font-size: 12px; border-radius: 4px; cursor: pointer; }
 .btn-action-green { background: #27ae60; color: white; border: none; padding: 10px 16px; font-weight: bold; font-size: 13px; border-radius: 4px; cursor: pointer; width: 100%; }
+ 
+.btn-action-blue { background: #3498db; color: white; border: none; padding: 8px 14px; font-weight: bold; font-size: 12px; border-radius: 4px; cursor: pointer; width: 100%; text-align: center; }
+.btn-action-blue:hover { background: #2980b9; }
+.btn-disabled { background: #cbd5e1 !important; color: #94a3b8 !important; cursor: not-allowed !important; }
  
 .log-notes-txt { color: #2c3e50; font-weight: 500; font-size: 13px; display: block; max-width: 400px; line-height: 1.4; }
 .status-badge-old { background: #f1f5f9; color: #64748b; padding: 2px 6px; border-radius: 4px; font-size: 11px; font-family: monospace; }

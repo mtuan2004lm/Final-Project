@@ -1,6 +1,6 @@
 package com.example.logisticsapp
 
-import com.google.gson.annotations.SerializedName // 1. NHỚ THÊM DÒNG IMPORT NÀY
+import com.google.gson.annotations.SerializedName
 import retrofit2.Call
 import retrofit2.http.Body
 import retrofit2.http.GET
@@ -8,35 +8,50 @@ import retrofit2.http.POST
 import retrofit2.http.PUT
 import retrofit2.http.Path
 
-// Model hứng dữ liệu đơn hàng trả về từ hàm getWmsOrders của Node.js
-data class WmsOrder(
-    val id: Int,
-    val customer_name: String,
-    val product_name: String,
-    val quantity: Int,
-    val status: String,
-    val current_dept: String,
-    val is_scanned: Boolean,
+object ApiConfig {
+    // Nếu chạy bằng Android Emulator thì dùng 10.0.2.2
+    // Nếu chạy bằng điện thoại thật thì đổi thành IP máy tính chạy backend.
+    const val BASE_URL = "http://10.0.2.2:3000/"
+}
 
-    // 2. CẬP NHẬT ĐOẠN NÀY: Để Kotlin tự động map với trường warehouse_location của Node.js
+data class WmsOrder(
+    val id: Int = 0,
+    val customer_name: String? = "",
+    val product_name: String? = "",
+    val quantity: Int = 0,
+    val status: String? = "",
+    val current_dept: String? = "",
+
+    @SerializedName("is_scanned")
+    val isScanned: Boolean = false,
+
     @SerializedName("warehouse_location")
-    val location: String?
+    val warehouseLocation: String? = "",
+
+    @SerializedName("cargo_image")
+    val cargoImage: String? = "",
+
+    @SerializedName("product_image")
+    val productImage: String? = "",
+
+    @SerializedName("cargo_condition")
+    val cargoCondition: String? = ""
 )
 
-// Model phản hồi của hàm scanBarcode từ Node.js (Chứa chuỗi "message")
 data class ScanResponse(
-    val message: String
+    val message: String? = "",
+    val order: WmsOrder? = null
 )
 
 interface ApiService {
+
     @POST("api/auth/mobile-login")
     fun loginUser(@Body request: LoginRequest): Call<LoginResponse>
 
-    // 1. Lấy danh sách đơn hàng đang chờ tại Kho
     @GET("api/orders/wms")
     fun getWmsOrders(): Call<List<WmsOrder>>
 
-    // 2. Đồng bộ trạng thái quét mã vạch bằng phương thức PUT lên Node.js
+    // ĐÃ SỬA CHUẨN: Đổi thành "scan-barcode" để khớp chuẩn với hàm scanBarcode trong wmsController.js
     @PUT("api/orders/wms/{id}/scan-barcode")
     fun scanWmsBarcode(@Path("id") orderId: Int): Call<ScanResponse>
 }

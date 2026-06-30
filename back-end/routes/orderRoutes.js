@@ -39,6 +39,7 @@ router.get('/wms', wmsController.getWmsOrders);
 router.put('/wms/:id/location', wmsController.updateOrderLocation);
 router.put('/wms/:id/condition', upload.single('cargo_image'), wmsController.updateCargoCondition);
 router.put('/wms/:id/release', wmsController.releaseToTms);
+router.put('/wms/:id/scan-barcode', wmsController.scanBarcode);
 
 // 4. ROUTE PHÒNG VẬN TẢI ĐỘI XE (TMS)
 router.get('/tms/fleet', tmsController.getTruckFleet);                      
