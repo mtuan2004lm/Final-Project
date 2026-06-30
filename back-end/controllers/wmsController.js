@@ -1,134 +1,122 @@
 const pool = require('../config/db');
 
 // =========================================================================
-// 1. LẤY DANH SÁCH ĐƠN HÀNG THUỘC KHO TRUNG CHUYỂN (WMS)
+// 1. LẤY DANH SÁCH ĐƠN HÀNG WMS (Tương thích Android Studio & Web Vue)
 // =========================================================================
 exports.getWmsOrders = async (req, res) => {
     try {
-        const result = await pool.query(
-            `SELECT id, customer_name, product_name, quantity, status, current_dept,
-                    COALESCE(warehouse_location, '') as warehouse_location,
-                    COALESCE(cargo_condition, '') as cargo_condition,
-                    COALESCE(cargo_image, '') as cargo_image, -- SỬA THÀNH CHUỖI RỖNG
-                    COALESCE(is_scanned, false) as is_scanned
-             FROM orders 
-             WHERE UPPER(current_dept) = 'WMS' AND UPPER(status) = 'APPROVED' 
-             ORDER BY id ASC`
-        );
-        res.json(result.rows);
+        const queryText = `
+            SELECT * FROM orders 
+            WHERE UPPER(current_dept) = 'WMS' AND UPPER(status) = 'APPROVED' 
+            ORDER BY id ASC
+        `;
+        const result = await pool.query(queryText);
+        
+        // Bọc dữ liệu an toàn cho cả Web và Android
+        const safeRows = result.rows.map(row => {
+            const cleanedRow = { ...row };
+            // 1. Quét sạch null thành chuỗi rỗng
+            Object.keys(cleanedRow).forEach(key => {
+                if (cleanedRow[key] === null) cleanedRow[key] = '';
+            });
+            // 2. Ép thêm trường is_scanned để App Android không bị crash
+            if (cleanedRow.is_scanned === undefined || cleanedRow.is_scanned === '') {
+                cleanedRow.is_scanned = false; 
+            }
+            return cleanedRow;
+        });
+
+        res.json(safeRows);
     } catch (err) {
         console.error("🔴 LỖI TẠI WMS_CONTROLLER (getWmsOrders):", err.message);
-        res.status(500).json({ error: "Lỗi cơ sở dữ liệu phòng WMS", detail: err.message });
+        res.status(500).json({ error: "Lỗi cơ sở dữ liệu phòng WMS" });
     }
 };
 
 // =========================================================================
-// 2. QUẢN LÝ VỊ TRÍ LƯU KHO (Giữ nguyên theo yêu cầu)
+// 2. QUẢN LÝ VỊ TRÍ LƯU KHO
 // =========================================================================
 exports.updateOrderLocation = async (req, res) => {
     const { id } = req.params;
-    const { location } = req.body;
+    const { warehouse_location } = req.body;
     try {
         const result = await pool.query(
             `UPDATE orders SET warehouse_location = $1 WHERE id = $2 RETURNING *`,
-            [location, id]
+            [warehouse_location, id]
         );
-        if (result.rows.length === 0) {
-            return res.status(404).json({ error: "Không tìm thấy mã đơn hàng!" });
-        }
-        await pool.query(
-            `INSERT INTO order_logs (order_id, old_status, new_status, notes) 
-             VALUES ($1, 'APPROVED', 'APPROVED', $2)`,
-            [id, `Nhân viên kho thực hiện Put-away phân bổ kiện hàng vào ô kệ lưu kho: ${location}`]
-        );
-        res.json({ message: `📍 Đã gán vị trí kho thành công: ${location}`, order: result.rows[0] });
+        if (result.rows.length === 0) return res.status(404).json({ error: "Không tìm thấy đơn hàng!" });
+        res.json({ message: "🎯 Cập nhật vị trí thành công!", order: result.rows[0] });
     } catch (err) {
-        console.error("🔴 LỖI CẬP NHẬT VỊ TRÍ Ô KỆ WMS:", err.message);
-        res.status(500).json({ error: "Lỗi cơ sở dữ liệu khi phân phối vị trí chứa hàng", detail: err.message });
+        res.status(500).json({ error: "Lỗi cập nhật vị trí kho" });
     }
 };
 
 // =========================================================================
-// 3. BÁO CÁO TÌNH TRẠNG HƯ HẠI NGOẠI QUAN (Cập nhật xử lý lưu Tên File Ảnh)
+// 3. BÁO CÁO HƯ HẠI & CẬP NHẬT ẢNH KHO (Dành cho Web Vue)
 // =========================================================================
 exports.updateCargoCondition = async (req, res) => {
     const { id } = req.params;
-    const { condition } = req.body; 
+    const { cargo_condition } = req.body;
+    const cargoImagePath = req.file ? `/uploads/${req.file.filename}` : '';
     
-    // Đọc tên file ảnh từ Multer middleware nếu có người dùng tải lên
-    const imagePath = req.file ? `/uploads/${req.file.filename}` : '';
-
     try {
-        const result = await pool.query(
-            `UPDATE orders 
-             SET cargo_condition = $1, 
-                 cargo_image = CASE WHEN $2 <> '' THEN $2 ELSE cargo_image END, -- Giữ ảnh cũ nếu không up ảnh mới
-                 is_scanned = true
-             WHERE id = $3 
-             RETURNING *`,
-            [condition, imagePath, id]
-        );
-
-        if (result.rows.length === 0) {
-            return res.status(404).json({ error: "Không tìm thấy đơn hàng!" });
+        let result;
+        if (cargoImagePath) {
+            result = await pool.query(
+                `UPDATE orders SET cargo_condition = $1, cargo_image = $2 WHERE id = $3 RETURNING *`,
+                [cargo_condition, cargoImagePath, id]
+            );
+        } else {
+            result = await pool.query(
+                `UPDATE orders SET cargo_condition = $1 WHERE id = $2 RETURNING *`,
+                [cargo_condition, id]
+            );
         }
-
-        await pool.query(
-            `INSERT INTO order_logs (order_id, old_status, new_status, notes) 
-             VALUES ($1, 'APPROVED', 'APPROVED', $2)`,
-            [id, `🚨 Khảo sát ngoại quan phát hiện bất thường và lập biên bản hư hại: ${condition}`]
-        );
-
-        res.json({ message: "⚠️ Đã ghi nhận biên bản và tải ảnh hình ảnh hư hại lên hệ thống!", order: result.rows[0] });
+        res.json({ message: "⚠️ Đã ghi nhận báo cáo hư hại!", order: result.rows[0] });
     } catch (err) {
-        console.error("🔴 LỖI BÁO CÁO HƯ HẠI NGOẠI QUAN WMS:", err.message);
-        res.status(500).json({ error: "Lỗi lưu báo cáo tình trạng hàng hóa", detail: err.message });
+        res.status(500).json({ error: "Lỗi ghi nhận báo cáo hư hại" });
     }
 };
 
 // =========================================================================
-// 4. XỬ LÝ NHẬP MÃ ĐƠN XÁC NHẬN NHẬP KHO (Đã đổi tên logic từ Quét Barcode thành Nhập Mã)
+// 4. XUẤT KHO & BÀN GIAO TMS (Dành cho Web Vue)
 // =========================================================================
-exports.scanBarcode = async (req, res) => {
+exports.releaseToTms = async (req, res) => {
     const { id } = req.params;
     try {
         const result = await pool.query(
-            `UPDATE orders SET is_scanned = true WHERE id = $1 RETURNING *`,
+            `UPDATE orders SET current_dept = 'TMS', status = 'APPROVED' WHERE id = $1 RETURNING *`,
             [id]
         );
-
-        if (result.rows.length === 0) {
-            return res.status(404).json({ error: "Không tìm thấy kiện hàng cần xác nhận!" });
-        }
-
-        await pool.query(
-            `INSERT INTO order_logs (order_id, old_status, new_status, notes) 
-             VALUES ($1, 'APPROVED', 'APPROVED', $2)`,
-            [id, 'Hệ thống ghi nhận mã kiện hàng: Xác nhận hoàn tất nhập bãi kho trung chuyển thành công.']
-        );
-
-        res.json({ message: "⚡ Đã xác nhận mã kiện nhập kho thành công vào hệ thống!", order: result.rows[0] });
+        res.json({ message: "📤 Xuất kho bàn giao TMS thành công!", order: result.rows[0] });
     } catch (err) {
-        console.error("🔴 LỖI TẠI WMS_CONTROLLER (scanBarcode):", err.message);
-        res.status(500).json({ error: "Lỗi hệ thống ghi nhận mã kiện nhập kho", detail: err.message });
+        res.status(500).json({ error: "Lỗi lệnh xuất kho sang TMS" });
     }
 };
 
 // =========================================================================
-// 5. TRUY XUẤT TẤT CẢ LỊCH SỬ LIÊN QUAN ĐẾN KHO (Giữ nguyên theo yêu cầu)
+// 5. NHẬT KÝ KHO WMS
 // =========================================================================
 exports.getWarehouseGlobalLogs = async (req, res) => {
     try {
         const result = await pool.query(
-            `SELECT order_id, old_status, new_status, notes, changed_at 
-             FROM order_logs 
-             WHERE notes ILIKE '%kho%' OR notes ILIKE '%pda%' OR notes ILIKE '%kệ%' 
-                OR notes ILIKE '%ngoại quan%' OR notes ILIKE '%đóng gói%' OR notes ILIKE '%WMS%'
-             ORDER BY changed_at DESC`
+            `SELECT * FROM order_logs WHERE notes ILIKE '%kho%' OR notes ILIKE '%WMS%' ORDER BY changed_at DESC`
         );
         res.json(result.rows);
     } catch (err) {
-        console.error("🔴 LỖI TẠI WMS_CONTROLLER (getWarehouseGlobalLogs):", err.message);
-        res.status(500).json({ error: "Không thể lấy lịch sử tổng hợp kho", detail: err.message });
+        res.json([]); // Nếu bảng chưa có thì trả mảng rỗng chống sập API
+    }
+};
+
+// =========================================================================
+// 6. XÁC NHẬN MÃ KIỆN (API riêng cho Máy quét PDA / Android Studio)
+// =========================================================================
+exports.scanBarcode = async (req, res) => {
+    const { id } = req.params;
+    try {
+        const result = await pool.query(`UPDATE orders SET status = 'APPROVED' WHERE id = $1 RETURNING *`, [id]);
+        res.json({ message: "⚡ Đã xác nhận mã kiện nhập kho!", order: result.rows[0] });
+    } catch (err) {
+        res.status(500).json({ error: "Lỗi hệ thống", detail: err.message });
     }
 };
