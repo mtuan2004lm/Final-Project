@@ -1,3 +1,4 @@
+// tmsController.js
 const pool = require('../config/db');
 
 // 1. LẤY DANH SÁCH ĐƠN HÀNG CHỜ VẬN CHUYỂN HOẶC ĐANG ĐI ĐƯỜNG
@@ -13,7 +14,8 @@ exports.getTmsOrders = async (req, res) => {
                     COALESCE(pod_image, '') as pod_image,
                     COALESCE(gps_coordinates, '') as gps_coordinates
              FROM orders 
-             WHERE UPPER(current_dept) = 'TMS' AND UPPER(status) IN ('PACKED', 'SHIPPING', 'DELIVERED')
+             WHERE UPPER(current_dept) = 'TMS' 
+               AND UPPER(status) IN ('APPROVED', 'PACKED', 'SHIPPING', 'DELIVERED')
              ORDER BY id ASC`
         );
         res.json(result.rows);
@@ -26,7 +28,6 @@ exports.getTmsOrders = async (req, res) => {
 // 2. LẤY DANH SÁCH ĐỘI XE & QUẢN LÝ TÌNH TRẠNG BẢO TRÌ (MOCK FLEET DATA)
 exports.getTruckFleet = async (req, res) => {
     try {
-        // Trong thực tế sẽ viết bảng 'trucks'. Đây là dữ liệu chuẩn hóa phục vụ quản lý:
         const fleet = [
             { id: 1, license_plate: '29C-123.45', type: 'Tải 3.5 Tấn', maintenance_date: '2026-08-15', registry_expiry: '2026-12-20', fuel_norm: '12L/100km', status: 'Sẵn sàng' },
             { id: 2, license_plate: '51D-999.88', type: 'Tải 8 Tấn', maintenance_date: '2026-06-02', registry_expiry: '2026-11-14', fuel_norm: '18L/100km', status: 'Đang đi giao hàng' },
