@@ -69,18 +69,20 @@ exports.updateOrderLocation = async (req, res) => {
 exports.updateCargoCondition = async (req, res) => {
     const { id } = req.params;
     const { cargo_condition } = req.body;
-    const cargoImagePath = req.file ? `/uploads/${req.file.filename}` : '';
+    
+    // File nhận từ multer vẫn giữ nguyên logic, nhưng ta sẽ gán nó cho cột mới
+    const damageImagePath = req.file ? `/uploads/${req.file.filename}` : '';
 
     try {
         let result;
 
-        if (cargoImagePath) {
+        if (damageImagePath) {
             result = await pool.query(
                 `UPDATE orders 
-                 SET cargo_condition = $1, cargo_image = $2 
+                 SET cargo_condition = $1, damage_image = $2 
                  WHERE id = $3 
                  RETURNING *`,
-                [cargo_condition, cargoImagePath, id]
+                [cargo_condition, damageImagePath, id] // Cập nhật vào cột damage_image
             );
         } else {
             result = await pool.query(

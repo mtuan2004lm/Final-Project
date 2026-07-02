@@ -123,7 +123,8 @@
                 <thead>
                    <tr>
                       <th>Mã Đơn</th>
-                      <th>Hình Ảnh</th>
+                      <th>Ảnh Gốc (OMS)</th>
+                      <th>Ảnh Hư Hại (WMS)</th>
                       <th>Mặt Hàng</th>
                       <th>Biên Bản Tình Trạng Hiện Tại</th>
                       <th>Cập Nhật Tình Trạng & Tải Ảnh Mới Tại Kho</th>
@@ -132,9 +133,16 @@
                 <tbody>
                    <tr v-for="order in wmsOrders" :key="order.id">
                       <td><b class="order-id-tag">{{ formatOrderId(order.id) }}</b></td>
+                      
                       <td>
-                         <img :src="getImageUrl(order.cargo_image || order.product_image)" class="table-img-preview" />
+                         <img :src="getImageUrl(order.product_image)" class="table-img-preview" alt="Ảnh gốc" />
                       </td>
+
+                      <td>
+                         <img v-if="order.damage_image" :src="getImageUrl(order.damage_image)" class="table-img-preview" style="border: 2px solid #e74c3c;" alt="Ảnh hư hại" />
+                         <span v-else style="color: #95a5a6; font-size: 12px; font-style: italic;">Chưa ghi nhận</span>
+                      </td>
+
                       <td>{{ order.product_name }}</td>
                       <td>
                          <p class="condition-text" v-if="order.cargo_condition">💬 {{ order.cargo_condition }}</p>
