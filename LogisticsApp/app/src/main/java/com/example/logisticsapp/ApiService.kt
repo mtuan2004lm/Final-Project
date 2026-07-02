@@ -14,7 +14,7 @@ object ApiConfig {
     const val BASE_URL = "http://10.0.2.2:3000/"
 }
 
-// SỬA TẠI ĐÂY: Thêm ": java.io.Serializable" để object này có thể truyền đi giữa các Màn hình (Activity)
+// Thêm ": java.io.Serializable" để object này có thể truyền đi giữa các Màn hình (Activity)
 data class WmsOrder(
     val id: Int = 0,
     val customer_name: String? = "",
@@ -37,14 +37,14 @@ data class WmsOrder(
 
     @SerializedName("cargo_condition")
     val cargoCondition: String? = ""
-) : java.io.Serializable // <-- Thêm dòng này vào cuối class
+) : java.io.Serializable
 
 data class ScanResponse(
     val message: String? = "",
     val order: WmsOrder? = null
 )
 
-// THÊM MỚI: Model cho Nhật ký kho
+// Model cho Nhật ký kho
 data class WarehouseLog(
     val id: Int = 0,
     @SerializedName("order_id") val orderId: Int = 0,
@@ -62,10 +62,12 @@ interface ApiService {
     @GET("api/orders/wms")
     fun getWmsOrders(): Call<List<WmsOrder>>
 
-    @PUT("api/orders/wms/location/{id}")
+    // ĐÃ SỬA: Đổi từ wms/location/{id} thành wms/{id}/location cho khớp với Node.js Backend
+    @PUT("api/orders/wms/{id}/location")
     fun updateWmsLocation(@Path("id") id: Int, @Body body: Map<String, String>): Call<ScanResponse>
 
-    @PUT("api/orders/wms/scan/{id}")
+    // ĐÃ SỬA: Đổi từ wms/scan/{id} thành wms/{id}/scan-barcode cho khớp với Node.js Backend
+    @PUT("api/orders/wms/{id}/scan-barcode")
     fun scanWmsBarcode(@Path("id") id: Int): Call<ScanResponse>
 
     @GET("api/orders/wms/logs")

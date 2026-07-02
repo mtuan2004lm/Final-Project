@@ -2,6 +2,7 @@ package com.example.logisticsapp
 
 import android.graphics.BitmapFactory
 import android.os.Bundle
+import android.util.Log
 import android.widget.Button
 import android.widget.EditText
 import android.widget.ImageView
@@ -85,7 +86,6 @@ class OrderDetailActivity : AppCompatActivity() {
             loadImageFromUrl(fullUrl, imgProductInitial)
         }
 
-        // ĐÃ FIX: Sửa order.damageImage thành order.cargoImage để khớp với Model
         if (!order.cargoImage.isNullOrEmpty()) {
             val fullUrl = ApiConfig.BASE_URL + order.cargoImage.removePrefix("/")
             loadImageFromUrl(fullUrl, imgProductDamage)
@@ -123,12 +123,24 @@ class OrderDetailActivity : AppCompatActivity() {
                     Toast.makeText(this@OrderDetailActivity, "Xác nhận nhập kho bãi thành công!", Toast.LENGTH_SHORT).show()
                     finish()
                 } else {
-                    Toast.makeText(this@OrderDetailActivity, "Hệ thống kho từ chối xử lý dữ liệu!", Toast.LENGTH_SHORT).show()
+                    // ĐÃ CẢI TIẾN: Trích xuất mã trạng thái HTTP và chi tiết phản hồi lỗi từ Backend trả về
+                    val statusCode = response.code()
+                    val errorBody = response.errorBody()?.string() ?: "Không có thông tin mô tả lỗi."
+
+                    // Đẩy dữ liệu ra Logcat để tiện kiểm tra nội dung JSON lỗi trong Android Studio
+                    Log.e("WMS_API_ERROR", "Mã HTTP: $statusCode | Nội dung lỗi từ Server: $errorBody")
+
+                    // Show chi tiết thông tin lỗi trực tiếp lên UI để người dùng biết lý do bị từ chối
+                    Toast.makeText(
+                        this@OrderDetailActivity,
+                        "Hệ thống kho từ chối (Lỗi $statusCode): $errorBody",
+                        Toast.LENGTH_LONG
+                    ).show()
                 }
             }
 
             override fun onFailure(call: Call<ScanResponse>, t: Throwable) {
-                Toast.makeText(this@OrderDetailActivity, "Lỗi kết nối mạng đến máy chủ kho!", Toast.LENGTH_SHORT).show()
+                Toast.makeText(this@OrderDetailActivity, "Lỗi kết nối mạng đến máy chủ kho: ${t.message}", Toast.LENGTH_SHORT).show()
             }
         })
     }

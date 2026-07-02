@@ -35,7 +35,7 @@ exports.getWmsOrders = async (req, res) => {
     }
 };
 
-// 2. QUẢN LÝ VỊ TRÍ LƯU KHO
+// 2. QUẢN LÝ VỊ TRÍ LƯU KHO (TỰ ĐỘNG GHI NHẬT KÝ)
 exports.updateOrderLocation = async (req, res) => {
     const { id } = req.params;
     const { warehouse_location } = req.body;
@@ -53,6 +53,13 @@ exports.updateOrderLocation = async (req, res) => {
             return res.status(404).json({ error: 'Không tìm thấy đơn hàng!' });
         }
 
+        // 🌟 TỰ ĐỘNG GHI LOG: Khi xếp vị trí kệ trên Web/Mobile
+        await pool.query(
+            `INSERT INTO order_logs (order_id, notes, old_status, new_status)
+             VALUES ($1, $2, $3, $4)`,
+            [id, `Sắp xếp vị trí kiện hàng vào ô/kệ: ${warehouse_location} (Kho WMS)`, result.rows[0].status, result.rows[0].status]
+        );
+
         res.json({
             message: '🎯 Cập nhật vị trí thành công!',
             order: result.rows[0]
@@ -65,12 +72,11 @@ exports.updateOrderLocation = async (req, res) => {
     }
 };
 
-// 3. BÁO CÁO HƯ HẠI & CẬP NHẬT ẢNH KHO
+// 3. BÁO CÁO HƯ HẠI & CẬP NHẬT ẢNH KHO (TỰ ĐỘNG GHI NHẬT KÝ)
 exports.updateCargoCondition = async (req, res) => {
     const { id } = req.params;
     const { cargo_condition } = req.body;
-    
-    // File nhận từ multer vẫn giữ nguyên logic, nhưng ta sẽ gán nó cho cột mới
+   
     const damageImagePath = req.file ? `/uploads/${req.file.filename}` : '';
 
     try {
@@ -82,7 +88,7 @@ exports.updateCargoCondition = async (req, res) => {
                  SET cargo_condition = $1, damage_image = $2 
                  WHERE id = $3 
                  RETURNING *`,
-                [cargo_condition, damageImagePath, id] // Cập nhật vào cột damage_image
+                [cargo_condition, damageImagePath, id]
             );
         } else {
             result = await pool.query(
@@ -98,6 +104,13 @@ exports.updateCargoCondition = async (req, res) => {
             return res.status(404).json({ error: 'Không tìm thấy đơn hàng!' });
         }
 
+        // 🌟 TỰ ĐỘNG GHI LOG: Khi cập nhật tình trạng hàng hóa
+        await pool.query(
+            `INSERT INTO order_logs (order_id, notes, old_status, new_status)
+             VALUES ($1, $2, $3, $4)`,
+            [id, `Cập nhật tình trạng kiện hàng tại kho: ${cargo_condition}`, result.rows[0].status, result.rows[0].status]
+        );
+
         res.json({
             message: '⚠️ Đã ghi nhận báo cáo hư hại!',
             order: result.rows[0]
@@ -110,12 +123,11 @@ exports.updateCargoCondition = async (req, res) => {
     }
 };
 
-// 4. XUẤT KHO & BÀN GIAO TMS (CẬP NHẬT RÀO CHẮN ĐIỀU KIỆN QUÉT)
+// 4. XUẤT KHO & BÀN GIAO TMS (TỰ ĐỘNG GHI NHẬT KÝ)
 exports.releaseToTms = async (req, res) => {
     const { id } = req.params;
 
     try {
-        // THAY ĐỔI: Thêm điều kiện "AND is_scanned = true" vào câu lệnh SQL
         const result = await pool.query(
             `UPDATE orders 
              SET current_dept = 'TMS', status = 'APPROVED' 
@@ -125,9 +137,15 @@ exports.releaseToTms = async (req, res) => {
         );
 
         if (result.rows.length === 0) {
-            // Trả về thông báo lỗi chi tiết nếu kiện chưa quét
             return res.status(400).json({ error: 'Không thể bàn giao! Đơn hàng này chưa được thực hiện quét xác nhận mã kiện.' });
         }
+
+        // 🌟 TỰ ĐỘNG GHI LOG: Khi xuất kho giao cho xe tải
+        await pool.query(
+            `INSERT INTO order_logs (order_id, notes, old_status, new_status)
+             VALUES ($1, $2, $3, $4)`,
+            [id, `Xuất kho thành công, bàn giao kiện hàng sang phòng Vận tải TMS`, 'APPROVED', 'APPROVED']
+        );
 
         res.json({
             message: '📤 Xuất kho bàn giao TMS thành công!',
@@ -145,8 +163,7 @@ exports.releaseToTms = async (req, res) => {
 exports.getWarehouseGlobalLogs = async (req, res) => {
     try {
         const result = await pool.query(
-            `SELECT * 
-             FROM order_logs 
+            `SELECT * FROM order_logs 
              WHERE notes ILIKE '%kho%' 
                 OR notes ILIKE '%WMS%' 
              ORDER BY changed_at DESC`
@@ -158,7 +175,7 @@ exports.getWarehouseGlobalLogs = async (req, res) => {
     }
 };
 
-// 6. XÁC NHẬN MÃ KIỆN TRÊN MOBILE/PDA
+// 6. XÁC NHẬN MÃ KIỆN TRÊN WEB VÀ MOBILE/PDA (TỰ ĐỘNG GHI NHẬT KÝ CHUNG)
 exports.scanBarcode = async (req, res) => {
     const { id } = req.params;
 
@@ -177,6 +194,13 @@ exports.scanBarcode = async (req, res) => {
                 error: 'Không tìm thấy đơn WMS cần quét!'
             });
         }
+
+        // 🌟 TỰ ĐỘNG GHI LOG: Khi quét thành công từ Web hay Mobile
+        await pool.query(
+            `INSERT INTO order_logs (order_id, notes, old_status, new_status)
+             VALUES ($1, $2, $3, $4)`,
+            [id, `Quét xác nhận mã đối chiếu kiện hàng nhập kho bãi thành công`, result.rows[0].status, result.rows[0].status]
+        );
 
         res.json({
             message: '⚡ Đã xác nhận mã kiện nhập kho!',
