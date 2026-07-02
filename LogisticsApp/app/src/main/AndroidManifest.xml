@@ -53,6 +53,16 @@
             android:exported="false"
             android:foregroundServiceType="location" />
 
+        <activity
+            android:name=".WmsLogsActivity"
+            android:exported="false"
+            android:theme="@style/Theme.AppCompat.Light.NoActionBar" />
+
+        <activity
+            android:name=".OrderDetailActivity"
+            android:exported="false"
+            android:theme="@style/Theme.AppCompat.Light.NoActionBar" />
+
     </application>
 
 </manifest>

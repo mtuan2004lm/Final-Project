@@ -1,0 +1,128 @@
+<?xml version="1.0" encoding="utf-8"?>
+<ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:padding="16dp"
+    android:background="#FDFDFD">
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="vertical">
+
+        <TextView
+            android:id="@+id/txtDetailTitle"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="THÔNG TIN CHI TIẾT KIỆN HÀNG WMS"
+            android:textSize="17sp"
+            android:textStyle="bold"
+            android:textColor="#111111"
+            android:layout_marginBottom="12dp"/>
+
+        <TextView
+            android:id="@+id/txtDetailInfo"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:textSize="14sp"
+            android:textColor="#444444"
+            android:lineSpacingExtra="4dp"
+            android:layout_marginBottom="8dp"/>
+
+        <TextView
+            android:id="@+id/txtDetailLocation"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:textSize="14sp"
+            android:textStyle="bold"
+            android:textColor="#0275D8"
+            android:layout_marginBottom="4dp"/>
+
+        <TextView
+            android:id="@+id/txtDetailCondition"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:textSize="14sp"
+            android:textStyle="bold"
+            android:textColor="#D9534F"
+            android:layout_marginBottom="16dp"/>
+
+        <View
+            android:layout_width="match_parent"
+            android:layout_height="1dp"
+            android:background="#EEEEEE"
+            android:layout_marginBottom="12dp"/>
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="🖼️ Hình ảnh kiện hàng lúc tạo (OMS):"
+            android:textStyle="bold"
+            android:layout_marginBottom="4dp"/>
+        <ImageView
+            android:id="@+id/imgProductInitial"
+            android:layout_width="match_parent"
+            android:layout_height="160dp"
+            android:scaleType="centerInside"
+            android:background="#F5F5F5"
+            android:layout_marginBottom="16dp"
+            android:src="@android:drawable/ic_menu_gallery"/>
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="📸 Ảnh chụp hiện trạng hư hại tại bãi (WMS):"
+            android:textStyle="bold"
+            android:layout_marginBottom="4dp"/>
+        <ImageView
+            android:id="@+id/imgProductDamage"
+            android:layout_width="match_parent"
+            android:layout_height="160dp"
+            android:scaleType="centerInside"
+            android:background="#F5F5F5"
+            android:layout_marginBottom="20dp"
+            android:src="@android:drawable/ic_menu_report_image"/>
+
+        <View
+            android:layout_width="match_parent"
+            android:layout_height="1dp"
+            android:background="#EEEEEE"
+            android:layout_marginBottom="16dp"/>
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="⌨️ Nhập thủ công mã barcode kiện hàng để kiểm tra:"
+            android:textStyle="bold"
+            android:textColor="#F0AD4E"
+            android:layout_marginBottom="6dp"/>
+
+        <EditText
+            android:id="@+id/edtBarcodeInput"
+            android:layout_width="match_parent"
+            android:layout_height="50dp"
+            android:hint="Gõ đúng định dạng: PKG-600xx"
+            android:inputType="textCapCharacters"
+            android:background="@android:drawable/edit_text"
+            android:padding="10dp"
+            android:layout_marginBottom="16dp"/>
+
+        <Button
+            android:id="@+id/btnConfirmScan"
+            android:layout_width="match_parent"
+            android:layout_height="50dp"
+            android:text="XÁC THỰC NHẬP XUẤT KHO"
+            android:backgroundTint="#5CB85C"
+            android:textColor="#FFFFFF"
+            android:textStyle="bold"
+            android:layout_marginBottom="8dp"/>
+
+        <Button
+            android:id="@+id/btnBack"
+            android:layout_width="match_parent"
+            android:layout_height="50dp"
+            android:text="QUAY VỀ DANH SÁCH SƠ ĐỒ"
+            android:backgroundTint="#777777"
+            android:textColor="#FFFFFF" />
+    </LinearLayout>
+</ScrollView>

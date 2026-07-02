@@ -2,54 +2,36 @@
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
-    android:orientation="horizontal"
-    android:padding="10dp"
-    android:gravity="center_vertical">
+    android:orientation="vertical"
+    android:padding="16dp"
+    android:background="#FFFFFF">
 
-    <ImageView
-        android:id="@+id/imgCargo"
-        android:layout_width="82dp"
-        android:layout_height="66dp"
-        android:scaleType="centerCrop"
-        android:contentDescription="Ảnh hàng hóa"
-        android:src="@android:drawable/ic_menu_gallery"
-        android:background="#EEEEEE" />
-
-    <LinearLayout
-        android:layout_width="0dp"
+    <TextView
+        android:id="@+id/txtOrderCode"
+        android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_weight="1"
-        android:orientation="vertical"
-        android:paddingStart="12dp"
-        android:paddingEnd="4dp">
+        android:text="Mã kiện: PKG-600xx"
+        android:textSize="16sp"
+        android:textStyle="bold"
+        android:textColor="#2C3E50"
+        android:layout_marginBottom="6dp" />
 
-        <TextView
-            android:id="@+id/txtOrderCode"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:text="Mã kiện: PKG-6001"
-            android:textColor="#111111"
-            android:textSize="15sp"
-            android:textStyle="bold" />
+    <TextView
+        android:id="@+id/txtOrderInfo"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="SP: Tên sản phẩm | SL: 0 kiện"
+        android:textSize="14sp"
+        android:textColor="#34495E"
+        android:layout_marginBottom="6dp" />
 
-        <TextView
-            android:id="@+id/txtOrderInfo"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:text="KH: ... | Sản phẩm: ... | SL: 0"
-            android:textColor="#333333"
-            android:textSize="13sp"
-            android:layout_marginTop="3dp" />
-
-        <TextView
-            android:id="@+id/txtOrderLocation"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:text="📍 Chưa xếp kệ | ⚠️ Bình thường"
-            android:textColor="#666666"
-            android:textSize="12sp"
-            android:layout_marginTop="3dp" />
-
-    </LinearLayout>
+    <TextView
+        android:id="@+id/txtOrderLocation"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="📍 Vị trí | ⚠️ Tình trạng | ✅ Trạng thái"
+        android:textSize="13sp"
+        android:textStyle="italic"
+        android:textColor="#7F8C8D" />
 
 </LinearLayout>
