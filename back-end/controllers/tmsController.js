@@ -29,10 +29,10 @@ exports.getTmsOrders = async (req, res) => {
 exports.getTruckFleet = async (req, res) => {
     try {
         const fleet = [
-            { id: 1, license_plate: '29C-123.45', type: 'Tải 3.5 Tấn', maintenance_date: '2026-08-15', registry_expiry: '2026-12-20', fuel_norm: '12L/100km', status: 'Sẵn sàng' },
-            { id: 2, license_plate: '51D-999.88', type: 'Tải 8 Tấn', maintenance_date: '2026-06-02', registry_expiry: '2026-11-14', fuel_norm: '18L/100km', status: 'Đang đi giao hàng' },
-            { id: 3, license_plate: '43C-456.78', type: 'Đông lạnh 2.5 Tấn', maintenance_date: '2026-04-10', registry_expiry: '2026-05-30', fuel_norm: '14L/100km', status: '⚠️ Quá hạn bảo trì' },
-            { id: 4, license_plate: '30H-888.66', type: 'Container 40ft', maintenance_date: '2026-09-01', registry_expiry: '2027-01-10', fuel_norm: '32L/100km', status: 'Sẵn sàng' }
+            { id: 1, license_plate: '29C-123.45', type: 'Tải 3.5 Tấn', driver_name: 'Nguyễn Văn Hùng', maintenance_date: '2026-08-15', registry_expiry: '2026-12-20', fuel_norm: '12L/100km', status: 'Sẵn sàng' },
+            { id: 2, license_plate: '51D-999.88', type: 'Tải 8 Tấn', driver_name: 'Trần Quốc Toản', maintenance_date: '2026-06-02', registry_expiry: '2026-11-14', fuel_norm: '18L/100km', status: 'Đang đi giao hàng' },
+            { id: 3, license_plate: '43C-456.78', type: 'Đông lạnh 2.5 Tấn', driver_name: 'Lê Hoàng Đức', maintenance_date: '2026-04-10', registry_expiry: '2026-05-30', fuel_norm: '14L/100km', status: '⚠️ Quá hạn bảo trì' },
+            { id: 4, license_plate: '30H-888.66', type: 'Container 40ft', driver_name: 'Phạm Minh Chính', maintenance_date: '2026-09-01', registry_expiry: '2027-01-10', fuel_norm: '32L/100km', status: 'Sẵn sàng' }
         ];
         res.json(fleet);
     } catch (err) {
