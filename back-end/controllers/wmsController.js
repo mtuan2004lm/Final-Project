@@ -184,6 +184,31 @@ exports.getWarehouseGlobalLogs = async (req, res) => {
     }
 };
 
+// 5b. NHẬT KÝ KHO WMS THEO MÃ ĐƠN (TRA CỨU RIÊNG LẺ TỪNG ĐƠN HÀNG)
+exports.getWarehouseLogsByOrder = async (req, res) => {
+    const { id } = req.params;
+
+    try {
+        const result = await pool.query(
+            `SELECT * FROM order_logs 
+             WHERE order_id = $1
+               AND (notes ILIKE '%kho%' OR notes ILIKE '%WMS%' OR notes ILIKE '%kệ%' OR notes ILIKE '%quét%' OR notes ILIKE '%vị trí%')
+               AND notes NOT ILIKE '%tài xế%'
+               AND notes NOT ILIKE '%điều xe%'
+               AND notes NOT ILIKE '%E-POD%'
+               AND notes NOT ILIKE '%hoàn trả%'
+               AND notes NOT ILIKE '%lộ trình%'
+               AND notes NOT ILIKE '%tuyến đường%'
+             ORDER BY changed_at DESC`,
+            [id]
+        );
+        res.json(result.rows);
+    } catch (err) {
+        console.error("🔴 LỖI FETCH LOGS KHO WMS THEO MÃ ĐƠN:", err.message);
+        res.status(500).json({ error: 'Lỗi truy vấn nhật ký kho theo mã đơn' });
+    }
+};
+
 // 6. XÁC NHẬN MÃ KIỆN TRÊN WEB VÀ MOBILE/PDA (TỰ ĐỘNG GHI NHẬT KÝ)
 exports.scanBarcode = async (req, res) => {
     const { id } = req.params;

@@ -34,6 +34,7 @@ router.put('/:id/return-order', omsController.returnOrderToCustomer);
 router.get('/history/:id', omsController.getOrderHistory);
 
 // 3. ROUTE PHÒNG KHO BÃI (WMS)
+router.get('/wms/logs/:id', wmsController.getWarehouseLogsByOrder); // Tra cứu nhật ký theo mã đơn (đặt trước route /wms/:xxx nếu có)
 router.get('/wms/logs', wmsController.getWarehouseGlobalLogs); // Đặt lên trước route động :id
 router.get('/wms', wmsController.getWmsOrders);           
 router.put('/wms/:id/location', wmsController.updateOrderLocation);

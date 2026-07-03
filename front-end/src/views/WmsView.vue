@@ -220,10 +220,22 @@
  
        <div v-if="activeTab === 'warehouse_history'">
           <header>
-             <h1>📜 NHẬT KÝ BIẾN ĐỘNG XUẤT NHẬP KHO TOÀN CẦU</h1>
+             <h1>📜 TRA CỨU NHẬT KÝ XUẤT NHẬP KHO THEO MÃ ĐƠN</h1>
           </header>
           <div class="card">
-             <table class="data-table">
+             <div class="search-box">
+                <input
+                   type="text"
+                   v-model="searchOrderId"
+                   @keyup.enter="searchOrderLogs"
+                   placeholder="Nhập Mã Đơn (VD: PKG-60015 hoặc 15)"
+                   class="table-input"
+                   style="width: 260px;"
+                />
+                <button @click="searchOrderLogs" class="btn-action-cyan">🔍 Tra cứu</button>
+             </div>
+
+             <table class="data-table" v-if="hasSearched" style="margin-top: 18px;">
                 <thead>
                    <tr>
                       <th>Mã Đơn</th>
@@ -242,10 +254,12 @@
                       <td style="color: #7f8c8d; font-size: 13px;">{{ formatDate(log.changed_at) }}</td>
                    </tr>
                    <tr v-if="warehouseLogs.length === 0">
-                      <td colspan="5" style="text-align: center; color: #95a5a6; padding: 20px;">Chưa ghi nhận nhật ký xuất nhập kho nào trong ca làm việc.</td>
+                      <td colspan="5" style="text-align: center; color: #95a5a6; padding: 20px;">Không tìm thấy nhật ký xuất nhập kho nào cho mã đơn này.</td>
                    </tr>
                 </tbody>
              </table>
+
+             <p v-else style="color: #95a5a6; margin-top: 18px;">Vui lòng nhập Mã Đơn để xem nhật ký xuất nhập kho tương ứng.</p>
           </div>
        </div>
      </div>
@@ -263,6 +277,8 @@ const activeTab = ref('inbound');
  
 const wmsOrders = ref([]);
 const warehouseLogs = ref([]);
+const searchOrderId = ref('');
+const hasSearched = ref(false);
  
 const locationInputs = ref({});
 const conditionInputs = ref({});
@@ -289,18 +305,48 @@ const fetchWmsOrders = async () => {
    }
 };
  
-const fetchWarehouseLogs = async () => {
+// Hỗ trợ nhập cả dạng "PKG-60015" lẫn ID số thô "15"
+const parseOrderIdInput = (val) => {
+   if (!val) return null;
+   const trimmed = val.trim();
+
+   const match = trimmed.match(/PKG-(\d+)/i);
+   if (match) {
+      const rawId = Number(match[1]) - 60000;
+      return rawId > 0 ? rawId : null;
+   }
+
+   if (/^\d+$/.test(trimmed)) {
+      return Number(trimmed);
+   }
+
+   return null;
+};
+
+const searchOrderLogs = async () => {
+   const orderId = parseOrderIdInput(searchOrderId.value);
+
+   if (!orderId) {
+      alert("⚠️ Vui lòng nhập đúng định dạng Mã Đơn! (VD: PKG-60015 hoặc số ID 15)");
+      return;
+   }
+
+   hasSearched.value = true;
+
    try {
-      const res = await axios.get('http://localhost:3000/api/orders/wms/logs');
+      const res = await axios.get(`http://localhost:3000/api/orders/wms/logs/${orderId}`);
       warehouseLogs.value = res.data;
    } catch (err) {
-      console.error("Lỗi đồng bộ nhật ký kho:", err);
+      console.error("Lỗi tra cứu nhật ký kho theo mã đơn:", err);
+      warehouseLogs.value = [];
    }
 };
  
 const switchToHistoryTab = () => {
    activeTab.value = 'warehouse_history';
-   fetchWarehouseLogs(); 
+   warehouseLogs.value = [];
+   hasSearched.value = false;
+   searchOrderId.value = '';
 };
 
 // ĐÃ SỬA CHUẨN: Đổi từ đuôi /scan thành /scan-barcode để gọi đúng API Node.js
@@ -387,8 +433,8 @@ onMounted(() => {
       fetchWmsOrders();
       wmsInterval = setInterval(() => {
          fetchWmsOrders();
-         if (activeTab.value === 'warehouse_history') {
-            fetchWarehouseLogs();
+         if (activeTab.value === 'warehouse_history' && hasSearched.value) {
+            searchOrderLogs();
          }
       }, 5000);
    }
@@ -438,8 +484,8 @@ header h1 { font-size: 22px; font-weight: 800; color: #2c3e50; margin-bottom: 25
 .btn-action-blue:hover { background: #2980b9; }
 .btn-disabled { background: #cbd5e1 !important; color: #94a3b8 !important; cursor: not-allowed !important; }
  
+.search-box { display: flex; align-items: center; gap: 10px; }
 .log-notes-txt { color: #2c3e50; font-weight: 500; font-size: 13px; display: block; max-width: 400px; line-height: 1.4; }
 .status-badge-old { background: #f1f5f9; color: #64748b; padding: 2px 6px; border-radius: 4px; font-size: 11px; font-family: monospace; }
 .status-badge-new { background: #ecfdf5; color: #059669; padding: 2px 6px; border-radius: 4px; font-size: 11px; font-family: monospace; font-weight: bold; }
 </style>
-
