@@ -14,7 +14,6 @@ object ApiConfig {
     const val BASE_URL = "http://10.0.2.2:3000/"
 }
 
-// Thêm ": java.io.Serializable" để object này có thể truyền đi giữa các Màn hình (Activity)
 data class WmsOrder(
     val id: Int = 0,
     val customer_name: String? = "",
@@ -36,7 +35,10 @@ data class WmsOrder(
     val productImage: String? = "",
 
     @SerializedName("cargo_condition")
-    val cargoCondition: String? = ""
+    val cargoCondition: String? = "",
+
+    @SerializedName("damage_image")
+    val damageImage: String? = ""
 ) : java.io.Serializable
 
 data class ScanResponse(
@@ -62,11 +64,9 @@ interface ApiService {
     @GET("api/orders/wms")
     fun getWmsOrders(): Call<List<WmsOrder>>
 
-    // ĐÃ SỬA: Đổi từ wms/location/{id} thành wms/{id}/location cho khớp với Node.js Backend
     @PUT("api/orders/wms/{id}/location")
     fun updateWmsLocation(@Path("id") id: Int, @Body body: Map<String, String>): Call<ScanResponse>
 
-    // ĐÃ SỬA: Đổi từ wms/scan/{id} thành wms/{id}/scan-barcode cho khớp với Node.js Backend
     @PUT("api/orders/wms/{id}/scan-barcode")
     fun scanWmsBarcode(@Path("id") id: Int): Call<ScanResponse>
 

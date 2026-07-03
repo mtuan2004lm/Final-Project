@@ -86,8 +86,10 @@ class OrderDetailActivity : AppCompatActivity() {
             loadImageFromUrl(fullUrl, imgProductInitial)
         }
 
-        if (!order.cargoImage.isNullOrEmpty()) {
-            val fullUrl = ApiConfig.BASE_URL + order.cargoImage.removePrefix("/")
+        // Ưu tiên hiển thị damageImage (ảnh hư hại) nếu có, nếu không thì lấy cargoImage
+        val imgToLoad = if (!order.damageImage.isNullOrEmpty()) order.damageImage else order.cargoImage
+        if (!imgToLoad.isNullOrEmpty()) {
+            val fullUrl = ApiConfig.BASE_URL + imgToLoad.removePrefix("/")
             loadImageFromUrl(fullUrl, imgProductDamage)
         }
     }
@@ -103,6 +105,7 @@ class OrderDetailActivity : AppCompatActivity() {
                 val myBitmap = BitmapFactory.decodeStream(input)
                 runOnUiThread {
                     imageView.setImageBitmap(myBitmap)
+                    imageView.setBackgroundColor(android.graphics.Color.TRANSPARENT) // Xóa màu nền xám
                 }
             } catch (e: Exception) {
                 e.printStackTrace()
@@ -123,14 +126,9 @@ class OrderDetailActivity : AppCompatActivity() {
                     Toast.makeText(this@OrderDetailActivity, "Xác nhận nhập kho bãi thành công!", Toast.LENGTH_SHORT).show()
                     finish()
                 } else {
-                    // ĐÃ CẢI TIẾN: Trích xuất mã trạng thái HTTP và chi tiết phản hồi lỗi từ Backend trả về
                     val statusCode = response.code()
                     val errorBody = response.errorBody()?.string() ?: "Không có thông tin mô tả lỗi."
-
-                    // Đẩy dữ liệu ra Logcat để tiện kiểm tra nội dung JSON lỗi trong Android Studio
                     Log.e("WMS_API_ERROR", "Mã HTTP: $statusCode | Nội dung lỗi từ Server: $errorBody")
-
-                    // Show chi tiết thông tin lỗi trực tiếp lên UI để người dùng biết lý do bị từ chối
                     Toast.makeText(
                         this@OrderDetailActivity,
                         "Hệ thống kho từ chối (Lỗi $statusCode): $errorBody",

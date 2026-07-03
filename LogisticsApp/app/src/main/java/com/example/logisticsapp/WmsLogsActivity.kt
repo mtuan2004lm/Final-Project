@@ -6,6 +6,7 @@ import android.view.View
 import android.view.ViewGroup
 import android.widget.ArrayAdapter
 import android.widget.Button
+import android.widget.EditText
 import android.widget.ListView
 import android.widget.TextView
 import android.widget.Toast
@@ -19,16 +20,39 @@ import retrofit2.converter.gson.GsonConverterFactory
 class WmsLogsActivity : AppCompatActivity() {
 
     private lateinit var listViewLogs: ListView
-    private lateinit var btnCloseLogs: Button
+    private lateinit var btnTabOverview: Button
+    private lateinit var btnTabLogs: Button
+
+    private lateinit var edtSearchLog: EditText
+    private lateinit var btnSearchLog: Button
+    private var allLogs: List<WarehouseLog> = emptyList() // Lưu trữ danh sách gốc
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_wms_logs)
 
         listViewLogs = findViewById(R.id.listViewLogs)
-        btnCloseLogs = findViewById(R.id.btnCloseLogs)
+        btnTabOverview = findViewById(R.id.btnTabOverview)
+        btnTabLogs = findViewById(R.id.btnTabLogs)
+        edtSearchLog = findViewById(R.id.edtSearchLog)
+        btnSearchLog = findViewById(R.id.btnSearchLog)
 
-        btnCloseLogs.setOnClickListener { finish() }
+        // Bấm vào Tổng quan sẽ đóng màn hình Log và quay về WarehouseActivity
+        btnTabOverview.setOnClickListener { finish() }
+
+        // Logic tìm kiếm
+        btnSearchLog.setOnClickListener {
+            val query = edtSearchLog.text.toString().trim()
+            if (query.isEmpty()) {
+                listViewLogs.adapter = LogAdapter(this@WmsLogsActivity, allLogs) // Hiển thị tất cả
+            } else {
+                // Lọc những log khớp ID (ví dụ: gõ 60001 hoặc 1 đều tìm ra kiện PKG-60001)
+                val filtered = allLogs.filter {
+                    it.orderId.toString() == query || (60000 + it.orderId).toString() == query
+                }
+                listViewLogs.adapter = LogAdapter(this@WmsLogsActivity, filtered)
+            }
+        }
 
         fetchWarehouseLogs()
     }
@@ -40,13 +64,11 @@ class WmsLogsActivity : AppCompatActivity() {
             .build()
         val apiService = retrofit.create(ApiService::class.java)
 
-        // ĐÃ FIX: Sửa thành getWmsLogs() để khớp với hàm khai báo trong ApiService
         apiService.getWmsLogs().enqueue(object : Callback<List<WarehouseLog>> {
             override fun onResponse(call: Call<List<WarehouseLog>>, response: Response<List<WarehouseLog>>) {
                 if (response.isSuccessful && response.body() != null) {
-                    val logs = response.body()!!
-                    val adapter = LogAdapter(this@WmsLogsActivity, logs)
-                    listViewLogs.adapter = adapter
+                    allLogs = response.body()!!
+                    listViewLogs.adapter = LogAdapter(this@WmsLogsActivity, allLogs)
                 } else {
                     Toast.makeText(this@WmsLogsActivity, "Lỗi lấy dữ liệu lịch sử nhật ký kho!", Toast.LENGTH_SHORT).show()
                 }

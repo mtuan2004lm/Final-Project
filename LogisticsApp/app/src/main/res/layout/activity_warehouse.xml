@@ -71,16 +71,34 @@
         android:layout_weight="1"
         android:divider="#CCCCCC"
         android:dividerHeight="1dp"
-        android:layout_marginBottom="16dp" />
+        android:layout_marginBottom="8dp" />
 
-    <Button
-        android:id="@+id/btnScan"
+    <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="55dp"
-        android:backgroundTint="#0084FF"
-        android:textColor="#FFFFFF"
-        android:text="NHẬP MÃ KIỆN HÀNG"
-        android:textSize="16sp"
-        android:textStyle="bold" />
+        android:orientation="horizontal">
+
+        <Button
+            android:id="@+id/btnTabOverview"
+            android:layout_width="0dp"
+            android:layout_height="match_parent"
+            android:layout_weight="1"
+            android:text="📦 TỔNG QUAN"
+            android:backgroundTint="#0084FF"
+            android:textColor="#FFFFFF"
+            android:textStyle="bold"
+            android:layout_marginRight="4dp"/>
+
+        <Button
+            android:id="@+id/btnTabLogs"
+            android:layout_width="0dp"
+            android:layout_height="match_parent"
+            android:layout_weight="1"
+            android:text="📜 NHẬT KÝ KHO"
+            android:backgroundTint="#7F8C8D"
+            android:textColor="#FFFFFF"
+            android:textStyle="bold"
+            android:layout_marginLeft="4dp"/>
+    </LinearLayout>
 
 </LinearLayout>

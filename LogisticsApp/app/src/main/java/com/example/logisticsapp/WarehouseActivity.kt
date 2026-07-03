@@ -22,8 +22,9 @@ class WarehouseActivity : AppCompatActivity() {
     private lateinit var listViewOrders: ListView
     private lateinit var btnReload: Button
     private lateinit var btnLogout: Button
-    // ĐÃ FIX: Sửa thành btnScan để khớp với giao diện XML hiện có của bạn
-    private lateinit var btnScan: Button
+
+    private lateinit var btnTabOverview: Button
+    private lateinit var btnTabLogs: Button
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -32,16 +33,17 @@ class WarehouseActivity : AppCompatActivity() {
         listViewOrders = findViewById(R.id.listViewOrders)
         btnReload = findViewById(R.id.btnReload)
         btnLogout = findViewById(R.id.btnLogout)
-        btnScan = findViewById(R.id.btnScan) // Gọi đúng ID có trong XML
+
+        btnTabOverview = findViewById(R.id.btnTabOverview)
+        btnTabLogs = findViewById(R.id.btnTabLogs)
 
         fetchOrders()
 
         btnReload.setOnClickListener { fetchOrders() }
         btnLogout.setOnClickListener { finish() }
 
-        // Cập nhật chữ hiển thị trên nút bấm
-        btnScan.text = "XEM NHẬT KÝ KHO"
-        btnScan.setOnClickListener {
+        // Mở màn hình Nhật ký kho khi bấm Tab Logs
+        btnTabLogs.setOnClickListener {
             startActivity(Intent(this, WmsLogsActivity::class.java))
         }
 
