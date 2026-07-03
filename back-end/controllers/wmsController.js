@@ -53,11 +53,11 @@ exports.updateOrderLocation = async (req, res) => {
             return res.status(404).json({ error: 'Không tìm thấy đơn hàng!' });
         }
 
-        // 🌟 TỰ ĐỘNG GHI LOG: Khi xếp vị trí kệ trên Web/Mobile
+        // 🌟 TỰ ĐỘNG GHI LOG: Sắp xếp vị trí ô kệ
         await pool.query(
             `INSERT INTO order_logs (order_id, notes, old_status, new_status)
              VALUES ($1, $2, $3, $4)`,
-            [id, `Sắp xếp vị trí kiện hàng vào ô/kệ: ${warehouse_location} (Kho WMS)`, result.rows[0].status, result.rows[0].status]
+            [id, `Sắp xếp vị trí kiện hàng vào ô/kệ: ${warehouse_location}`, result.rows[0].status, result.rows[0].status]
         );
 
         res.json({
@@ -104,7 +104,7 @@ exports.updateCargoCondition = async (req, res) => {
             return res.status(404).json({ error: 'Không tìm thấy đơn hàng!' });
         }
 
-        // 🌟 TỰ ĐỘNG GHI LOG: Khi cập nhật tình trạng hàng hóa
+        // 🌟 TỰ ĐỘNG GHI LOG: Cập nhật tình trạng hàng hóa tại kho
         await pool.query(
             `INSERT INTO order_logs (order_id, notes, old_status, new_status)
              VALUES ($1, $2, $3, $4)`,
@@ -140,7 +140,7 @@ exports.releaseToTms = async (req, res) => {
             return res.status(400).json({ error: 'Không thể bàn giao! Đơn hàng này chưa được thực hiện quét xác nhận mã kiện.' });
         }
 
-        // 🌟 TỰ ĐỘNG GHI LOG: Khi xuất kho giao cho xe tải
+        // 🌟 TỰ ĐỘNG GHI LOG: Xuất kho bàn giao sang phòng xe
         await pool.query(
             `INSERT INTO order_logs (order_id, notes, old_status, new_status)
              VALUES ($1, $2, $3, $4)`,
@@ -159,23 +159,32 @@ exports.releaseToTms = async (req, res) => {
     }
 };
 
-// 5. NHẬT KÝ KHO WMS
+// 5. NHẬT KÝ KHO WMS (ĐÃ TỐI ƯU CHỐNG MẤT DỮ LIỆU & LỌC SẠCH SẼ)
 exports.getWarehouseGlobalLogs = async (req, res) => {
     try {
+        // Giải pháp lọc thông minh bằng SQL: 
+        // 1. Chỉ giữ lại các từ khóa liên quan đến Kho (kho, WMS, kệ, quét mã, vị trí)
+        // 2. Sử dụng NOT ILIKE để ẩn hoàn toàn các hoạt động chạy xe đường trường của tài xế (TMS) hoặc hoàn trả đơn (OMS)
+        // => Lịch sử gốc trong Database vẫn lưu đầy đủ 100%, nhưng giao diện kho sẽ cực kỳ sạch sẽ.
         const result = await pool.query(
             `SELECT * FROM order_logs 
-             WHERE notes ILIKE '%kho%' 
-                OR notes ILIKE '%WMS%' 
+             WHERE (notes ILIKE '%kho%' OR notes ILIKE '%WMS%' OR notes ILIKE '%kệ%' OR notes ILIKE '%quét%' OR notes ILIKE '%vị trí%')
+               AND notes NOT ILIKE '%tài xế%'
+               AND notes NOT ILIKE '%điều xe%'
+               AND notes NOT ILIKE '%E-POD%'
+               AND notes NOT ILIKE '%hoàn trả%'
+               AND notes NOT ILIKE '%lộ trình%'
+               AND notes NOT ILIKE '%tuyến đường%'
              ORDER BY changed_at DESC`
         );
-
         res.json(result.rows);
     } catch (err) {
+        console.error("🔴 LỖI FETCH LOGS KHO WMS:", err.message);
         res.json([]);
     }
 };
 
-// 6. XÁC NHẬN MÃ KIỆN TRÊN WEB VÀ MOBILE/PDA (TỰ ĐỘNG GHI NHẬT KÝ CHUNG)
+// 6. XÁC NHẬN MÃ KIỆN TRÊN WEB VÀ MOBILE/PDA (TỰ ĐỘNG GHI NHẬT KÝ)
 exports.scanBarcode = async (req, res) => {
     const { id } = req.params;
 
@@ -195,7 +204,7 @@ exports.scanBarcode = async (req, res) => {
             });
         }
 
-        // 🌟 TỰ ĐỘNG GHI LOG: Khi quét thành công từ Web hay Mobile
+        // 🌟 TỰ ĐỘNG GHI LOG: Quét nhận hàng thành công
         await pool.query(
             `INSERT INTO order_logs (order_id, notes, old_status, new_status)
              VALUES ($1, $2, $3, $4)`,

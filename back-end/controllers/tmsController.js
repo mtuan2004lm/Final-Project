@@ -53,13 +53,21 @@ exports.assignDeliveryRoute = async (req, res) => {
              WHERE id = $3 RETURNING *`,
             [route_name, license_plate, id]
         );
+
+        // 🌟 BỔ SUNG: Ghi nhận vết lịch sử sang chặng TMS cho dữ liệu đồng bộ
+        await pool.query(
+            `INSERT INTO order_logs (order_id, notes, old_status, new_status)
+             VALUES ($1, $2, $3, $4)`,
+            [id, `Phòng TMS điều phối chuyến đi thành công. Xe tải: ${license_plate}, Lộ trình: ${route_name}`, 'APPROVED', 'SHIPPING']
+        );
+
         res.json({ message: "🚚 Đã điều xe và xếp lộ trình di chuyển thành công!", order: result.rows[0] });
     } catch (err) {
         res.status(500).json({ error: "Lỗi điều phối chuyến xe" });
     }
 };
 
-// 4. CẬP NHẬT PHỤ PHÍ DỌC ĐƯỜNG & BIÊN BẢN E-POD (Kèm GPS)
+// 4. CẬP NHẬT PHỤ PHÍ DỌC ĐƯỜNG & BIÊN BẢN E-POD
 exports.submitDriverPod = async (req, res) => {
     const { id } = req.params;
     const { bot_fee, fuel_fee, driver_notes, pod_image, gps_coordinates } = req.body;
@@ -72,10 +80,18 @@ exports.submitDriverPod = async (req, res) => {
                  pod_image = $4, 
                  gps_coordinates = $5,
                  status = 'DELIVERED',
-                 current_dept = 'ACC' -- Tự động đẩy sang phòng Kế toán kiểm tra dòng tiền lợi nhuận
+                 current_dept = 'ACC'
              WHERE id = $6 RETURNING *`,
             [bot_fee, fuel_fee, driver_notes, pod_image, gps_coordinates, id]
         );
+
+        // 🌟 BỔ SUNG: Ghi nhận vết lịch sử khi tài xế hoàn thành chặng giao hàng ngoài đường
+        await pool.query(
+            `INSERT INTO order_logs (order_id, notes, old_status, new_status)
+             VALUES ($1, $2, $3, $4)`,
+            [id, `Tài xế nộp E-POD thành công tại GPS: ${gps_coordinates}. Chi phí phát sinh (BOT: ${bot_fee}đ, Dầu: ${fuel_fee}đ).`, 'SHIPPING', 'DELIVERED']
+        );
+
         res.json({ message: "🏁 Tài xế đã nộp E-POD thành công! Đơn hàng chuyển sang phòng Kế toán (ACC).", order: result.rows[0] });
     } catch (err) {
         res.status(500).json({ error: "Lỗi cập nhật biên bản E-POD giao hàng" });
