@@ -117,6 +117,7 @@
             android:textStyle="bold"
             android:layout_marginBottom="8dp"/>
 
+        <!-- Nút quay lại màn hình danh sách -->
         <Button
             android:id="@+id/btnBack"
             android:layout_width="match_parent"

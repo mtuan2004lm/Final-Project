@@ -55,7 +55,10 @@ class OrderDetailActivity : AppCompatActivity() {
             finish()
         }
 
-        btnBack.setOnClickListener { finish() }
+        // Nút back: đóng activity hiện tại, quay về màn hình trước đó (danh sách)
+        btnBack.setOnClickListener {
+            finish()
+        }
 
         btnConfirmScan.setOnClickListener {
             val inputCode = edtBarcodeInput.text.toString().trim()
