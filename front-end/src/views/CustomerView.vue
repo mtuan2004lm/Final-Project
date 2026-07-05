@@ -472,7 +472,7 @@ const selectOrderToPay = (order) => {
 const generateQRUrl = (order) => {
   if (!order || !order.id) return '';
   const bankId = "MB";
-  const accountNo = "099999999999";
+  const accountNo = "0902510519"; // Đã cập nhật số tài khoản MB Bank thật
   const template = "qr_only";
   const amountUsd = getOrderPrice(order);
   const amountVnd = amountUsd * 25000;
