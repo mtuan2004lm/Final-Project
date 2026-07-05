@@ -42,6 +42,12 @@
             android:exported="false"
             android:theme="@style/Theme.AppCompat.Light.NoActionBar" />
 
+        <!-- MỚI: màn hình chi tiết chuyến hàng + nộp E-POD của tài xế -->
+        <activity
+            android:name=".DriverTripDetailActivity"
+            android:exported="false"
+            android:theme="@style/Theme.AppCompat.Light.NoActionBar" />
+
         <activity
             android:name=".WarehouseActivity"
             android:exported="false"

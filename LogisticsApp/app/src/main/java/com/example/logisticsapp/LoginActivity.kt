@@ -56,8 +56,12 @@ class LoginActivity : AppCompatActivity() {
                         if (isSuccess) {
                             val role = (resBody?.get("role") as? String)?.lowercase() ?: ""
                             when (role) {
-                                "driver" -> {
-                                    Toast.makeText(this@LoginActivity, "Đăng nhập Driver thành công!", Toast.LENGTH_SHORT).show()
+                                // "tms": tài khoản phòng TMS trong hệ thống của bạn dùng chung
+                                // cho cả điều phối lẫn tài xế -> đăng nhập mobile mở màn tài xế.
+                                // "driver": vẫn giữ lại phòng trường hợp sau này bạn tách riêng
+                                // role cho tài xế khỏi role "tms".
+                                "driver", "tms" -> {
+                                    Toast.makeText(this@LoginActivity, "Đăng nhập Tài xế (TMS) thành công!", Toast.LENGTH_SHORT).show()
                                     val intent = Intent(this@LoginActivity, DriverActivity::class.java)
                                     startActivity(intent)
                                     finish()

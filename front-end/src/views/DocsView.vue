@@ -15,13 +15,13 @@
        </div>
        <button @click="logout" class="btn-logout">Đăng Xuất</button>
      </div>
- 
+
      <div class="main-content">
        <header class="header-flex">
          <h1>🗄️ TRUNG TÂM QUẢN TRỊ LƯU TRỮ HỒ SƠ & CHỨNG TỪ VẬN TẢI (DOCS DEPT)</h1>
          <button @click="exportDataExcel" class="btn-export">📥 Xuất file báo cáo tài liệu</button>
        </header>
- 
+
        <div class="kpi-grid">
           <div class="kpi-card total">
              <div class="kpi-icon">📁</div>
@@ -45,7 +45,7 @@
              </div>
           </div>
        </div>
- 
+
        <div class="card list-card" style="margin-top: 25px;">
           <h3>📋 Danh mục quản lý chứng từ trực tuyến</h3>
           <table class="data-table">
@@ -91,7 +91,7 @@
           </table>
        </div>
      </div>
- 
+
      <div v-if="showModal" class="modal-overlay" @click.self="showModal = false">
         <div class="modal-container">
            <div class="modal-header">
@@ -102,7 +102,7 @@
               <div class="modal-grid-layout">
                  <div>
                     <h4>📌 THÔNG TIN TỜ KHAI CƠ BẢN</h4>
-                    
+
                     <table class="doc-table">
                        <tbody>
                           <tr><td><b>Mã định danh đơn hàng:</b></td><td>#{{ selectedDoc.id }}</td></tr>
@@ -114,27 +114,25 @@
                           <tr><td><b>Vị trí kiểm soát hiện tại:</b></td><td><span style="color: #2980b9; font-weight: bold;">Phân hệ [{{ selectedDoc.current_dept }}] - Trạng thái: {{ selectedDoc.status }}</span></td></tr>
                        </tbody>
                     </table>
- 
+
                     <h4 style="margin-top: 20px;">🚚 THÔNG TIN ĐIỀU PHỐI VẬN TẢI</h4>
                     <table class="doc-table">
                        <tbody>
                           <tr><td><b>Tuyến đường vận chuyển:</b></td><td>{{ selectedDoc.delivery_route }}</td></tr>
-                          <tr><td><b>Đội xe & Tài xế phụ trách:</b></td><td>{{ selectedDoc.assigned_truck }}</td></tr>
+                          <!-- ĐÃ SỬA: thêm tên tài xế phụ trách (lấy từ bảng trucks qua join biển số),
+                               trước đây chỉ hiện biển số dù nhãn có ghi "Tài xế phụ trách". -->
+                          <tr>
+                             <td><b>Đội xe & Tài xế phụ trách:</b></td>
+                             <td>
+                                {{ selectedDoc.assigned_truck }}
+                                <span v-if="selectedDoc.truck_driver_name"> - Tài xế: {{ selectedDoc.truck_driver_name }}</span>
+                             </td>
+                          </tr>
                           <tr><td><b>Chi phí cầu đường (BOT):</b></td><td>${{ selectedDoc.bot_fee }} USD</td></tr>
                           <tr><td><b>Định mức tiêu hao nhiên liệu:</b></td><td>${{ selectedDoc.fuel_fee }} USD</td></tr>
                           <tr><td><b>Ghi chú từ hiện trường (Driver):</b></td><td><span class="driver-note">"{{ selectedDoc.driver_notes }}"</span></td></tr>
                        </tbody>
                     </table>
-                 </div>
- 
-                 <div>
-                    <h4>📸 CHỨNG TỪ GIAO NHẬN THỰC ĐỊA (POD PROOF)</h4>
-                    <div v-if="selectedDoc.pod_image" class="pod-preview-wrapper">
-                       <img :src="'http://localhost:3000' + selectedDoc.pod_image" alt="POD Proof" class="pod-image-render"/>
-                    </div>
-                    <div v-else class="no-pod-box">
-                       ⚠️ Hiện chưa có hình ảnh biên bản bàn giao (POD) được đồng bộ tải lên từ ứng dụng Tài xế (Driver App).
-                    </div>
                  </div>
               </div>
            </div>
@@ -142,10 +140,10 @@
      </div>
    </div>
  </template>
- 
+
  <script>
  import axios from 'axios';
- 
+
  export default {
    name: 'DocsView',
    data() {
@@ -203,7 +201,7 @@
    }
  };
  </script>
- 
+
  <style scoped>
  /* DASHBOARD LAYOUT & SIDEBAR */
  .dashboard-container { display: flex; min-height: 100vh; background: #f4f6f9; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; }
@@ -217,14 +215,14 @@
  .mission-box p { font-weight: bold; margin: 0 0 5px 0; color: #fff; }
  .btn-logout { background: #e74c3c; color: white; border: none; padding: 11px; border-radius: 6px; font-weight: bold; cursor: pointer; transition: 0.2s; margin-top: 20px; }
  .btn-logout:hover { background: #c0392b; }
- 
+
  /* MAIN CONTENT */
  .main-content { flex: 1; padding: 30px; overflow-y: auto; }
  .header-flex { display: flex; justify-content: space-between; align-items: center; margin-bottom: 25px; }
  .header-flex h1 { font-size: 19px; font-weight: 700; color: #2c3e50; margin: 0; }
  .btn-export { background: #27ae60; color: white; border: none; padding: 10px 16px; border-radius: 4px; font-weight: bold; cursor: pointer; font-size: 13px; transition: 0.2s; }
  .btn-export:hover { background: #219653; }
- 
+
  /* KPI CARDS */
  .kpi-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 20px; }
  .kpi-card { background: white; padding: 20px; border-radius: 8px; box-shadow: 0 2px 8px rgba(0,0,0,0.04); display: flex; align-items: center; gap: 20px; border-bottom: 4px solid #bdc3c7; }
@@ -234,33 +232,33 @@
  .kpi-icon { font-size: 35px; width: 60px; height: 60px; border-radius: 50%; display: flex; align-items: center; justify-content: center; background: #f8f9fa; }
  .kpi-info p { margin: 0 0 5px 0; font-size: 13px; color: #7f8c8d; font-weight: 500; }
  .kpi-info h2 { margin: 0; font-size: 22px; font-weight: 700; color: #2c3e50; }
- 
+
  /* DATA TABLES */
  .card { background: white; border-radius: 8px; padding: 24px; box-shadow: 0 2px 12px rgba(0,0,0,0.05); }
  .list-card h3 { margin: 0 0 20px 0; font-size: 15px; color: #2c3e50; font-weight: 700; }
  .data-table { width: 100%; border-collapse: collapse; }
  .data-table th, .data-table td { padding: 14px 16px; border-bottom: 1px solid #ecf0f1; text-align: left; font-size: 13.5px; vertical-align: middle; }
  .data-table th { background: #f8f9fa; color: #7f8c8d; font-size: 12px; font-weight: bold; text-transform: uppercase; letter-spacing: 0.5px; }
- .data-table tbody tr:hover { background-color: #fbfcfc; } 
+ .data-table tbody tr:hover { background-color: #fbfcfc; }
  .id-tag { background: #f1f2f6; padding: 3px 6px; border-radius: 4px; font-family: monospace; font-weight: bold; color: #57606f; font-size: 12.5px; }
  .customer-txt { font-weight: 600; color: #2c3e50; }
  .product-txt { font-weight: 600; display: block; color: #333; }
  .sub-txt { display: block; font-size: 11.5px; color: #7f8c8d; margin-top: 3px; }
  .cost-txt { font-weight: bold; color: #27ae60; }
  .driver-note { display: block; font-size: 11.5px; color: #7f8c8d; font-style: italic; margin-top: 2px; line-height: 1.4; }
- 
+
  /* BADGES */
  .badge { display: inline-block; padding: 4px 8px; border-radius: 4px; font-size: 11px; font-weight: bold; text-transform: uppercase; }
  .badge-success { background: #d4efdf; color: #196f3d; }
  .badge-warning { background: #fcf3cf; color: #b7950b; }
- 
+
  /* BUTTONS ACTION */
  .btn-action { border: none; padding: 6px 12px; border-radius: 4px; font-size: 12px; font-weight: bold; cursor: pointer; transition: 0.15s; }
  .view-btn { background: #3498db; color: white; }
  .view-btn:hover { background: #2980b9; }
  .lock-btn { background: #e67e22; color: white; }
  .lock-btn:hover { background: #d35400; }
- 
+
  /* POPUP MODAL ARCHIVE */
  .modal-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); display: flex; align-items: center; justify-content: center; z-index: 999; }
  .modal-container { background: white; width: 850px; max-width: 90%; border-radius: 8px; box-shadow: 0 5px 25px rgba(0,0,0,0.2); overflow: hidden; animation: fadeIn 0.25s ease; }
@@ -269,14 +267,14 @@
  .modal-header h2 { font-size: 15px; margin: 0; font-weight: 700; letter-spacing: 0.5px; }
  .close-btn { background: none; border: none; color: white; font-size: 26px; cursor: pointer; line-height: 1; }
  .modal-body { padding: 25px; max-height: 75vh; overflow-y: auto; background: #fdfefe; }
- .modal-grid-layout { display: grid; grid-template-columns: 1.2fr 1fr; gap: 25px; }
+ .modal-grid-layout { display: grid; grid-template-columns: 1fr; gap: 25px; }
  .modal-grid-layout h4 { margin: 0 0 12px 0; font-size: 13px; color: #2c3e50; border-left: 3px solid #34495e; padding-left: 8px; font-weight: bold; }
- 
+
  /* TABLES INSIDE POPUP */
  .doc-table { width: 100%; border-collapse: collapse; margin-bottom: 15px; background: #f8f9fa; border: 1px solid #e2e8f0; border-radius: 4px; }
  .doc-table td { padding: 10px 12px; font-size: 12.5px; border-bottom: 1px solid #edf2f7; color: #2d3748; }
  .doc-table td:first-child { width: 40%; color: #718096; font-weight: 500; }
- 
+
  /* IMAGE RENDER POD */
  .pod-preview-wrapper { width: 100%; border: 2px dashed #cbd5e0; padding: 8px; border-radius: 6px; background: #fff; box-sizing: border-box; }
  .pod-image-render { width: 100%; height: auto; display: block; border-radius: 4px; object-fit: contain; max-height: 350px; }

@@ -1,0 +1,122 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Đặt file này trong res/layout/ -->
+<ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="#FFFFFF">
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="vertical"
+        android:padding="20dp">
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="CHI TIẾT CHUYẾN HÀNG"
+            android:textStyle="bold"
+            android:textSize="20sp"
+            android:layout_marginBottom="16dp"/>
+
+        <TextView
+            android:id="@+id/txtDetailOrderId"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:textStyle="bold"
+            android:textSize="16sp"
+            android:textColor="#2c3e50"/>
+
+        <TextView
+            android:id="@+id/txtDetailCustomer"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="6dp"
+            android:textSize="14sp"/>
+
+        <TextView
+            android:id="@+id/txtDetailProduct"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="4dp"
+            android:textSize="14sp"/>
+
+        <TextView
+            android:id="@+id/txtDetailRoute"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="4dp"
+            android:textColor="#2e7d32"
+            android:textSize="14sp"/>
+
+        <TextView
+            android:id="@+id/txtDetailTruck"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="4dp"
+            android:layout_marginBottom="20dp"
+            android:textSize="14sp"/>
+
+        <View
+            android:layout_width="match_parent"
+            android:layout_height="1dp"
+            android:background="#DDDDDD"
+            android:layout_marginBottom="20dp"/>
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Nhập chi phí phát sinh dọc đường (USD)"
+            android:textStyle="bold"
+            android:textSize="15sp"
+            android:layout_marginBottom="10dp"/>
+
+        <EditText
+            android:id="@+id/edtBotFee"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:hint="Phí trạm BOT (USD)"
+            android:inputType="numberDecimal"
+            android:layout_marginBottom="10dp"/>
+
+        <EditText
+            android:id="@+id/edtFuelFee"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:hint="Tiền dầu / xăng (USD)"
+            android:inputType="numberDecimal"
+            android:layout_marginBottom="10dp"/>
+
+        <EditText
+            android:id="@+id/edtDriverNotes"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:hint="Ghi chú tài xế..."
+            android:layout_marginBottom="16dp"/>
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Tọa độ GPS đính kèm biên bản:"
+            android:textStyle="bold"
+            android:textSize="13sp"/>
+
+        <TextView
+            android:id="@+id/txtDetailGps"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:background="#EEEEEE"
+            android:padding="12dp"
+            android:layout_marginTop="6dp"
+            android:layout_marginBottom="24dp"
+            android:fontFamily="monospace"/>
+
+        <Button
+            android:id="@+id/btnSubmitPod"
+            android:layout_width="match_parent"
+            android:layout_height="55dp"
+            android:text="📸 KÝ NHẬN &amp; GỬI VỀ KẾ TOÁN (E-POD)"
+            android:backgroundTint="#2ecc71"/>
+
+    </LinearLayout>
+</ScrollView>

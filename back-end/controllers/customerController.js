@@ -1,32 +1,49 @@
 const pool = require('../config/db');
 
 // =========================================================================
-// 1. LẤY TOÀN BỘ ĐƠN HÀNG CỦA KHÁCH (ĐÃ SỬA: THÊM CỘT DRIVER_NOTES)
+// 1. LẤY TOÀN BỘ ĐƠN HÀNG CỦA KHÁCH (ĐÃ SỬA: THÊM VỊ TRÍ GPS XE THỜI GIAN THỰC)
 // =========================================================================
 exports.getCustomerOrders = async (req, res) => {
-    let { username } = req.query; 
+    let { username } = req.query;
 
     try {
         if (!username || username === 'undefined' || username.trim() === '') {
-            const resultAll = await pool.query('SELECT * FROM orders ORDER BY id DESC');
+            // LEFT JOIN trucks để trả kèm vị trí GPS xe hiện tại (nếu đơn đã được gán xe)
+            const resultAll = await pool.query(
+                `SELECT o.*,
+                        t.current_lat as truck_lat,
+                        t.current_lng as truck_lng,
+                        t.gps_updated_at as truck_gps_updated_at
+                 FROM orders o
+                 LEFT JOIN trucks t ON o.assigned_truck = t.license_plate
+                 ORDER BY o.id DESC`
+            );
             return res.json(resultAll.rows);
         }
 
         const searchName = username.trim();
-        // ĐÃ BỔ SUNG: Thêm trường driver_notes vào chuỗi SELECT dưới đây
+        // ĐÃ BỔ SUNG: LEFT JOIN trucks lấy current_lat/current_lng/gps_updated_at
+        // (được app tài xế bắn định kỳ lên server) để khách hàng xem được vị trí
+        // xe đang chở đơn hàng của mình trên bản đồ, thay vì chỉ biết trạng thái chữ.
         const queryText = `
-            SELECT id, username, customer_name, product_name, quantity, status, current_dept, notes, driver_notes,
-                   COALESCE(cargo_type, 'Hàng hóa thông thường') as cargo_type,
-                   COALESCE(total_price, 0) as total_price,
-                   COALESCE(product_image, '') as product_image
-            FROM orders 
-            WHERE LOWER(username) = LOWER($1) 
-               OR LOWER(customer_name) = LOWER($1)
-               OR username IS NULL 
-               OR username = ''
-            ORDER BY id DESC
+            SELECT o.id, o.username, o.customer_name, o.product_name, o.quantity, o.status, o.current_dept, o.notes, o.driver_notes,
+                   COALESCE(o.cargo_type, 'Hàng hóa thông thường') as cargo_type,
+                   COALESCE(o.total_price, 0) as total_price,
+                   COALESCE(o.product_image, '') as product_image,
+                   COALESCE(o.assigned_truck, '') as assigned_truck,
+                   COALESCE(o.delivery_route, '') as delivery_route,
+                   t.current_lat as truck_lat,
+                   t.current_lng as truck_lng,
+                   t.gps_updated_at as truck_gps_updated_at
+            FROM orders o
+            LEFT JOIN trucks t ON o.assigned_truck = t.license_plate
+            WHERE LOWER(o.username) = LOWER($1)
+               OR LOWER(o.customer_name) = LOWER($1)
+               OR o.username IS NULL
+               OR o.username = ''
+            ORDER BY o.id DESC
         `;
-        
+
         const result = await pool.query(queryText, [searchName]);
         res.json(result.rows);
     } catch (err) {
@@ -44,23 +61,23 @@ exports.createOrder = async (req, res) => {
 
     try {
         const safePrice = parseFloat(total_price) || 0;
-        
+
         // Thiết lập luân chuyển ban đầu cuối cùng từ 'CUSTOMER' thành 'OMS'
         const queryText = `
             INSERT INTO orders (
-                username, customer_name, product_name, cargo_type, 
+                username, customer_name, product_name, cargo_type,
                 quantity, total_price, total_cost, product_image, status, current_dept
-            ) 
-            VALUES ($1, $2, $3, $4, $5, $6, $7, $8, 'NEW', 'OMS') 
+            )
+            VALUES ($1, $2, $3, $4, $5, $6, $7, $8, 'NEW', 'OMS')
             RETURNING *
         `;
-        
+
         const values = [
-            username, 
-            customer_name, 
-            product_name, 
-            cargo_type || 'Hàng hóa thông thường', 
-            parseInt(quantity) || 1, 
+            username,
+            customer_name,
+            product_name,
+            cargo_type || 'Hàng hóa thông thường',
+            parseInt(quantity) || 1,
             safePrice,          // $6: total_price
             safePrice,          // $7: total_cost
             productImagePath    // $8

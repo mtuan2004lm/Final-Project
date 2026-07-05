@@ -3,21 +3,28 @@ const pool = require('../config/db');
 // Lấy danh sách hồ sơ chứng từ nâng cao kèm số liệu KPI tổng hợp
 exports.getDocsOrders = async (req, res) => {
     try {
-        // 1. DÙNG SELECT * : Tuyệt đối chống sập 500 kể cả khi Database thiếu cột mới
-        const ordersResult = await pool.query('SELECT * FROM orders ORDER BY id DESC');
+        // 1. DÙNG SELECT o.* : Tuyệt đối chống sập 500 kể cả khi Database thiếu cột mới
+        //    ĐÃ BỔ SUNG: LEFT JOIN trucks để lấy đúng tên tài xế phụ trách xe (trước đây
+        //    chỉ có biển số assigned_truck, không có tên tài xế dù giao diện có hiện nhãn này).
+        const ordersResult = await pool.query(
+            `SELECT o.*, t.driver_name as truck_driver_name
+             FROM orders o
+             LEFT JOIN trucks t ON o.assigned_truck = t.license_plate
+             ORDER BY o.id DESC`
+        );
         const allOrders = ordersResult.rows;
 
- 
+
 
         // 2. LỌC DỮ LIỆU BẰNG JAVASCRIPT: Chuẩn hóa chữ để phòng DOCS thấy đơn NGAY KHI OMS DUYỆT
         const docsOrders = allOrders.filter(order => {
             const status = (order.status || '').trim().toUpperCase();
             const dept = (order.current_dept || '').trim().toUpperCase();
-            
+
             // Định nghĩa các trạng thái ban đầu (Khi chưa được OMS duyệt)
             const isPendingStatus = ['PENDING', 'CHỜ DUYỆT', 'CHỜ OMS DUYỆT', 'MỚI TẠO'].includes(status);
             const isInitialDept = ['OMS', 'CUSTOMER'].includes(dept);
-            
+
             // ĐIỀU KIỆN: Chỉ cần đơn đã được duyệt (Không còn Pending) hoặc đã đi qua các phòng ban khác
             return !isPendingStatus || !isInitialDept;
         }).map(order => {
@@ -34,6 +41,7 @@ exports.getDocsOrders = async (req, res) => {
                 warehouse_location: order.warehouse_location || 'Chưa gán',
                 delivery_route: order.delivery_route || 'Chưa lập',
                 assigned_truck: order.assigned_truck || 'Chưa gán',
+                truck_driver_name: order.truck_driver_name || '',
                 bot_fee: Number(order.bot_fee) || 0,
                 fuel_fee: Number(order.fuel_fee) || 0,
                 driver_notes: order.driver_notes || 'Không có',
@@ -85,20 +93,20 @@ exports.lockArchiveFile = async (req, res) => {
     const { id } = req.params;
     try {
         const queryText = `
-            UPDATE orders 
-            SET current_dept = 'ARCHIVED', status = 'DONE' 
-            WHERE id = $1 
+            UPDATE orders
+            SET current_dept = 'ARCHIVED', status = 'DONE'
+            WHERE id = $1
             RETURNING *
         `;
         const result = await pool.query(queryText, [id]);
-        
+
         if (result.rows.length === 0) {
             return res.status(404).json({ error: "Không tìm thấy mã hồ sơ cần niêm phong!" });
         }
 
         // Ghi nhật ký hệ thống
         await pool.query(
-            `INSERT INTO order_logs (order_id, old_status, new_status, notes) 
+            `INSERT INTO order_logs (order_id, old_status, new_status, notes)
              VALUES ($1, 'DONE', 'DONE', 'Phòng chứng từ (DOCS) tiến hành kiểm toán dữ liệu và Niêm phong hồ sơ vào kho số vĩnh viễn.')`,
             [id]
         );

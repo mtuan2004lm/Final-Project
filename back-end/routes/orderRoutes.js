@@ -2,7 +2,7 @@ const express = require('express');
 const router = express.Router();
 const multer = require('multer');
 const path = require('path');
-const fs = require('fs'); 
+const fs = require('fs');
 
 if (!fs.existsSync('uploads')) {
   fs.mkdirSync('uploads', { recursive: true });
@@ -20,40 +20,51 @@ const omsController = require('../controllers/omsController');
 const wmsController = require('../controllers/wmsController');
 const tmsController = require('../controllers/tmsController');
 const readOnlyDeptController = require('../controllers/readOnlyDeptController');
-const accController = require('../controllers/accController'); 
+const accController = require('../controllers/accController');
 
 // 1. ROUTE PHÒNG KHÁCH HÀNG (CUSTOMER)
 router.post('/', upload.single('product_image'), customerController.createOrder);
-router.get('/customer', customerController.getCustomerOrders); 
+router.get('/customer', customerController.getCustomerOrders);
 
 // 2. ROUTE PHÒNG ĐIỀU PHỐI (OMS)
-router.get('/oms', omsController.getOmsOrders);           
+router.get('/oms', omsController.getOmsOrders);
 router.get('/oms/analytics/revenue', omsController.getRevenueReport);       // Đã sửa lại khớp Vue
 router.get('/oms/analytics/customers', omsController.getCustomerAnalytics); // Đã sửa lại khớp Vue
-router.put('/:id/return-order', omsController.returnOrderToCustomer); 
+router.put('/:id/return-order', omsController.returnOrderToCustomer);
 router.get('/history/:id', omsController.getOrderHistory);
 
 // 3. ROUTE PHÒNG KHO BÃI (WMS)
 router.get('/wms/logs/:id', wmsController.getWarehouseLogsByOrder); // Tra cứu nhật ký theo mã đơn (đặt trước route /wms/:xxx nếu có)
 router.get('/wms/logs', wmsController.getWarehouseGlobalLogs); // Đặt lên trước route động :id
-router.get('/wms', wmsController.getWmsOrders);           
+router.get('/wms', wmsController.getWmsOrders);
 router.put('/wms/:id/location', wmsController.updateOrderLocation);
 router.put('/wms/:id/condition', upload.single('cargo_image'), wmsController.updateCargoCondition);
 router.put('/wms/:id/release', wmsController.releaseToTms);
 router.put('/wms/:id/scan-barcode', wmsController.scanBarcode);
 
 // 4. ROUTE PHÒNG VẬN TẢI ĐỘI XE (TMS)
-router.get('/tms/fleet', tmsController.getTruckFleet);                      
-router.get('/tms', tmsController.getTmsOrders);           
-router.put('/tms/:id/assign', tmsController.assignDeliveryRoute);            
-router.put('/tms/:id/pod-submit', tmsController.submitDriverPod);            
+// -- Lưu ý thứ tự: các route tĩnh /tms/fleet/... và /tms/driver/... phải đặt
+//    TRƯỚC route động /tms/:id/... để Express không match nhầm "fleet"/"driver" thành :id
+router.get('/tms/fleet', tmsController.getTruckFleet);
+router.post('/tms/fleet', tmsController.createTruck);
+router.put('/tms/fleet/gps', tmsController.updateTruckGps);          // App tài xế bắn GPS định kỳ
+router.put('/tms/fleet/:id', tmsController.updateTruck);             // Sửa thông tin xe
+router.put('/tms/fleet/:id/status', tmsController.updateTruckStatus); // Kiểm tra / cập nhật tình trạng xe
+router.delete('/tms/fleet/:id', tmsController.deleteTruck);
+
+router.get('/tms/driver/:license_plate', tmsController.getDriverTrips); // App tài xế lấy chuyến đang chạy
+
+router.get('/tms', tmsController.getTmsOrders);
+router.put('/tms/:id/assign', tmsController.assignDeliveryRoute);
+router.put('/tms/:id/pod-submit', tmsController.submitDriverPod);
 
 // 5. ROUTE PHÒNG KẾ TOÁN (ACC) & CHỨNG TỪ (DOCS)
-router.get('/acc/orders', accController.getAccOrders);           
-router.put('/acc/:id/approve', accController.approvePayment);    
-router.get('/docs', readOnlyDeptController.getDocsOrders); 
+router.get('/acc/orders', accController.getAccOrders);
+router.put('/acc/:id/approve', accController.approvePayment);
+router.get('/docs', readOnlyDeptController.getDocsOrders);
+router.put('/docs/:id/lock', readOnlyDeptController.lockArchiveFile); // THIẾU TRƯỚC ĐÂY: nút "Niêm phong" ở DocsView.vue gọi route này
 
 // 6. ROUTE CẬP NHẬT TRẠNG THÁI CHUNG (Luôn xếp dưới cùng)
-router.put('/:id', omsController.updateOrderStatus); 
+router.put('/:id', omsController.updateOrderStatus);
 
 module.exports = router;

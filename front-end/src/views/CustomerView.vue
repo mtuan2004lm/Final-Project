@@ -9,7 +9,7 @@
            <small>Đang online</small>
         </div>
       </div>
-      
+
       <div class="notification-box">
          <h4>🔔 Thông báo hệ thống</h4>
          <div v-if="returnedOrderNotice">
@@ -43,7 +43,7 @@
     </div>
 
     <div class="main-content">
-      
+
       <div v-if="currentTab === 'create'">
         <header>
           <h1>KHỞI TẠO YÊU CẦU VẬN CHUYỂN HÀNG HÓA KÝ GỬI</h1>
@@ -140,6 +140,7 @@
                 <th>Số Lượng</th>
                 <th>Tổng Tiền</th>
                 <th>Trạng Thái</th>
+                <th>Vị Trí Xe (Thời Gian Thực)</th>
               </tr>
             </thead>
             <tbody>
@@ -158,9 +159,27 @@
                     {{ translateStatus(order.status) }}
                   </span>
                 </td>
+                <!-- MỚI: vị trí xe thời gian thực (do app tài xế bắn định kỳ lên server) -->
+                <td>
+                  <div v-if="order.status === 'SHIPPING' && order.truck_lat && order.truck_lng" class="live-map-cell">
+                    <iframe
+                      :src="getMapEmbedUrl(order.truck_lat, order.truck_lng)"
+                      class="mini-map-frame"
+                      loading="lazy"
+                      referrerpolicy="no-referrer-when-downgrade">
+                    </iframe>
+                    <a :href="getGoogleMapsUrl(order.truck_lat, order.truck_lng)" target="_blank" class="map-link-full">
+                      🔗 Mở bản đồ lớn
+                    </a>
+                    <small class="gps-updated-txt">Cập nhật: {{ formatDateTime(order.truck_gps_updated_at) }}</small>
+                  </div>
+                  <span v-else style="color: #95a5a6; font-style: italic; font-size: 12px;">
+                    {{ order.status === 'SHIPPING' ? 'Chưa có tín hiệu GPS' : 'Chưa vận chuyển' }}
+                  </span>
+                </td>
               </tr>
               <tr v-if="activeOrders.length === 0">
-                <td colspan="7" style="text-align: center; color: #7f8c8d; padding: 20px;">Không có đơn hàng nào đang trong quá trình xử lý.</td>
+                <td colspan="8" style="text-align: center; color: #7f8c8d; padding: 20px;">Không có đơn hàng nào đang trong quá trình xử lý.</td>
               </tr>
             </tbody>
           </table>
@@ -250,7 +269,7 @@
               <p>Mã hóa đơn: <b>#{{ selectedOrderForPay.id }}</b></p>
               <p>Loại hàng: <span class="type-badge">{{ selectedOrderForPay.cargo_type || 'Hàng hóa thông thường' }}</span></p>
               <p>Số tiền: <b style="color: #e74c3c; font-size: 16px;">{{ formatCurrency(getOrderPrice(selectedOrderForPay)) }}</b></p>
-              
+
               <div class="qr-container">
                 <img :src="generateQRUrl(selectedOrderForPay)" alt="Mã QR" class="qr-image" />
                 <div class="qr-scan-guide">Mở ứng dụng Ngân hàng quét để thanh toán nhanh</div>
@@ -279,10 +298,10 @@
               {{ star <= feedbackRating ? '★' : '☆' }}
             </span>
           </div>
-          
+
           <label class="block-label">Nội dung phản hồi góp ý:</label>
           <textarea v-model="feedbackText" placeholder="Hãy để lại ý kiến..." rows="4" class="review-textarea"></textarea>
-          
+
           <button @click="submitOrderFeedback" class="btn-send-review">🚀 Gửi đánh giá dịch vụ</button>
         </div>
       </div>
@@ -301,7 +320,7 @@ const username = ref(localStorage.getItem('username') || 'Khách hàng');
 const currentTab = ref('create');
 
 const orders = ref([]);
-const estimatedPrice = ref(100); 
+const estimatedPrice = ref(100);
 const selectedOrderForPay = ref(null);
 const productImageFile = ref(null);
 
@@ -339,12 +358,17 @@ const getOrderPrice = (order) => {
   return rate * qty;
 };
 
+// ĐÃ SỬA: Sau khi tài xế nộp E-POD, backend (tmsController.submitDriverPod) chuyển
+// đơn sang status = 'DELIVERED' (đồng thời current_dept = 'ACC' để phòng Kế toán
+// đối soát chi phí nội bộ). Với khách hàng, hàng đã giao tới nơi tức là hoàn thành
+// rồi, không cần đợi Kế toán duyệt xong mới hiện "hoàn thành" -> tính luôn
+// 'DELIVERED' là completed để hiện đúng ở tab Lịch sử + cho phép đánh giá dịch vụ.
 const activeOrders = computed(() => {
-  return orders.value.filter(o => o.status !== 'DONE');
+  return orders.value.filter(o => o.status !== 'DONE' && o.status !== 'DELIVERED');
 });
 
 const completedOrders = computed(() => {
-  return orders.value.filter(o => o.status === 'DONE');
+  return orders.value.filter(o => o.status === 'DONE' || o.status === 'DELIVERED');
 });
 
 const unpaidOrders = computed(() => {
@@ -367,7 +391,7 @@ const fetchOrders = async () => {
   try {
     const res = await axios.get(`http://localhost:3000/api/orders/customer?username=${username.value}`);
     orders.value = res.data;
-    
+
     const returned = res.data.find(o => o.status === 'RETURNED');
     returnedOrderNotice.value = returned || null;
   } catch (error) {
@@ -387,22 +411,22 @@ const createOrder = async () => {
   formData.append('product_name', newOrder.value.product_name);
   formData.append('cargo_type', newOrder.value.cargo_type);
   formData.append('quantity', newOrder.value.quantity);
-  
+
   const rate = priceRates[newOrder.value.cargo_type] || 100;
   formData.append('total_price', rate * newOrder.value.quantity);
-  formData.append('product_image', productImageFile.value); 
+  formData.append('product_image', productImageFile.value);
 
   try {
     await axios.post('http://localhost:3000/api/orders', formData, {
       headers: { 'Content-Type': 'multipart/form-data' }
     });
     alert("🚀 Khởi tạo yêu cầu ký gửi hàng hóa thành công!");
-    
+
     newOrder.value = { customer_name: '', product_name: '', cargo_type: 'Hàng hóa thông thường', quantity: 1 };
     productImageFile.value = null;
     const fileInput = document.querySelector('.file-input-styled');
-    if (fileInput) fileInput.value = ''; 
-    
+    if (fileInput) fileInput.value = '';
+
     calculateEstimatedPrice();
     fetchOrders();
     currentTab.value = 'list';
@@ -447,11 +471,11 @@ const selectOrderToPay = (order) => {
 
 const generateQRUrl = (order) => {
   if (!order || !order.id) return '';
-  const bankId = "MB"; 
-  const accountNo = "099999999999"; 
+  const bankId = "MB";
+  const accountNo = "099999999999";
   const template = "qr_only";
   const amountUsd = getOrderPrice(order);
-  const amountVnd = amountUsd * 25000; 
+  const amountVnd = amountUsd * 25000;
   const description = `Thanh toan don hang ${order.id}`;
   return `https://img.vietqr.io/image/${bankId}-${accountNo}-${template}.png?amount=${amountVnd}&addInfo=${encodeURIComponent(description)}`;
 };
@@ -468,6 +492,8 @@ const mockConfirmPayment = async (orderId) => {
   }
 };
 
+// ĐÃ SỬA: Thêm nhãn cho 'SHIPPING' và 'DELIVERED' (trước đây thiếu, bị rơi vào
+// nhãn mặc định "Đợi duyệt đơn" rất dễ gây hiểu lầm cho khách hàng).
 const translateStatus = (status) => {
   const dict = {
     'NEW': '⏳ Đợi duyệt đơn',
@@ -475,6 +501,8 @@ const translateStatus = (status) => {
     'WMS': '🏬 Đang ở phòng Kho',
     'PACKED': '📦 Đã đóng gói',
     'TMS': '🚛 Đang vận chuyển',
+    'SHIPPING': '🚛 Đang vận chuyển',
+    'DELIVERED': '🏁 Đã giao hàng thành công',
     'DONE': '🏁 Hoàn thành',
     'RETURNED': '⚠️ Bị hoàn trả'
   };
@@ -485,6 +513,22 @@ const formatCurrency = (val) => {
   if (!val) return '$0';
   return new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD', maximumFractionDigits: 0 }).format(val);
 };
+
+// MỚI: hiển thị bản đồ nhúng (OpenStreetMap, không cần API key) quanh vị trí xe hiện tại
+const getMapEmbedUrl = (lat, lng) => {
+  const delta = 0.01; // ~1km quanh xe, đủ để khách hàng thấy xe đang ở khu vực nào
+  const minLng = Number(lng) - delta;
+  const minLat = Number(lat) - delta;
+  const maxLng = Number(lng) + delta;
+  const maxLat = Number(lat) + delta;
+  const bbox = `${minLng}%2C${minLat}%2C${maxLng}%2C${maxLat}`;
+  return `https://www.openstreetmap.org/export/embed.html?bbox=${bbox}&layer=mapnik&marker=${lat}%2C${lng}`;
+};
+
+// MỚI: link mở bản đồ lớn (Google Maps) ở tab mới để khách xem chi tiết hơn
+const getGoogleMapsUrl = (lat, lng) => `https://www.google.com/maps?q=${lat},${lng}`;
+
+const formatDateTime = (d) => d ? new Date(d).toLocaleString('vi-VN') : '—';
 
 const logout = () => {
   localStorage.clear();
@@ -554,6 +598,12 @@ header h1 { font-size: 24px; font-weight: 800; color: #2c3e50; margin-bottom: 25
 .status-badge.approved { background: #e0f2fe; color: #0369a1; }
 .status-badge.returned { background: #fee2e2; color: #dc2626; border: 1px dashed #ef4444; }
 .status-badge.done { background: #dcfce7; color: #15803d; }
+
+.live-map-cell { display: flex; flex-direction: column; gap: 4px; width: 190px; }
+.mini-map-frame { width: 100%; height: 120px; border: 1px solid #e2e8f0; border-radius: 4px; }
+.map-link-full { font-size: 11px; color: #2980b9; text-decoration: none; font-weight: bold; }
+.map-link-full:hover { text-decoration: underline; }
+.gps-updated-txt { font-size: 10px; color: #95a5a6; }
 
 .btn-review-trigger { padding: 6px 12px; background: #e67e22; color: white; border: none; border-radius: 4px; font-weight: bold; font-size: 12px; cursor: pointer; }
 .stars-display { color: #f1c40f; font-size: 16px; letter-spacing: 2px; font-weight: bold; }
