@@ -10,6 +10,32 @@
         android:orientation="vertical"
         android:padding="20dp">
 
+        <!-- ============ THANH TRÊN: TIÊU ĐỀ + NÚT ĐĂNG XUẤT ============ -->
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal"
+            android:gravity="center_vertical"
+            android:layout_marginBottom="15dp">
+
+            <TextView
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:text="TÀI XẾ TMS"
+                android:textStyle="bold"
+                android:textSize="18sp"
+                android:textColor="#2c3e50"/>
+
+            <Button
+                android:id="@+id/btnLogout"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="🚪 Đăng Xuất"
+                android:textSize="12sp"
+                android:backgroundTint="#c0392b"/>
+        </LinearLayout>
+
         <EditText
             android:id="@+id/edtDriverName"
             android:layout_width="match_parent"

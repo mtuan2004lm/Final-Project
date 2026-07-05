@@ -59,6 +59,7 @@ class DriverActivity : AppCompatActivity() {
         val btnStart = findViewById<Button>(R.id.btnStartLog)
         val btnStop = findViewById<Button>(R.id.btnStopLog)
         val btnRefreshTrips = findViewById<Button>(R.id.btnRefreshTrips)
+        val btnLogout = findViewById<Button>(R.id.btnLogout)
         txtLiveGps = findViewById(R.id.txtLiveGps)
         llTripList = findViewById(R.id.llTripList)
         txtTripEmpty = findViewById(R.id.txtTripEmpty)
@@ -116,6 +117,22 @@ class DriverActivity : AppCompatActivity() {
             }
             loadDriverTrips(plate)
         }
+
+        btnLogout.setOnClickListener {
+            performLogout()
+        }
+    }
+
+    // Đăng xuất: tắt GPS đang chạy ngầm, xóa thông tin tài xế/biển số đã lưu,
+    // rồi quay về màn Đăng nhập và xóa sạch back stack (không cho bấm Back quay lại đây).
+    private fun performLogout() {
+        stopService(Intent(this, GpsBaseService::class.java))
+        prefs.edit().clear().apply()
+
+        val intent = Intent(this, LoginActivity::class.java)
+        intent.flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK
+        startActivity(intent)
+        finish()
     }
 
     // Gọi API lấy danh sách đơn hàng (chuyến) đang SHIPPING được gán cho đúng biển số xe này

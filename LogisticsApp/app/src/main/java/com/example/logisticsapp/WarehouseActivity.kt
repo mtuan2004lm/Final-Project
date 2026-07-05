@@ -40,7 +40,17 @@ class WarehouseActivity : AppCompatActivity() {
         fetchOrders()
 
         btnReload.setOnClickListener { fetchOrders() }
-        btnLogout.setOnClickListener { finish() }
+
+        // ĐÃ SỬA: trước đây chỉ gọi finish() -> vì LoginActivity cũng đã tự finish()
+        // sau khi mở màn này, nên không còn activity nào trong back stack để quay về,
+        // dẫn đến thoát hẳn ra ngoài app thay vì quay lại màn Đăng nhập.
+        // Giờ điều hướng thẳng về LoginActivity và xóa sạch back stack.
+        btnLogout.setOnClickListener {
+            val intent = Intent(this, LoginActivity::class.java)
+            intent.flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK
+            startActivity(intent)
+            finish()
+        }
 
         // Mở màn hình Nhật ký kho khi bấm Tab Logs
         btnTabLogs.setOnClickListener {
