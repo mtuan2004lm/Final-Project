@@ -26,6 +26,7 @@ const adminController = require('../controllers/adminController');
 // 1. ROUTE PHÒNG KHÁCH HÀNG (CUSTOMER)
 router.post('/', upload.single('product_image'), customerController.createOrder);
 router.get('/customer', customerController.getCustomerOrders);
+router.put('/:id/pay', customerController.confirmPaymentSubmitted); // THIẾU TRƯỚC ĐÂY: nút "Tôi đã hoàn tất chuyển khoản" gọi route này
 
 // 2. ROUTE PHÒNG ĐIỀU PHỐI (OMS)
 router.get('/oms', omsController.getOmsOrders);

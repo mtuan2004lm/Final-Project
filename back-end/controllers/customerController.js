@@ -29,6 +29,7 @@ exports.getCustomerOrders = async (req, res) => {
             SELECT o.id, o.username, o.customer_name, o.product_name, o.quantity, o.status, o.current_dept, o.notes, o.driver_notes,
                    COALESCE(o.cargo_type, 'Hàng hóa thông thường') as cargo_type,
                    COALESCE(o.total_price, 0) as total_price,
+                   COALESCE(o.payment_status, '') as payment_status,
                    COALESCE(o.product_image, '') as product_image,
                    COALESCE(o.assigned_truck, '') as assigned_truck,
                    COALESCE(o.delivery_route, '') as delivery_route,
@@ -99,5 +100,42 @@ exports.createOrder = async (req, res) => {
     } catch (err) {
         console.error("🔴 LỖI KHỞI TẠO ĐƠN HÀNG:", err.message);
         res.status(500).json({ error: "Lỗi hệ thống khi khởi tạo đơn hàng" });
+    }
+};
+
+// =========================================================================
+// 3. MỚI: KHÁCH HÀNG XÁC NHẬN ĐÃ CHUYỂN KHOẢN (Cổng thanh toán -> chờ Kế toán duyệt)
+//    Route này trước đây bị THIẾU HOÀN TOÀN ở backend (PUT /api/orders/:id/pay),
+//    khiến nút "Tôi đã hoàn tất chuyển khoản" trên CustomerView.vue luôn báo lỗi.
+//    Không đánh dấu PAID ngay - chỉ chuyển hồ sơ sang phòng Kế toán (ACC) để họ
+//    đối soát và tự bấm duyệt (đúng như accController.approvePayment đang chờ
+//    status = 'PENDING' + current_dept = 'ACC').
+// =========================================================================
+exports.confirmPaymentSubmitted = async (req, res) => {
+    const { id } = req.params;
+    try {
+        const oldOrder = await pool.query("SELECT status FROM orders WHERE id = $1", [id]);
+        if (oldOrder.rows.length === 0) {
+            return res.status(404).json({ error: "Không tìm thấy đơn hàng cần xác nhận thanh toán!" });
+        }
+        const oldStatus = oldOrder.rows[0].status;
+
+        const result = await pool.query(
+            `UPDATE orders
+             SET status = 'PENDING', current_dept = 'ACC', payment_status = 'PENDING'
+             WHERE id = $1 RETURNING *`,
+            [id]
+        );
+
+        await pool.query(
+            `INSERT INTO order_logs (order_id, notes, old_status, new_status)
+             VALUES ($1, $2, $3, $4)`,
+            [id, 'Khách hàng xác nhận đã chuyển khoản thanh toán qua QR. Hồ sơ chuyển phòng Kế toán (ACC) đối soát và duyệt thu tiền.', oldStatus, 'PENDING']
+        );
+
+        res.json({ message: "✅ Đã ghi nhận xác nhận thanh toán! Chờ phòng Kế toán đối soát và duyệt.", order: result.rows[0] });
+    } catch (err) {
+        console.error("🔴 LỖI XÁC NHẬN THANH TOÁN CỦA KHÁCH HÀNG:", err.message);
+        res.status(500).json({ error: "Lỗi hệ thống khi xác nhận thanh toán", detail: err.message });
     }
 };

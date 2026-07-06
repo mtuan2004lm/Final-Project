@@ -371,8 +371,17 @@ const completedOrders = computed(() => {
   return orders.value.filter(o => o.status === 'DONE' || o.status === 'DELIVERED');
 });
 
+// ĐÃ SỬA LỖI: bản cũ lọc theo o.status === 'WMS' / 'TMS', nhưng 'WMS' và 'TMS'
+// không bao giờ là giá trị thật của cột status (chỉ NEW/APPROVED/PACKED/SHIPPING/
+// DELIVERED/DONE/RETURNED) - đó là giá trị của current_dept. Vì vậy đơn ở PACKED
+// hoặc SHIPPING (chưa thanh toán) không bao giờ lọt vào đây. Đổi sang kiểm tra
+// đúng cột payment_status (khớp với cách AccView/accController đang dùng).
 const unpaidOrders = computed(() => {
-  return orders.value.filter(o => o.status === 'NEW' || o.status === 'APPROVED' || o.status === 'WMS' || o.status === 'TMS');
+  return orders.value.filter(o =>
+    o.payment_status !== 'PAID' &&
+    o.status !== 'RETURNED' &&
+    o.status !== 'DONE'
+  );
 });
 
 const calculateEstimatedPrice = () => {
