@@ -21,6 +21,7 @@ const wmsController = require('../controllers/wmsController');
 const tmsController = require('../controllers/tmsController');
 const readOnlyDeptController = require('../controllers/readOnlyDeptController');
 const accController = require('../controllers/accController');
+const adminController = require('../controllers/adminController');
 
 // 1. ROUTE PHÒNG KHÁCH HÀNG (CUSTOMER)
 router.post('/', upload.single('product_image'), customerController.createOrder);
@@ -64,7 +65,10 @@ router.put('/acc/:id/approve', accController.approvePayment);
 router.get('/docs', readOnlyDeptController.getDocsOrders);
 router.put('/docs/:id/lock', readOnlyDeptController.lockArchiveFile); // THIẾU TRƯỚC ĐÂY: nút "Niêm phong" ở DocsView.vue gọi route này
 
-// 6. ROUTE CẬP NHẬT TRẠNG THÁI CHUNG (Luôn xếp dưới cùng)
+// 6. ROUTE PHÒNG QUẢN TRỊ (ADMIN) - Tổng quan toàn hệ thống
+router.get('/admin/overview', adminController.getAllOrdersOverview);
+
+// 7. ROUTE CẬP NHẬT TRẠNG THÁI CHUNG (Luôn xếp dưới cùng)
 router.put('/:id', omsController.updateOrderStatus);
 
 module.exports = router;

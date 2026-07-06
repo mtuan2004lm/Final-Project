@@ -9,7 +9,7 @@
             <small style="color: #2ecc71;">Trực tuyến quản trị</small>
          </div>
        </div>
-       
+
        <div class="navigation-menu">
           <button @click="activeTab = 'orders'" :class="{ active: activeTab === 'orders' }" class="menu-btn">
              📦 Duyệt & Hoàn đơn
@@ -21,12 +21,12 @@
              📊 Báo cáo Doanh thu
           </button>
        </div>
-  
+
        <button @click="logout" class="btn-logout">Đăng Xuất</button>
      </div>
-  
+
      <div class="main-content">
-       
+
         <div v-if="activeTab === 'orders'">
            <header><h1>PHÒNG QUẢN LÝ ĐƠN HÀNG (OMS) - ĐIỀU PHỐI LUỒNG</h1></header>
            <div class="card list-card" style="margin-top: 25px;">
@@ -48,11 +48,11 @@
                            <td @click="openOrderTimeline(order.id)" class="clickable-id" title="Bấm vào xem chi tiết dòng lịch sử">
                               <b>#{{ order.id }}</b> 🔍
                            </td>
-                           
+
                            <td class="img-cell">
-                              <img v-if="order.product_image" 
-                                   :src="'http://localhost:3000' + order.product_image" 
-                                   alt="Sản phẩm" 
+                              <img v-if="order.product_image"
+                                   :src="'http://localhost:3000' + order.product_image"
+                                   alt="Sản phẩm"
                                    class="product-thumb" />
                               <span v-else class="no-img">Không có ảnh</span>
                            </td>
@@ -73,7 +73,7 @@
                </table>
            </div>
         </div>
- 
+
         <div v-if="activeTab === 'customers'">
            <header><h1>👥 HỒ SƠ & LỊCH SỬ MUA SẮM CỦA KHÁCH HÀNG</h1></header>
            <div class="card list-card" style="margin-top: 25px;">
@@ -106,7 +106,7 @@
                </table>
            </div>
         </div>
- 
+
         <div v-if="activeTab === 'analytics'">
            <header><h1>📊 SỐ LIỆU TRỰC QUAN BÁO CÁO DOANH THU DOANH NGHIỆP</h1></header>
            <div class="revenue-container">
@@ -122,30 +122,32 @@
               </div>
            </div>
         </div>
- 
+
      </div>
- 
+
      <div v-if="showHistoryModal" class="modal-overlay" @click="showHistoryModal = false">
        <div class="modal-content-box" @click.stop>
           <div class="modal-header">
              <h2>📜 Nhật Ký Hành Trình Đơn Hàng #{{ selectedOrderId }}</h2>
              <button class="close-btn" @click="showHistoryModal = false">×</button>
           </div>
-          
+
           <div class="modal-body">
              <div class="timeline-wrapper">
+                <!-- ĐÃ SỬA: order_logs thực tế chỉ có old_status/new_status/notes/changed_at,
+                     không có from_dept/to_dept/action_by/status như bản cũ đang tham chiếu
+                     (khiến các dòng luôn hiện "undefined"). -->
                 <div v-for="log in activeOrderHistory" :key="log.id" class="timeline-item">
                    <div class="timeline-badge-circle"></div>
                    <div class="timeline-content-card">
-                      <div class="time-stamp">{{ new Date(log.created_at).toLocaleString() }}</div>
+                      <div class="time-stamp">{{ new Date(log.changed_at).toLocaleString() }}</div>
                       <h4 class="action-title">
-                         Luân chuyển: <span class="dept-tag">{{ log.from_dept }}</span> ➡️ <span class="dept-tag">{{ log.to_dept }}</span>
+                         Trạng thái: <span class="dept-tag">{{ log.old_status || '—' }}</span> ➡️ <span class="dept-tag">{{ log.new_status }}</span>
                       </h4>
-                      <p class="status-state">Trạng thái mới: <b>{{ log.status }}</b> (Nhân viên: {{ log.action_by }})</p>
                       <p v-if="log.notes" class="log-notes">📌 <b>Lý do / Nội dung chi tiết:</b> {{ log.notes }}</p>
                    </div>
                 </div>
-                
+
                 <div v-if="activeOrderHistory.length === 0" style="text-align: center; color: #95a5a6; padding: 25px; font-style: italic;">
                    Đơn hàng này vừa được khởi tạo, chưa có lịch sử luân chuyển phòng ban.
                 </div>
@@ -153,27 +155,27 @@
           </div>
        </div>
      </div>
- 
+
    </div>
  </template>
-  
+
  <script setup>
  import { ref, onMounted } from 'vue';
  import axios from 'axios';
  import { useRouter } from 'vue-router';
-   
+
  const router = useRouter();
  const userRole = ref('OMS');
  const activeTab = ref('orders');
- 
+
  const orders = ref([]);
  const customerAnalytics = ref([]);
  const revenueReport = ref({ today: 0, month: 0 });
- 
+
  const showHistoryModal = ref(false);
  const selectedOrderId = ref(null);
  const activeOrderHistory = ref([]);
-   
+
  const fetchOrders = async () => {
    try {
      const res = await axios.get('http://localhost:3000/api/orders/oms');
@@ -198,18 +200,19 @@
      console.error("Không thể tải dữ liệu doanh thu");
    }
  };
- 
+
+ // ĐÃ SỬA: URL đúng đã đăng ký trong orderRoutes.js là "/history/:id", không phải "/:id/history"
  const openOrderTimeline = async (orderId) => {
     selectedOrderId.value = orderId;
     try {
-       const res = await axios.get(`http://localhost:3000/api/orders/${orderId}/history`);
+       const res = await axios.get(`http://localhost:3000/api/orders/history/${orderId}`);
        activeOrderHistory.value = res.data;
        showHistoryModal.value = true;
     } catch (error) {
        alert("Không thể tải lịch sử hành trình đơn hàng này!");
     }
  };
-   
+
  const approveOrder = async (orderId) => {
    try {
      await axios.put(`http://localhost:3000/api/orders/${orderId}`, {
@@ -227,7 +230,7 @@
     const reason = prompt("Nhập lý do hoàn trả đơn hàng này về cho Khách hàng:");
     if (reason === null) return;
     if (!reason.trim()) return alert("Vui lòng nhập lý do cụ thể!");
- 
+
     try {
        const res = await axios.put(`http://localhost:3000/api/orders/${orderId}/return-order`, { reason });
        alert(res.data.message);
@@ -241,7 +244,7 @@
     fetchCustomerData();
     fetchRevenueData();
  };
-   
+
  onMounted(() => {
    if (!localStorage.getItem('role')) router.push('/');
    else {
@@ -249,10 +252,10 @@
       setInterval(refreshAllData, 5000);
    }
  });
-   
+
  const logout = () => { localStorage.clear(); router.push('/'); };
  </script>
-  
+
  <style scoped>
  .dashboard-container { display: flex; height: 100vh; font-family: 'Segoe UI', sans-serif; background: #f0f2f5;}
  .sidebar { width: 250px; background: #2c3e50; color: white; padding: 20px; display: flex; flex-direction: column; box-sizing: border-box;}
@@ -262,15 +265,15 @@
  .btn-logout { margin-top: auto; padding: 10px; background: #c0392b; color: white; border: none; border-radius: 4px; cursor: pointer; font-weight: 600; }
  .main-content { flex: 1; padding: 30px; overflow-y: auto; background: #fff;}
  .card { background: white; padding: 25px; border-radius: 8px; box-shadow: 0 4px 12px rgba(0,0,0,0.05); border: 1px solid #eef2f5;}
- 
+
  .navigation-menu { display: flex; flex-direction: column; gap: 8px; margin-top: 10px;}
  .menu-btn { padding: 12px 15px; background: none; border: none; color: #b2bec3; text-align: left; font-size: 14px; font-weight: bold; cursor: pointer; border-radius: 4px; transition: all 0.2s;}
  .menu-btn:hover, .menu-btn.active { background: #34495e; color: #fff; }
- 
+
  .data-table { width: 100%; border-collapse: collapse; margin-top: 15px; }
  .data-table th, .data-table td { padding: 14px 16px; border-bottom: 1px solid #ecf0f1; text-align: left; font-size: 14px; vertical-align: middle;}
  .data-table th { background: #f8f9fa; color: #7f8c8d; font-size: 12px; font-weight: bold; text-transform: uppercase;}
- 
+
  /* ========================================================================= */
  /* ĐÃ THÊM: CSS GIAO DIỆN HÌNH ẢNH SẢN PHẨM Ở BẢNG OMS */
  /* ========================================================================= */
@@ -284,11 +287,11 @@
  .btn-ok:hover { background: #2471a3; }
  .btn-fail { background: #e74c3c; color: white; }
  .btn-fail:hover { background: #c0392b; }
- 
+
  .badge { padding: 4px 8px; background: #e8f5e9; color: #2e7d32; border-radius: 4px; font-size: 11px; font-weight: bold; }
  .badge-vip { padding: 4px 10px; background: #fff9db; color: #f59f00; border-radius: 20px; font-size: 12px; font-weight: bold; border: 1px solid #ffe066;}
  .badge-normal { padding: 4px 10px; background: #e1f5fe; color: #0288d1; border-radius: 20px; font-size: 12px; font-weight: bold;}
- 
+
  .revenue-container { display: flex; gap: 20px; margin-top: 25px; }
  .box-rev { flex: 1; padding: 25px; border-radius: 8px; color: white; box-shadow: 0 6px 18px rgba(0,0,0,0.06); }
  .box-rev.today { background: linear-gradient(135deg, #1dd1a1, #10ac84); }
@@ -296,17 +299,17 @@
  .box-rev h2 { font-size: 36px; margin: 8px 0; font-weight: 800; }
  .custom-progress { width: 100%; height: 5px; background: rgba(255,255,255,0.3); border-radius: 10px; margin-top: 15px; }
  .custom-progress .line { height: 100%; background: #fff; border-radius: 10px; }
- 
+
  .clickable-id { color: #2980b9; cursor: pointer; text-decoration: underline; font-weight: bold; }
  .clickable-id:hover { color: #1f618d; }
- 
+
  .modal-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); display: flex; justify-content: center; align-items: center; z-index: 9999; }
  .modal-content-box { background: white; width: 620px; max-height: 80vh; border-radius: 6px; display: flex; flex-direction: column; overflow: hidden; box-shadow: 0 8px 30px rgba(0,0,0,0.15); animation: popupFade 0.2s ease-out; }
  .modal-header { display: flex; justify-content: space-between; align-items: center; padding: 15px 20px; background: #2c3e50; color: white; }
  .modal-header h2 { font-size: 16px; margin: 0; font-weight: 700; letter-spacing: 0.5px; }
  .close-btn { background: none; border: none; color: white; font-size: 26px; cursor: pointer; line-height: 1; }
  .modal-body { padding: 25px; overflow-y: auto; background: #fdfefe; }
- 
+
  .timeline-wrapper { position: relative; border-left: 2px solid #34495e; margin-left: 15px; padding-left: 25px; display: flex; flex-direction: column; gap: 20px; }
  .timeline-item { position: relative; }
  .timeline-badge-circle { position: absolute; left: -34px; top: 5px; width: 12px; height: 12px; background: #e67e22; border: 3px solid white; border-radius: 50%; box-shadow: 0 0 0 2px #34495e; }
@@ -316,6 +319,6 @@
  .dept-tag { background: #e2e8f0; padding: 2px 6px; border-radius: 3px; font-size: 11px; font-weight: bold; color: #475569; }
  .status-state { font-size: 12px; color: #475569; margin: 5px 0; }
  .log-notes { background: #fff5f5; color: #c0392b; padding: 10px; border-radius: 4px; font-size: 13px; border-left: 4px solid #e74c3c; margin-top: 8px; font-weight: 500; }
- 
+
  @keyframes popupFade { from { opacity: 0; transform: scale(0.96); } to { opacity: 1; transform: scale(1); } }
  </style>

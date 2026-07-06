@@ -2,7 +2,7 @@
   <div class="login-container">
     <div class="login-box">
       <h2>LOGISTICS COMPANY</h2>
-      
+
       <div class="form-group">
         <label>Tài khoản:</label>
         <input v-model="username" type="text" placeholder="Nhập tên đăng nhập..." />
@@ -14,11 +14,11 @@
       </div>
 
       <button @click="handleLogin">ĐĂNG NHẬP</button>
-      
+
       <div class="link-switch" style="margin-top: 20px; font-size: 14px;">
         <p>Chưa có tài khoản? <span @click="router.push('/register')" style="color: #2c5364; font-weight: bold; cursor: pointer; text-decoration: underline;">Đăng ký ngay</span></p>
       </div>
-      
+
       <p v-if="message" :class="{'success': isSuccess, 'error': !isSuccess}">
         {{ message }}
       </p>
@@ -51,18 +51,18 @@ const handleLogin = async () => {
     });
 
     const user = res.data.user;
-    const role = user.role; 
+    const role = user.role;
 
     isSuccess.value = true;
     message.value = `Xin chào ${user.full_name || username.value}! Đang chuyển vào hệ thống...`;
-    
+
     localStorage.setItem('role', role);
     localStorage.setItem('username', user.username);
     if(res.data.token) {
         localStorage.setItem('token', res.data.token);
     }
-    
-    // ĐIỀU HƯỚNG TỰ ĐỘNG KHỚP CÁC PHÒNG BAN VÀ THÊM QUYỀN KẾ TOÁN (ACC)
+
+    // ĐIỀU HƯỚNG TỰ ĐỘNG KHỚP CÁC PHÒNG BAN VÀ THÊM QUYỀN KẾ TOÁN (ACC) + QUẢN TRỊ (ADMIN)
     setTimeout(() => {
         const checkRole = role.toUpperCase();
         if (checkRole === 'CUSTOMER') {
@@ -76,7 +76,9 @@ const handleLogin = async () => {
         } else if (checkRole === 'DOCS' || role === 'Docs') {
             router.push('/docs');
         } else if (checkRole === 'ACC') {
-            router.push('/acc'); // <-- ĐƯỜNG DẪN MỚI THÊM ĐƯA KẾ TOÁN VÀO DASHBOARD ĐỐI SOÁT DOANH THU
+            router.push('/acc');
+        } else if (checkRole === 'ADMIN') {
+            router.push('/admin'); // <-- ĐƯỜNG DẪN MỚI THÊM ĐƯA QUẢN TRỊ VIÊN VÀO DASHBOARD TỔNG QUAN
         } else {
             router.push('/');
         }

@@ -14,9 +14,19 @@ const routes = [
   { path: '/wms', component: WmsView },
   { path: '/tms', component: TmsView },
   { path: '/docs', component: DocsView },
-  { 
-    path: '/acc', 
+  {
+    path: '/acc',
     component: () => import('../views/AccView.vue') // Tải bất đồng bộ giao diện Phê duyệt tiền của phòng Kế toán
+  },
+  {
+    path: '/admin',
+    component: () => import('../views/AdminView.vue') // Tải bất đồng bộ giao diện Tổng quan Quản trị viên
+  },
+  {
+    // ĐÃ THÊM: LoginView.vue có nút "Đăng ký ngay" gọi router.push('/register')
+    // nhưng route này chưa từng được khai báo -> bấm vào sẽ báo "No match found".
+    path: '/register',
+    component: () => import('../views/RegisterView.vue')
   }
 ]
 
