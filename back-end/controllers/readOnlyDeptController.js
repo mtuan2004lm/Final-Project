@@ -117,3 +117,72 @@ exports.lockArchiveFile = async (req, res) => {
         res.status(500).json({ error: "Lỗi hệ thống khi khóa hồ sơ" });
     }
 };
+
+// =========================================================================
+// PHÒNG DOCS GỬI BÁO CÁO 1 ĐƠN HÀNG CỤ THỂ CHO ADMIN
+// Đã đổi từ gửi TOÀN BỘ đơn hàng -> chỉ gửi đúng đơn hàng được bấm (order_id).
+// Không xuất file tải về - lưu snapshot vào bảng "reports" để Admin mở xem
+// trực tiếp ngay trong giao diện (tab "Báo Cáo" bên AdminView.vue).
+// Luôn truy vấn lại DB mới nhất (không tin dữ liệu từ client gửi lên) để
+// báo cáo phản ánh đúng số liệu thời điểm gửi.
+// =========================================================================
+exports.submitOrderReportToAdmin = async (req, res) => {
+    try {
+        const { order_id } = req.body;
+        if (!order_id) {
+            return res.status(400).json({ error: "Thiếu order_id: phải chọn 1 đơn hàng cụ thể để gửi báo cáo" });
+        }
+
+        const orderResult = await pool.query(
+            `SELECT o.*, t.driver_name as truck_driver_name
+             FROM orders o
+             LEFT JOIN trucks t ON o.assigned_truck = t.license_plate
+             WHERE o.id = $1`,
+            [order_id]
+        );
+
+        if (orderResult.rows.length === 0) {
+            return res.status(404).json({ error: "Không tìm thấy đơn hàng cần gửi báo cáo" });
+        }
+
+        const order = orderResult.rows[0];
+        const snapshot = [{
+            id: order.id,
+            customer_name: order.customer_name,
+            product_name: order.product_name,
+            quantity: order.quantity,
+            status: order.status,
+            current_dept: order.current_dept,
+            payment_status: order.payment_status || '',
+            warehouse_location: order.warehouse_location || 'Chưa gán',
+            delivery_route: order.delivery_route || 'Chưa lập',
+            assigned_truck: order.assigned_truck || 'Chưa gán',
+            truck_driver_name: order.truck_driver_name || '',
+            bot_fee: Number(order.bot_fee) || 0,
+            fuel_fee: Number(order.fuel_fee) || 0,
+            total_cost: Number(order.total_cost) || 0,
+            driver_notes: order.driver_notes || '',
+            created_at: order.created_at
+        }];
+
+        const title = (req.body.title && req.body.title.trim())
+            ? req.body.title.trim()
+            : `Báo cáo đơn hàng #${order.id} - ${new Date().toLocaleDateString('vi-VN')}`;
+        const createdBy = req.body.created_by || 'Phòng Chứng Từ (DOCS)';
+
+        const result = await pool.query(
+            `INSERT INTO reports (title, report_type, created_by, data)
+             VALUES ($1, 'DOCS_ORDER_REPORT', $2, $3)
+             RETURNING id, title, created_by, created_at`,
+            [title, createdBy, JSON.stringify(snapshot)]
+        );
+
+        res.json({
+            message: `📤 Đã gửi báo cáo đơn hàng #${order.id} cho Admin thành công!`,
+            report: result.rows[0]
+        });
+    } catch (err) {
+        console.error("🔴 LỖI GỬI BÁO CÁO CHO ADMIN:", err.message);
+        res.status(500).json({ error: "Lỗi hệ thống khi gửi báo cáo", detail: err.message });
+    }
+};

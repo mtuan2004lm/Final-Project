@@ -19,8 +19,9 @@
      <div class="main-content">
        <header class="header-flex">
          <h1>🗄️ TRUNG TÂM QUẢN TRỊ LƯU TRỮ HỒ SƠ & CHỨNG TỪ VẬN TẢI (DOCS DEPT)</h1>
-         <button @click="exportDataExcel" class="btn-export">📥 Xuất file báo cáo tài liệu</button>
+         <button @click="exportDataExcel" class="btn-export-secondary">📥 Tải CSV toàn bộ</button>
        </header>
+       <p class="hint-text-header">📤 Muốn gửi báo cáo cho Admin? Bấm nút "Gửi Admin" ngay trên từng đơn hàng bạn muốn gửi (không gửi toàn bộ cùng lúc).</p>
 
        <div class="kpi-grid">
           <div class="kpi-card total">
@@ -76,9 +77,12 @@
                    </td>
                    <td><span class="id-tag">{{ doc.warehouse_location }}</span></td>
                    <td>
-                      <div style="display: flex; gap: 8px;">
+                      <div style="display: flex; gap: 8px; flex-wrap: wrap;">
                          <button @click="openDetails(doc)" class="btn-action view-btn">👁️ Xem chi tiết</button>
                          <button v-if="doc.status !== 'DONE'" @click="lockArchive(doc.id)" class="btn-action lock-btn">🔒 Niêm phong</button>
+                         <button @click="sendReportToAdmin(doc)" class="btn-action send-btn" :disabled="sendingReportId === doc.id">
+                            {{ sendingReportId === doc.id ? '⏳ Đang gửi...' : '📤 Gửi Admin' }}
+                         </button>
                       </div>
                    </td>
                 </tr>
@@ -96,7 +100,12 @@
         <div class="modal-container">
            <div class="modal-header">
               <h2>🗂️ CHI TIẾT HỒ SƠ LƯU TRỮ ĐIỆN TỬ - ĐƠN HÀNG #{{ selectedDoc.id }}</h2>
-              <button @click="showModal = false" class="close-btn">&times;</button>
+              <div style="display:flex; align-items:center; gap:10px;">
+                 <button @click="sendReportToAdmin(selectedDoc)" class="btn-action send-btn" :disabled="sendingReportId === selectedDoc.id">
+                    {{ sendingReportId === selectedDoc.id ? '⏳ Đang gửi...' : '📤 Gửi Admin' }}
+                 </button>
+                 <button @click="showModal = false" class="close-btn">&times;</button>
+              </div>
            </div>
            <div class="modal-body">
               <div class="modal-grid-layout">
@@ -155,7 +164,8 @@
          hasPodProof: 0
        },
        showModal: false,
-       selectedDoc: null
+       selectedDoc: null,
+       sendingReportId: null // lưu id đơn hàng đang gửi báo cáo (để chỉ disable đúng nút đó)
      };
    },
    mounted() {
@@ -177,6 +187,29 @@
        this.selectedDoc = doc;
        this.showModal = true;
      },
+     // ĐÃ SỬA: Gửi báo cáo cho Admin - giờ chỉ gửi ĐÚNG 1 đơn hàng được bấm (doc),
+     // không gửi toàn bộ danh sách. Lưu snapshot vào DB (bảng "reports"), Admin mở
+     // xem trực tiếp trong app, không cần tải file về máy.
+     async sendReportToAdmin(doc) {
+       if (!doc || !doc.id) return;
+       const title = prompt('Đặt tên cho báo cáo gửi Admin:', `Báo cáo đơn hàng #${doc.id} - ${new Date().toLocaleDateString('vi-VN')}`);
+       if (title === null) return; // Bấm Hủy
+
+       this.sendingReportId = doc.id;
+       try {
+         const response = await axios.post('http://localhost:3000/api/orders/docs/reports', {
+           order_id: doc.id,
+           title: title.trim(),
+           created_by: 'Phòng Chứng Từ (DOCS)'
+         });
+         alert(response.data.message || `📤 Đã gửi báo cáo đơn hàng #${doc.id} cho Admin thành công!`);
+       } catch (error) {
+         console.error('🔴 Lỗi gửi báo cáo cho Admin:', error);
+         alert('Gửi báo cáo thất bại, vui lòng thử lại!');
+       } finally {
+         this.sendingReportId = null;
+       }
+     },
      async lockArchive(id) {
        if (!confirm(`Bạn có chắc chắn muốn NIÊM PHONG hồ sơ #${id}? Sau khi khóa, dữ liệu sẽ được chuyển vào kho lưu trữ số vĩnh viễn và không thể chỉnh sửa chéo khâu.`)) return;
        try {
@@ -191,8 +224,66 @@
          alert('Thao tác khóa hồ sơ thất bại!');
        }
      },
+     // ĐÃ SỬA: trước đây chỉ là placeholder (alert), giờ thực sự xuất file báo cáo
+     // (CSV mở được thẳng bằng Excel) từ dữ liệu đơn hàng đang có sẵn trên màn hình,
+     // để phòng Docs xuất báo cáo tổng hợp gửi cho Admin xem/lưu trữ.
      exportDataExcel() {
-        alert('📥 Tính năng xuất file báo cáo Excel (Bảng kê nghiệm thu chứng từ) đang tải dữ liệu từ máy chủ...');
+        if (!this.docs || this.docs.length === 0) {
+           alert('⚠️ Không có đơn hàng nào để xuất báo cáo!');
+           return;
+        }
+
+        const headers = [
+           'Mã Đơn', 'Khách Hàng', 'Hàng Hóa', 'Số Lượng', 'Trạng Thái', 'Phòng Ban Hiện Tại',
+           'Vị Trí Kho Bãi', 'Tuyến Đường', 'Xe & Tài Xế', 'Phí BOT (USD)', 'Phí Nhiên Liệu (USD)',
+           'Cước Phí (USD)', 'Ghi Chú Tài Xế', 'Ngày Tạo'
+        ];
+
+        const rows = this.docs.map(d => [
+           d.id,
+           d.customer_name,
+           d.product_name,
+           d.quantity,
+           d.status,
+           d.current_dept,
+           d.warehouse_location,
+           d.delivery_route,
+           d.truck_driver_name ? `${d.assigned_truck} - ${d.truck_driver_name}` : d.assigned_truck,
+           d.bot_fee,
+           d.fuel_fee,
+           d.total_cost,
+           (d.driver_notes || '').replace(/\r?\n/g, ' '),
+           d.created_at ? new Date(d.created_at).toLocaleDateString('vi-VN') : ''
+        ]);
+
+        // Escape đúng chuẩn CSV: bọc "..." nếu có dấu phẩy, ngoặc kép hoặc xuống dòng
+        const escapeCsv = (val) => {
+           const str = String(val ?? '');
+           if (str.includes(',') || str.includes('"') || str.includes('\n')) {
+              return '"' + str.replace(/"/g, '""') + '"';
+           }
+           return str;
+        };
+
+        const csvContent = [headers, ...rows]
+           .map(row => row.map(escapeCsv).join(','))
+           .join('\r\n');
+
+        // Thêm BOM (﻿) để Excel hiển thị đúng tiếng Việt có dấu, không bị lỗi font
+        const blob = new Blob(['﻿' + csvContent], { type: 'text/csv;charset=utf-8;' });
+        const url = URL.createObjectURL(blob);
+
+        const now = new Date();
+        const stamp = `${now.getFullYear()}${String(now.getMonth() + 1).padStart(2, '0')}${String(now.getDate()).padStart(2, '0')}`;
+        const fileName = `BaoCao_DonHang_${stamp}.csv`;
+
+        const link = document.createElement('a');
+        link.href = url;
+        link.setAttribute('download', fileName);
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+        URL.revokeObjectURL(url);
      },
      logout() {
        localStorage.clear();
@@ -222,6 +313,9 @@
  .header-flex h1 { font-size: 19px; font-weight: 700; color: #2c3e50; margin: 0; }
  .btn-export { background: #27ae60; color: white; border: none; padding: 10px 16px; border-radius: 4px; font-weight: bold; cursor: pointer; font-size: 13px; transition: 0.2s; }
  .btn-export:hover { background: #219653; }
+ .btn-export:disabled { background: #95a5a6; cursor: not-allowed; }
+ .btn-export-secondary { background: #eef2f7; color: #34495e; border: 1px solid #cbd5e1; padding: 10px 16px; border-radius: 4px; font-weight: bold; cursor: pointer; font-size: 13px; transition: 0.2s; }
+ .btn-export-secondary:hover { background: #e2e8f0; }
 
  /* KPI CARDS */
  .kpi-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 20px; }
@@ -258,6 +352,10 @@
  .view-btn:hover { background: #2980b9; }
  .lock-btn { background: #e67e22; color: white; }
  .lock-btn:hover { background: #d35400; }
+ .send-btn { background: #8e44ad; color: white; }
+ .send-btn:hover { background: #732d91; }
+ .send-btn:disabled { background: #95a5a6; cursor: not-allowed; }
+ .hint-text-header { font-size: 13px; color: #7f8c8d; margin: 6px 0 0 0; }
 
  /* POPUP MODAL ARCHIVE */
  .modal-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); display: flex; align-items: center; justify-content: center; z-index: 999; }

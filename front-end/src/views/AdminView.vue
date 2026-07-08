@@ -20,6 +20,9 @@
            <button @click="activeTab = 'ops'" :class="{ active: activeTab === 'ops' }" class="menu-btn">
               📦 Tổng Quan Vận Hành
            </button>
+           <button @click="activeTab = 'reports'" :class="{ active: activeTab === 'reports' }" class="menu-btn">
+              📄 Báo Cáo Từ Docs
+           </button>
         </div>
  
         <button @click="logout" class="btn-logout">Đăng Xuất</button>
@@ -115,7 +118,10 @@
  
          <!-- ============ TAB 3: TỔNG QUAN VẬN HÀNH (KHÔNG CHI TIẾT) ============ -->
          <div v-if="activeTab === 'ops'">
-            <header><h1>📦 TỔNG QUAN VẬN HÀNH TOÀN HỆ THỐNG (THEO PHÒNG BAN)</h1></header>
+            <header class="header-flex">
+               <h1>📦 TỔNG QUAN VẬN HÀNH TOÀN HỆ THỐNG (THEO PHÒNG BAN)</h1>
+               <button @click="exportOrdersReport" class="btn-export">📥 Xuất báo cáo đơn hàng (CSV)</button>
+            </header>
  
             <div class="dept-count-grid">
                <div class="dept-count-card" v-for="(count, dept) in overview.deptCounts" :key="dept">
@@ -158,6 +164,80 @@
             </div>
          </div>
  
+         <!-- ============ TAB 4: BÁO CÁO TỪ DOCS (MỞ XEM TRỰC TIẾP, KHÔNG TẢI FILE) ============ -->
+         <div v-if="activeTab === 'reports'">
+            <header><h1>📄 BÁO CÁO ĐƠN HÀNG DO PHÒNG CHỨNG TỪ (DOCS) GỬI</h1></header>
+ 
+            <div class="card list-card">
+               <h3>📥 Danh sách báo cáo đã nhận ({{ reports.length }})</h3>
+               <table class="data-table">
+                  <thead>
+                     <tr>
+                        <th>Tên Báo Cáo</th>
+                        <th>Người Gửi</th>
+                        <th>Thời Gian Gửi</th>
+                        <th>Hành động</th>
+                     </tr>
+                  </thead>
+                  <tbody>
+                     <tr v-for="report in reports" :key="report.id">
+                        <td><b>{{ report.title }}</b></td>
+                        <td><span class="dept-badge">{{ report.created_by }}</span></td>
+                        <td><small>{{ formatDateTime(report.created_at) }}</small></td>
+                        <td>
+                           <button @click="openReport(report.id)" class="btn-action btn-view">👁️ Mở xem</button>
+                        </td>
+                     </tr>
+                     <tr v-if="reports.length === 0">
+                        <td colspan="4" style="text-align:center; color:#95a5a6; padding:25px;">Chưa có báo cáo nào được Docs gửi.</td>
+                     </tr>
+                  </tbody>
+               </table>
+            </div>
+         </div>
+ 
+      </div>
+ 
+      <!-- ============ MODAL: MỞ XEM BÁO CÁO TỪ DOCS (TRỰC TIẾP TRONG APP) ============ -->
+      <div v-if="showReportModal" class="modal-overlay" @click.self="showReportModal = false">
+         <div class="modal-content-box report-modal-box">
+            <div class="modal-header">
+               <h2>📄 {{ activeReport?.title }}</h2>
+               <button class="close-btn" @click="showReportModal = false">×</button>
+            </div>
+            <div class="modal-body">
+               <p class="hint-text">Gửi bởi: <b>{{ activeReport?.created_by }}</b> • Lúc: {{ formatDateTime(activeReport?.created_at) }} • Tổng {{ activeReport?.data?.length || 0 }} đơn hàng</p>
+               <table class="data-table">
+                  <thead>
+                     <tr>
+                        <th>Mã Đơn</th>
+                        <th>Khách hàng</th>
+                        <th>Hàng hóa</th>
+                        <th>Trạng thái</th>
+                        <th>Phòng ban</th>
+                        <th>Cước phí (USD)</th>
+                        <th>Phí BOT (USD)</th>
+                        <th>Nhiên liệu (USD)</th>
+                     </tr>
+                  </thead>
+                  <tbody>
+                     <tr v-for="row in (activeReport?.data || [])" :key="row.id">
+                        <td><b class="order-id-tag">#{{ row.id }}</b></td>
+                        <td>{{ row.customer_name }}</td>
+                        <td>{{ row.product_name }} <small>(SL: {{ row.quantity }})</small></td>
+                        <td><span class="badge-simple">{{ row.status }}</span></td>
+                        <td><span class="dept-badge">{{ row.current_dept }}</span></td>
+                        <td>{{ row.total_cost }}</td>
+                        <td>{{ row.bot_fee }}</td>
+                        <td>{{ row.fuel_fee }}</td>
+                     </tr>
+                     <tr v-if="!activeReport?.data || activeReport.data.length === 0">
+                        <td colspan="8" style="text-align:center; color:#95a5a6; padding:20px;">Báo cáo này không có dữ liệu đơn hàng.</td>
+                     </tr>
+                  </tbody>
+               </table>
+            </div>
+         </div>
       </div>
  
       <!-- ============ MODAL: HÀNH TRÌNH CHI TIẾT ĐƠN HÀNG (KIỂU TIKTOK SHOP) ============ -->
@@ -223,6 +303,10 @@
   const selectedOrder = ref(null);
   const activeOrderHistory = ref([]);
  
+  const reports = ref([]);
+  const showReportModal = ref(false);
+  const activeReport = ref(null);
+ 
   const stepLabels = ['Đặt hàng', 'Duyệt đơn (OMS)', 'Xử lý kho (WMS)', 'Vận chuyển (TMS)', 'Đã giao hàng', 'Hoàn tất'];
  
   // Suy luận đơn hàng đang ở bước thứ mấy trong 6 bước chuẩn, dựa trên status + current_dept hiện tại.
@@ -248,6 +332,49 @@
      } catch (err) {
         console.error('Lỗi tải tổng quan đơn hàng:', err);
      }
+  };
+ 
+  // Xuất báo cáo CSV (mở được thẳng bằng Excel) từ toàn bộ đơn hàng đang có trong overview.orders
+  const exportOrdersReport = () => {
+     const list = overview.value.orders || [];
+     if (list.length === 0) {
+        alert('⚠️ Không có đơn hàng nào để xuất báo cáo!');
+        return;
+     }
+ 
+     const headers = [
+        'Mã Đơn', 'Khách Hàng', 'Hàng Hóa', 'Số Lượng', 'Trạng Thái', 'Phòng Ban Hiện Tại',
+        'Vị Trí Kho Bãi', 'Tuyến Đường', 'Xe Phụ Trách', 'Phí BOT (USD)', 'Phí Nhiên Liệu (USD)',
+        'Cước Phí (USD)', 'Trạng Thái Thanh Toán', 'Ngày Tạo'
+     ];
+ 
+     const rows = list.map(o => [
+        o.id, o.customer_name, o.product_name, o.quantity, o.status, o.current_dept,
+        o.warehouse_location, o.delivery_route, o.assigned_truck, o.bot_fee, o.fuel_fee,
+        o.total_cost, o.payment_status, o.created_at ? new Date(o.created_at).toLocaleDateString('vi-VN') : ''
+     ]);
+ 
+     const escapeCsv = (val) => {
+        const str = String(val ?? '');
+        if (str.includes(',') || str.includes('"') || str.includes('\n')) {
+           return '"' + str.replace(/"/g, '""') + '"';
+        }
+        return str;
+     };
+ 
+     const csvContent = [headers, ...rows].map(row => row.map(escapeCsv).join(',')).join('\r\n');
+     const blob = new Blob(['﻿' + csvContent], { type: 'text/csv;charset=utf-8;' });
+     const url = URL.createObjectURL(blob);
+ 
+     const now = new Date();
+     const stamp = `${now.getFullYear()}${String(now.getMonth() + 1).padStart(2, '0')}${String(now.getDate()).padStart(2, '0')}`;
+     const link = document.createElement('a');
+     link.href = url;
+     link.setAttribute('download', `BaoCao_TongQuan_Admin_${stamp}.csv`);
+     document.body.appendChild(link);
+     link.click();
+     document.body.removeChild(link);
+     URL.revokeObjectURL(url);
   };
  
   const fetchRevenue = async () => {
@@ -281,6 +408,26 @@
      }
   };
  
+  // MỚI: danh sách báo cáo Docs đã gửi + mở xem chi tiết 1 báo cáo trực tiếp trong app
+  const fetchReports = async () => {
+     try {
+        const res = await axios.get('http://localhost:3000/api/orders/admin/reports');
+        reports.value = res.data;
+     } catch (err) {
+        console.error('Lỗi tải danh sách báo cáo:', err);
+     }
+  };
+ 
+  const openReport = async (reportId) => {
+     try {
+        const res = await axios.get(`http://localhost:3000/api/orders/admin/reports/${reportId}`);
+        activeReport.value = res.data;
+        showReportModal.value = true;
+     } catch (err) {
+        alert('Không thể mở báo cáo này!');
+     }
+  };
+ 
   const formatDate = (d) => d ? new Date(d).toLocaleDateString('vi-VN') : '—';
   const formatDateTime = (d) => d ? new Date(d).toLocaleString('vi-VN') : '—';
  
@@ -289,6 +436,7 @@
      fetchOverview();
      fetchRevenue();
      fetchAccSummary();
+     fetchReports();
   };
  
   onMounted(() => {
@@ -318,6 +466,10 @@
   .menu-btn { padding: 12px 15px; background: none; border: none; color: #b2bec3; text-align: left; font-size: 14px; font-weight: bold; cursor: pointer; border-radius: 4px; transition: all 0.2s;}
   .menu-btn:hover, .menu-btn.active { background: #34495e; color: #fff; }
   header h1 { font-size: 21px; font-weight: 800; color: #2c3e50; margin: 0 0 25px 0; }
+  .header-flex { display: flex; justify-content: space-between; align-items: center; margin-bottom: 25px; }
+  .header-flex h1 { margin: 0; }
+  .btn-export { background: #27ae60; color: white; border: none; padding: 10px 16px; border-radius: 4px; font-weight: bold; cursor: pointer; font-size: 13px; transition: 0.2s; white-space: nowrap; }
+  .btn-export:hover { background: #219653; }
  
   .data-table { width: 100%; border-collapse: collapse; margin-top: 15px; }
   .data-table th, .data-table td { padding: 12px 15px; border-bottom: 1px solid #ecf0f1; text-align: left; font-size: 13px; vertical-align: middle;}
@@ -364,6 +516,7 @@
  
   .modal-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); display: flex; justify-content: center; align-items: center; z-index: 9999; }
   .modal-content-box { background: white; width: 680px; max-height: 82vh; border-radius: 6px; display: flex; flex-direction: column; overflow: hidden; box-shadow: 0 8px 30px rgba(0,0,0,0.15); }
+  .report-modal-box { width: 920px; max-width: 92vw; }
   .modal-header { display: flex; justify-content: space-between; align-items: center; padding: 15px 20px; background: #2c3e50; color: white; }
   .modal-header h2 { font-size: 16px; margin: 0; font-weight: 700; }
   .close-btn { background: none; border: none; color: white; font-size: 26px; cursor: pointer; line-height: 1; }

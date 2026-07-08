@@ -65,9 +65,12 @@ router.get('/acc/orders', accController.getAccOrders);
 router.put('/acc/:id/approve', accController.approvePayment);
 router.get('/docs', readOnlyDeptController.getDocsOrders);
 router.put('/docs/:id/lock', readOnlyDeptController.lockArchiveFile); // THIẾU TRƯỚC ĐÂY: nút "Niêm phong" ở DocsView.vue gọi route này
+router.post('/docs/reports', readOnlyDeptController.submitOrderReportToAdmin); // Docs gửi báo cáo đơn hàng cho Admin
 
 // 6. ROUTE PHÒNG QUẢN TRỊ (ADMIN) - Tổng quan toàn hệ thống
 router.get('/admin/overview', adminController.getAllOrdersOverview);
+router.get('/admin/reports', adminController.getReports);          // Danh sách báo cáo Docs đã gửi
+router.get('/admin/reports/:id', adminController.getReportById);   // Mở xem chi tiết 1 báo cáo (không tải file)
 
 // 7. ROUTE CẬP NHẬT TRẠNG THÁI CHUNG (Luôn xếp dưới cùng)
 router.put('/:id', omsController.updateOrderStatus);
