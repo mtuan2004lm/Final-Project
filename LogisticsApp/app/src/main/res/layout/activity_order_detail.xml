@@ -10,6 +10,20 @@
         android:layout_height="wrap_content"
         android:orientation="vertical">
 
+        <!-- MỚI: Nút quay lại đặt ngay đầu màn hình, để không phải cuộn xuống hết
+             mới thấy nút "QUAY VỀ DANH SÁCH SƠ ĐỒ" ở cuối như trước đây. -->
+        <Button
+            android:id="@+id/btnBackTop"
+            android:layout_width="wrap_content"
+            android:layout_height="42dp"
+            android:text="← Quay lại"
+            android:textAllCaps="false"
+            android:backgroundTint="#555555"
+            android:textColor="#FFFFFF"
+            android:paddingLeft="16dp"
+            android:paddingRight="16dp"
+            android:layout_marginBottom="12dp" />
+
         <TextView
             android:id="@+id/txtDetailTitle"
             android:layout_width="match_parent"
@@ -117,7 +131,7 @@
             android:textStyle="bold"
             android:layout_marginBottom="8dp"/>
 
-        <!-- Nút quay lại màn hình danh sách -->
+        <!-- Nút quay lại màn hình danh sách (giữ nguyên, phòng khi người dùng đã cuộn xuống cuối) -->
         <Button
             android:id="@+id/btnBack"
             android:layout_width="match_parent"

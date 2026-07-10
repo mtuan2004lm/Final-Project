@@ -29,6 +29,7 @@ class OrderDetailActivity : AppCompatActivity() {
     private lateinit var edtBarcodeInput: EditText
     private lateinit var btnConfirmScan: Button
     private lateinit var btnBack: Button
+    private lateinit var btnBackTop: Button
 
     private var currentOrder: WmsOrder? = null
 
@@ -45,6 +46,7 @@ class OrderDetailActivity : AppCompatActivity() {
         edtBarcodeInput = findViewById(R.id.edtBarcodeInput)
         btnConfirmScan = findViewById(R.id.btnConfirmScan)
         btnBack = findViewById(R.id.btnBack)
+        btnBackTop = findViewById(R.id.btnBackTop)
 
         currentOrder = intent.getSerializableExtra("CHOSEN_ORDER") as? WmsOrder
 
@@ -57,6 +59,12 @@ class OrderDetailActivity : AppCompatActivity() {
 
         // Nút back: đóng activity hiện tại, quay về màn hình trước đó (danh sách)
         btnBack.setOnClickListener {
+            finish()
+        }
+
+        // MỚI: nút Back đặt ngay đầu màn hình (cùng hành vi với btnBack ở cuối) để
+        // người dùng không phải cuộn hết qua ảnh và ô nhập barcode mới quay lại được.
+        btnBackTop.setOnClickListener {
             finish()
         }
 

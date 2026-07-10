@@ -22,6 +22,7 @@ class WmsLogsActivity : AppCompatActivity() {
     private lateinit var listViewLogs: ListView
     private lateinit var btnTabOverview: Button
     private lateinit var btnTabLogs: Button
+    private lateinit var btnBackLogs: Button
 
     private lateinit var edtSearchLog: EditText
     private lateinit var btnSearchLog: Button
@@ -34,10 +35,15 @@ class WmsLogsActivity : AppCompatActivity() {
         listViewLogs = findViewById(R.id.listViewLogs)
         btnTabOverview = findViewById(R.id.btnTabOverview)
         btnTabLogs = findViewById(R.id.btnTabLogs)
+        btnBackLogs = findViewById(R.id.btnBackLogs)
         edtSearchLog = findViewById(R.id.edtSearchLog)
         btnSearchLog = findViewById(R.id.btnSearchLog)
 
-        // Bấm vào Tổng quan sẽ đóng màn hình Log và quay về WarehouseActivity
+        // MỚI: nút Back đặt ngay đầu màn hình, đóng màn Nhật ký và quay về WarehouseActivity
+        // ngay lập tức, không cần cuộn xuống tìm nút "Tổng quan" ở cuối như trước.
+        btnBackLogs.setOnClickListener { finish() }
+
+        // Bấm vào Tổng quan cũng đóng màn hình Log và quay về WarehouseActivity (giữ hành vi cũ)
         btnTabOverview.setOnClickListener { finish() }
 
         // Logic tìm kiếm
