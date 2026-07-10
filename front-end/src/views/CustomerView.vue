@@ -159,22 +159,22 @@
                     {{ translateStatus(order.status) }}
                   </span>
                 </td>
-                <!-- MỚI: vị trí xe thời gian thực (do app tài xế bắn định kỳ lên server) -->
+                <!-- Vị trí xe: cố định theo toạ độ demo (Greenwich Việt Nam), không dùng GPS thật -->
                 <td>
-                  <div v-if="order.status === 'SHIPPING' && order.truck_lat && order.truck_lng" class="live-map-cell">
+                  <div v-if="order.status === 'SHIPPING'" class="live-map-cell">
                     <iframe
-                      :src="getMapEmbedUrl(order.truck_lat, order.truck_lng)"
+                      :src="getMapEmbedUrl(DEMO_LAT, DEMO_LNG)"
                       class="mini-map-frame"
                       loading="lazy"
                       referrerpolicy="no-referrer-when-downgrade">
                     </iframe>
-                    <a :href="getGoogleMapsUrl(order.truck_lat, order.truck_lng)" target="_blank" class="map-link-full">
+                    <a :href="getGoogleMapsUrl(DEMO_LAT, DEMO_LNG)" target="_blank" class="map-link-full">
                       🔗 Mở bản đồ lớn
                     </a>
-                    <small class="gps-updated-txt">Cập nhật: {{ formatDateTime(order.truck_gps_updated_at) }}</small>
+                    <small class="gps-updated-txt">📍 Greenwich Việt Nam</small>
                   </div>
                   <span v-else style="color: #95a5a6; font-style: italic; font-size: 12px;">
-                    {{ order.status === 'SHIPPING' ? 'Chưa có tín hiệu GPS' : 'Chưa vận chuyển' }}
+                    Chưa vận chuyển
                   </span>
                 </td>
               </tr>
@@ -318,6 +318,12 @@ import { useRouter } from 'vue-router';
 const router = useRouter();
 const username = ref(localStorage.getItem('username') || 'Khách hàng');
 const currentTab = ref('create');
+
+// MỚI: toạ độ GPS cố định hiển thị cho khách hàng (theo yêu cầu), thay vì lấy
+// vị trí thật của xe (truck_lat/truck_lng) - dùng cho mục đích demo/thuyết trình.
+// Toạ độ: Greenwich Việt Nam (https://maps.app.goo.gl/1mG1ag771B56wEsv8)
+const DEMO_LAT = 10.8034069;
+const DEMO_LNG = 106.6524529;
 
 const orders = ref([]);
 const estimatedPrice = ref(100);
