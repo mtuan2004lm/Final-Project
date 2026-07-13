@@ -9,13 +9,13 @@ exports.register = async (req, res) => {
     const { username, password, fullName } = req.body;
 
     if (!username || !password || !fullName) {
-        return res.status(400).json({ message: "Vui lòng điền đầy đủ thông tin!" });
+        return res.status(400).json({ message: "Please fill in all the information!" });
     }
 
     try {
         const userCheck = await pool.query('SELECT * FROM users WHERE username = $1', [username]);
         if (userCheck.rows.length > 0) {
-            return res.status(400).json({ message: "Tên tài khoản đã tồn tại!" });
+            return res.status(400).json({ message: "The account name already exists.!" });
         }
 
         const result = await pool.query(
@@ -25,13 +25,13 @@ exports.register = async (req, res) => {
         );
 
         res.json({ 
-            message: "Đăng ký thành công!", 
+            message: "Registration successful!", 
             user: result.rows[0] 
         });
 
     } catch (err) {
         console.error(err);
-        res.status(500).send("Lỗi Server khi đăng ký");
+        res.status(500).send("Error Server when registering");
     }
 };
 
@@ -44,30 +44,30 @@ exports.login = async (req, res) => {
         const result = await pool.query('SELECT * FROM users WHERE username = $1', [username]);
         
         if (result.rows.length === 0) {
-            return res.status(401).json({ message: "Tài khoản không tồn tại" });
+            return res.status(401).json({ message: "The account does not exist" });
         }
 
         const user = result.rows[0];
 
         if (password !== user.password_hash) {
-            return res.status(401).json({ message: "Sai mật khẩu!" });
+            return res.status(401).json({ message: "Wrong password!" });
         }
 
         const token = jwt.sign(
             { id: user.id, role: user.role, name: user.full_name }, 
-            process.env.JWT_SECRET || 'secret_mac_dinh', 
+            process.env.JWT_SECRET || 'default_secret', 
             { expiresIn: '2h' }
         );
 
         res.json({ 
-            message: "Đăng nhập thành công",
+            message: "Login successful",
             token, 
             user: { username: user.username, role: user.role } 
         });
 
     } catch (err) {
         console.error(err);
-        res.status(500).send("Lỗi Server");
+        res.status(500).send("Error Server");
     }
 };
 
@@ -81,13 +81,13 @@ exports.mobileLogin = async (req, res) => {
         const result = await pool.query('SELECT * FROM users WHERE username = $1', [username]);
         
         if (result.rows.length === 0) {
-            return res.json({ success: false, message: "Tài khoản không tồn tại trên hệ thống!" });
+            return res.json({ success: false, message: "The account does not exist on the system!" });
         }
 
         const user = result.rows[0];
 
         if (password !== user.password_hash) {
-            return res.json({ success: false, message: "Mật khẩu không chính xác!" });
+            return res.json({ success: false, message: "The password is incorrect!" });
         }
 
         const userRole = user.role ? user.role.toLowerCase().trim() : '';
@@ -95,18 +95,18 @@ exports.mobileLogin = async (req, res) => {
         if (userRole === 'wms' || userRole === 'tms') {
             return res.json({
                 success: true,
-                message: "Đăng nhập ứng dụng thành công!",
+                message: "Login application successful!",
                 role: userRole
             });
         } else {
             return res.json({
                 success: false,
-                message: `Quyền truy cập [${user.role}] bị từ chối trên thiết bị di động!`
+                message: `Access to [${user.role}] was rejected on the mobile device!`
             });
         }
 
     } catch (err) {
-        console.error("🔴 LỖI TẠI AUTH_CONTROLLER (mobileLogin):", err.message);
-        return res.status(500).json({ success: false, message: "Lỗi hệ thống máy chủ dữ liệu!" });
+        console.error("🔴 ERROR AT AUTH_CONTROLLER (mobileLogin):", err.message);
+        return res.status(500).json({ success: false, message: "Error system server data!" });
     }
 };

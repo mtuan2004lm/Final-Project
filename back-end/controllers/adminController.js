@@ -26,8 +26,8 @@ exports.getAllOrdersOverview = async (req, res) => {
         const deptCounts = {};
         const statusCounts = {};
         orders.forEach(o => {
-            const dept = (o.current_dept || 'KHÁC').toUpperCase().trim() || 'KHÁC';
-            const status = (o.status || 'KHÁC').toUpperCase().trim() || 'KHÁC';
+            const dept = (o.current_dept || 'OTHER').toUpperCase().trim() || 'OTHER';
+            const status = (o.status || 'OTHER').toUpperCase().trim() || 'OTHER';
             deptCounts[dept] = (deptCounts[dept] || 0) + 1;
             statusCounts[status] = (statusCounts[status] || 0) + 1;
         });
@@ -39,8 +39,8 @@ exports.getAllOrdersOverview = async (req, res) => {
             statusCounts
         });
     } catch (err) {
-        console.error("🔴 LỖI TẠI ADMIN_CONTROLLER (getAllOrdersOverview):", err.message);
-        res.status(500).json({ error: "Lỗi lấy tổng quan đơn hàng toàn hệ thống", detail: err.message });
+        console.error("🔴 ERROR AT ADMIN_CONTROLLER (getAllOrdersOverview):", err.message);
+        res.status(500).json({ error: "Error retrieving system-wide order overview.", detail: err.message });
     }
 };
 
@@ -57,8 +57,8 @@ exports.getReports = async (req, res) => {
         );
         res.json(result.rows);
     } catch (err) {
-        console.error("🔴 LỖI TẠI ADMIN_CONTROLLER (getReports):", err.message);
-        res.status(500).json({ error: "Lỗi lấy danh sách báo cáo", detail: err.message });
+        console.error("🔴 ERROR AT ADMIN_CONTROLLER (getReports):", err.message);
+        res.status(500).json({ error: "Error retrieving report list", detail: err.message });
     }
 };
 
@@ -71,11 +71,11 @@ exports.getReportById = async (req, res) => {
     try {
         const result = await pool.query(`SELECT * FROM reports WHERE id = $1`, [id]);
         if (result.rows.length === 0) {
-            return res.status(404).json({ error: "Không tìm thấy báo cáo này" });
+            return res.status(404).json({ error: "This report could not be found." });
         }
         res.json(result.rows[0]);
     } catch (err) {
-        console.error("🔴 LỖI TẠI ADMIN_CONTROLLER (getReportById):", err.message);
-        res.status(500).json({ error: "Lỗi lấy chi tiết báo cáo", detail: err.message });
+        console.error("🔴 ERROR AT ADMIN_CONTROLLER (getReportById):", err.message);
+        res.status(500).json({ error: "Error retrieving report details", detail: err.message });
     }
 };

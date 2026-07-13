@@ -20,8 +20,8 @@ exports.getTmsOrders = async (req, res) => {
         );
         res.json(result.rows);
     } catch (err) {
-        console.error("🔴 LỖI TẠI TMS_CONTROLLER (getTmsOrders):", err.message);
-        res.status(500).json({ error: "Lỗi cơ sở dữ liệu phòng TMS", detail: err.message });
+        console.error("🔴 ERROR AT TMS_CONTROLLER (getTmsOrders):", err.message);
+        res.status(500).json({ error: "Error database of the TMS department", detail: err.message });
     }
 };
 
@@ -38,8 +38,8 @@ exports.getTruckFleet = async (req, res) => {
         );
         res.json(result.rows);
     } catch (err) {
-        console.error("🔴 LỖI TẠI TMS_CONTROLLER (getTruckFleet):", err.message);
-        res.status(500).json({ error: "Không thể lấy danh sách đội xe", detail: err.message });
+        console.error("🔴 ERROR AT TMS_CONTROLLER (getTruckFleet):", err.message);
+        res.status(500).json({ error: "Cannot get the list of the truck fleet", detail: err.message });
     }
 };
 
@@ -47,7 +47,7 @@ exports.getTruckFleet = async (req, res) => {
 exports.createTruck = async (req, res) => {
     const { license_plate, type, driver_name, fuel_norm, maintenance_date, registry_expiry, status } = req.body;
     if (!license_plate || !type) {
-        return res.status(400).json({ error: "Thiếu biển số hoặc chủng loại xe" });
+        return res.status(400).json({ error: "Missing license plate or type of truck" });
     }
     try {
         const result = await pool.query(
@@ -56,13 +56,13 @@ exports.createTruck = async (req, res) => {
              RETURNING *`,
             [license_plate, type, driver_name || null, fuel_norm || null, maintenance_date || null, registry_expiry || null, status || null]
         );
-        res.json({ message: "✅ Đã thêm xe mới vào đội xe!", truck: result.rows[0] });
+        res.json({ message: "✅ The new truck has been added to the fleet!", truck: result.rows[0] });
     } catch (err) {
-        console.error("🔴 LỖI TẠI TMS_CONTROLLER (createTruck):", err.message);
+        console.error("🔴 ERROR AT TMS_CONTROLLER (createTruck):", err.message);
         if (err.code === '23505') {
-            return res.status(409).json({ error: "Biển số xe đã tồn tại trong hệ thống" });
+            return res.status(409).json({ error: "The license plate already exists in the system" });
         }
-        res.status(500).json({ error: "Lỗi thêm xe mới", detail: err.message });
+        res.status(500).json({ error: "Error adding new truck", detail: err.message });
     }
 };
 
@@ -83,12 +83,12 @@ exports.updateTruck = async (req, res) => {
             [type, driver_name, fuel_norm, maintenance_date, registry_expiry, id]
         );
         if (result.rows.length === 0) {
-            return res.status(404).json({ error: "Không tìm thấy xe" });
+            return res.status(404).json({ error: "The truck could not be found" });
         }
-        res.json({ message: "✅ Đã cập nhật thông tin xe!", truck: result.rows[0] });
+        res.json({ message: "✅ The truck information has been updated!", truck: result.rows[0] });
     } catch (err) {
-        console.error("🔴 LỖI TẠI TMS_CONTROLLER (updateTruck):", err.message);
-        res.status(500).json({ error: "Lỗi cập nhật xe", detail: err.message });
+        console.error("🔴 ERROR AT TMS_CONTROLLER (updateTruck):", err.message);
+        res.status(500).json({ error: "Error updating truck", detail: err.message });
     }
 };
 
@@ -98,7 +98,7 @@ exports.updateTruckStatus = async (req, res) => {
     const { id } = req.params;
     const { status } = req.body;
     if (!status) {
-        return res.status(400).json({ error: "Thiếu trạng thái kỹ thuật cần cập nhật" });
+        return res.status(400).json({ error: "Missing technical status to update" });
     }
     try {
         const result = await pool.query(
@@ -106,12 +106,12 @@ exports.updateTruckStatus = async (req, res) => {
             [status, id]
         );
         if (result.rows.length === 0) {
-            return res.status(404).json({ error: "Không tìm thấy xe" });
+            return res.status(404).json({ error: "The truck could not be found" });
         }
-        res.json({ message: `🔧 Đã cập nhật tình trạng xe: ${status}`, truck: result.rows[0] });
+        res.json({ message: `🔧 The truck status has been updated: ${status}`, truck: result.rows[0] });
     } catch (err) {
-        console.error("🔴 LỖI TẠI TMS_CONTROLLER (updateTruckStatus):", err.message);
-        res.status(500).json({ error: "Lỗi cập nhật tình trạng xe", detail: err.message });
+        console.error("🔴 ERROR AT TMS_CONTROLLER (updateTruckStatus):", err.message);
+        res.status(500).json({ error: "Error updating truck status", detail: err.message });
     }
 };
 
@@ -121,12 +121,12 @@ exports.deleteTruck = async (req, res) => {
     try {
         const result = await pool.query(`DELETE FROM trucks WHERE id = $1 RETURNING *`, [id]);
         if (result.rows.length === 0) {
-            return res.status(404).json({ error: "Không tìm thấy xe" });
+            return res.status(404).json({ error: "The truck could not be found" });
         }
-        res.json({ message: "🗑️ Đã xóa xe khỏi đội xe." });
+        res.json({ message: "🗑️ The truck has been removed from the fleet." });
     } catch (err) {
-        console.error("🔴 LỖI TẠI TMS_CONTROLLER (deleteTruck):", err.message);
-        res.status(500).json({ error: "Lỗi xóa xe", detail: err.message });
+        console.error("🔴 ERROR AT TMS_CONTROLLER (deleteTruck):", err.message);
+        res.status(500).json({ error: "Error deleting truck", detail: err.message });
     }
 };
 
@@ -135,7 +135,7 @@ exports.deleteTruck = async (req, res) => {
 exports.updateTruckGps = async (req, res) => {
     const { license_plate, lat, lng } = req.body;
     if (!license_plate || lat === undefined || lng === undefined) {
-        return res.status(400).json({ error: "Thiếu biển số hoặc tọa độ GPS" });
+        return res.status(400).json({ error: "Missing license plate or GPS coordinates" });
     }
     try {
         const result = await pool.query(
@@ -145,12 +145,12 @@ exports.updateTruckGps = async (req, res) => {
             [lat, lng, license_plate]
         );
         if (result.rows.length === 0) {
-            return res.status(404).json({ error: "Không tìm thấy xe với biển số này" });
+            return res.status(404).json({ error: "The truck with this license plate could not be found" });
         }
-        res.json({ message: "📍 Đã cập nhật vị trí GPS thời gian thực.", truck: result.rows[0] });
+        res.json({ message: "📍 The GPS position has been updated.", truck: result.rows[0] });
     } catch (err) {
-        console.error("🔴 LỖI TẠI TMS_CONTROLLER (updateTruckGps):", err.message);
-        res.status(500).json({ error: "Lỗi cập nhật GPS xe", detail: err.message });
+        console.error("🔴 ERROR AT TMS_CONTROLLER (updateTruckGps):", err.message);
+        res.status(500).json({ error: "Error updating GPS position", detail: err.message });
     }
 };
 
@@ -172,18 +172,18 @@ exports.assignDeliveryRoute = async (req, res) => {
         await pool.query(
             `INSERT INTO order_logs (order_id, notes, old_status, new_status)
              VALUES ($1, $2, $3, $4)`,
-            [id, `Phòng TMS điều phối chuyến đi thành công. Xe tải: ${license_plate}, Lộ trình: ${route_name}`, 'APPROVED', 'SHIPPING']
+            [id, `The TMS department successfully coordinated the shipment. Truck: ${license_plate}, Route: ${route_name}`, 'APPROVED', 'SHIPPING']
         );
 
         // Xe vừa được gán chuyến -> cập nhật tình trạng kỹ thuật sang "Đang đi giao hàng"
         await pool.query(
-            `UPDATE trucks SET status = 'Đang đi giao hàng', updated_at = NOW() WHERE license_plate = $1`,
+            `UPDATE trucks SET status = 'Shipping', updated_at = NOW() WHERE license_plate = $1`,
             [license_plate]
         );
 
-        res.json({ message: "🚚 Đã điều xe và xếp lộ trình di chuyển thành công!", order: result.rows[0] });
+        res.json({ message: "🚚 The truck has been assigned to the route and the shipment has been successfully coordinated!", order: result.rows[0] });
     } catch (err) {
-        res.status(500).json({ error: "Lỗi điều phối chuyến xe" });
+        res.status(500).json({ error: "Error coordinating the shipment" });
     }
 };
 
@@ -192,7 +192,7 @@ exports.assignDeliveryRoute = async (req, res) => {
 exports.getDriverTrips = async (req, res) => {
     const { license_plate } = req.params;
     if (!license_plate) {
-        return res.status(400).json({ error: "Thiếu biển số xe" });
+        return res.status(400).json({ error: "Missing license plate" });
     }
     try {
         const result = await pool.query(
@@ -211,8 +211,8 @@ exports.getDriverTrips = async (req, res) => {
         );
         res.json(result.rows);
     } catch (err) {
-        console.error("🔴 LỖI TẠI TMS_CONTROLLER (getDriverTrips):", err.message);
-        res.status(500).json({ error: "Không thể lấy danh sách chuyến của tài xế", detail: err.message });
+        console.error("🔴 ERROR AT TMS_CONTROLLER (getDriverTrips):", err.message);
+        res.status(500).json({ error: "Cannot get the list of trips for the driver", detail: err.message });
     }
 };
 
@@ -238,19 +238,19 @@ exports.submitDriverPod = async (req, res) => {
         await pool.query(
             `INSERT INTO order_logs (order_id, notes, old_status, new_status)
              VALUES ($1, $2, $3, $4)`,
-            [id, `Tài xế nộp E-POD thành công tại GPS: ${gps_coordinates}. Chi phí phát sinh (BOT: $${bot_fee}, Dầu: $${fuel_fee}).`, 'SHIPPING', 'DELIVERED']
+            [id, `The driver successfully submitted the E-POD at GPS: ${gps_coordinates}. The incurred costs (BOT: $${bot_fee}, Fuel: $${fuel_fee}).`, 'SHIPPING', 'DELIVERED']
         );
 
         // Xe vừa giao xong đơn -> trả lại tình trạng "Sẵn sàng" cho lượt điều xe kế tiếp
         if (result.rows[0]?.assigned_truck) {
             await pool.query(
-                `UPDATE trucks SET status = 'Sẵn sàng', updated_at = NOW() WHERE license_plate = $1`,
+                `UPDATE trucks SET status = 'Ready', updated_at = NOW() WHERE license_plate = $1`,   
                 [result.rows[0].assigned_truck]
             );
         }
 
-        res.json({ message: "🏁 Tài xế đã nộp E-POD thành công! Đơn hàng chuyển sang phòng Kế toán (ACC).", order: result.rows[0] });
+        res.json({ message: "🏁 The driver has successfully submitted the E-POD! The order has been transferred to the Accounting Department (ACC).", order: result.rows[0] });
     } catch (err) {
-        res.status(500).json({ error: "Lỗi cập nhật biên bản E-POD giao hàng" });
+        res.status(500).json({ error: "Error updating the E-POD delivery report" });
     }
 };

@@ -4,19 +4,19 @@
       <h2>LOGISTICS COMPANY</h2>
 
       <div class="form-group">
-        <label>Tài khoản:</label>
-        <input v-model="username" type="text" placeholder="Nhập tên đăng nhập..." />
+        <label>Username:</label>
+        <input v-model="username" type="text" placeholder="Enter your username..." />
       </div>
 
       <div class="form-group">
-        <label>Mật khẩu:</label>
-        <input v-model="password" type="password" placeholder="Nhập mật khẩu..." />
+        <label>Password:</label>
+        <input v-model="password" type="password" placeholder="Enter your password..." />
       </div>
 
-      <button @click="handleLogin">ĐĂNG NHẬP</button>
+      <button @click="handleLogin">LOG IN</button>
 
       <div class="link-switch" style="margin-top: 20px; font-size: 14px;">
-        <p>Chưa có tài khoản? <span @click="router.push('/register')" style="color: #2c5364; font-weight: bold; cursor: pointer; text-decoration: underline;">Đăng ký ngay</span></p>
+        <p>Don't have an account? <span @click="router.push('/register')" style="color: #2c5364; font-weight: bold; cursor: pointer; text-decoration: underline;">Register now</span></p>
       </div>
 
       <p v-if="message" :class="{'success': isSuccess, 'error': !isSuccess}">
@@ -40,7 +40,7 @@ const router = useRouter();
 const handleLogin = async () => {
   if (!username.value || !password.value) {
     isSuccess.value = false;
-    message.value = "Vui lòng nhập đầy đủ tài khoản và mật khẩu!";
+    message.value = "Please enter both username and password!";
     return;
   }
 
@@ -54,7 +54,7 @@ const handleLogin = async () => {
     const role = user.role;
 
     isSuccess.value = true;
-    message.value = `Xin chào ${user.full_name || username.value}! Đang chuyển vào hệ thống...`;
+    message.value = `Welcome ${user.full_name || username.value}! Redirecting into the system...`;
 
     localStorage.setItem('role', role);
     localStorage.setItem('username', user.username);
@@ -86,7 +86,7 @@ const handleLogin = async () => {
 
   } catch (error) {
     isSuccess.value = false;
-    message.value = error.response?.data?.message || 'Lỗi kết nối Server!';
+    message.value = error.response?.data?.message || 'Server connection error!';
   }
 };
 </script>

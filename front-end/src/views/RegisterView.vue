@@ -2,30 +2,30 @@
   <div class="login-wrapper">
     <div class="login-card">
       <div class="card-header">
-        <h1>ĐĂNG KÝ TÀI KHOẢN</h1>
-        <p>Dành cho Khách Hàng mới</p>
+        <h1>CREATE ACCOUNT</h1>
+        <p>For new Customers</p>
       </div>
-      
+
       <div class="card-body">
         <div class="input-group">
-          <label>Họ và Tên</label>
-          <input v-model="fullName" type="text" placeholder="Ví dụ: Nguyễn Văn A" />
+          <label>Full Name</label>
+          <input v-model="fullName" type="text" placeholder="E.g.: John Smith" />
         </div>
 
         <div class="input-group">
-          <label>Tên đăng nhập</label>
-          <input v-model="username" type="text" placeholder="Chọn tên đăng nhập..." />
+          <label>Username</label>
+          <input v-model="username" type="text" placeholder="Choose a username..." />
         </div>
 
         <div class="input-group">
-          <label>Mật khẩu</label>
-          <input v-model="password" type="password" placeholder="Nhập mật khẩu..." />
+          <label>Password</label>
+          <input v-model="password" type="password" placeholder="Enter your password..." />
         </div>
 
-        <button @click="handleRegister" class="btn-login">TẠO TÀI KHOẢN</button>
-        
+        <button @click="handleRegister" class="btn-login">CREATE ACCOUNT</button>
+
         <div class="link-switch">
-            <p>Đã có tài khoản? <span @click="router.push('/')">Đăng nhập ngay</span></p>
+            <p>Already have an account? <span @click="router.push('/')">Log in now</span></p>
         </div>
 
         <div v-if="message" class="alert" :class="isSuccess ? 'alert-success' : 'alert-error'">
@@ -51,12 +51,12 @@ const router = useRouter();
 const handleRegister = async () => {
     if(!fullName.value || !username.value || !password.value) {
         isSuccess.value = false;
-        message.value = "Vui lòng nhập đủ 3 ô!";
+        message.value = "Please fill in all 3 fields!";
         return;
     }
 
     try {
-        message.value = "Đang xử lý...";
+        message.value = "Processing...";
         // SỬA ĐƯỜNG DẪN: Đổi từ /api/register sang /api/auth/register cho khớp backend
         const res = await axios.post('http://localhost:3000/api/auth/register', {
             fullName: fullName.value,
@@ -65,15 +65,15 @@ const handleRegister = async () => {
         });
 
         isSuccess.value = true;
-        message.value = res.data?.message || "Đăng ký thành công! Đang chuyển về đăng nhập...";
-        
+        message.value = res.data?.message || "Registration successful! Redirecting to login...";
+
         setTimeout(() => {
-            router.push('/'); 
+            router.push('/');
         }, 1500);
 
     } catch (error) {
         isSuccess.value = false;
-        message.value = error.response?.data?.message || 'Lỗi kết nối Server!';
+        message.value = error.response?.data?.message || 'Server connection error!';
     }
 };
 </script>

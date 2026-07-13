@@ -6,7 +6,7 @@ exports.getOmsOrders = async (req, res) => {
         const queryText = `
             SELECT * FROM orders 
             WHERE (TRIM(UPPER(current_dept)) = 'OMS' OR TRIM(UPPER(status)) = 'NEW')
-              AND TRIM(UPPER(status)) NOT IN ('RETURNED', 'TRẢ LẠI', 'DONE', 'HOÀN THÀNH')
+              AND TRIM(UPPER(status)) NOT IN ('RETURNED', 'RETURN', 'DONE', 'COMPLETED')
             ORDER BY id ASC
         `;
         const result = await pool.query(queryText);
@@ -24,7 +24,7 @@ exports.getOmsOrders = async (req, res) => {
         res.json(safeRows);
     } catch (err) {
         console.error("🔴 LỖI TẠI OMS_CONTROLLER (GET ORDERS):", err.message);
-        res.status(500).json({ error: "Lỗi DB OMS", detail: err.message });
+        res.status(500).json({ error: "Error DB OMS", detail: err.message });
     }
 };
 
@@ -36,7 +36,7 @@ exports.updateOrderStatus = async (req, res) => {
         // Kiểm tra đơn hàng cũ để lấy trạng thái trước khi update
         const oldOrder = await pool.query("SELECT status FROM orders WHERE id = $1", [id]);
         if (oldOrder.rows.length === 0) {
-            return res.status(404).json({ error: "Không tìm thấy đơn hàng cần cập nhật!" });
+            return res.status(404).json({ error: "The order to be updated could not be found!" });
         }
         const oldStatus = oldOrder.rows[0].status;
 
@@ -47,16 +47,16 @@ exports.updateOrderStatus = async (req, res) => {
         );
 
         // Tự động ghi nhận log lịch sử hành trình nếu có notes gửi kèm
-        const logNotes = notes || `Luân chuyển đơn hàng sang bộ phận ${current_dept}`;
+        const logNotes = notes || `Transfer the order to the department ${current_dept}`;
         await pool.query(
             `INSERT INTO order_logs (order_id, notes, old_status, new_status)
              VALUES ($1, $2, $3, $4)`,
             [id, logNotes, oldStatus, status]
         );
 
-        res.json({ message: "Luân chuyển phòng ban và ghi log thành công!", order: result.rows[0] });
+        res.json({ message: "Transfer of department and log successful!", order: result.rows[0] });
     } catch (err) {
-        res.status(500).json({ error: "Lỗi hệ thống", detail: err.message });
+        res.status(500).json({ error: "Error system", detail: err.message });
     }
 };
 
@@ -78,7 +78,7 @@ exports.getRevenueReport = async (req, res) => {
             month: parseFloat(monthResult.rows[0].total) 
         });
     } catch (err) {
-        console.error("🔴 LỖI TẠI OMS_CONTROLLER (REVENUE):", err.message);
+        console.error("🔴 ERROR AT OMS_CONTROLLER (getRevenueReport):", err.message);
         res.json({ today: 0, month: 0 }); 
     }
 };
@@ -99,7 +99,7 @@ exports.getCustomerAnalytics = async (req, res) => {
         const result = await pool.query(queryText);
         res.json(result.rows);
     } catch (err) {
-        console.error("🔴 LỖI API CUSTOMER:", err.message);
+        console.error("🔴 ERROR AT OMS_CONTROLLER (getCustomerAnalytics):", err.message);
         res.json([]); 
     }
 };
@@ -108,12 +108,12 @@ exports.getCustomerAnalytics = async (req, res) => {
 exports.returnOrderToCustomer = async (req, res) => {
     const { id } = req.params;
     const { reason } = req.body;
-    const safeReason = (reason || 'Sai lệch thông tin cần thẩm định lại').trim();
+    const safeReason = (reason || 'Information mismatch needs to be verified again').trim();
 
     try {
         const oldOrder = await pool.query("SELECT status FROM orders WHERE id = $1", [id]);
         if (oldOrder.rows.length === 0) {
-            return res.status(404).json({ error: "Không tìm thấy đơn hàng!" });
+            return res.status(404).json({ error: "The order to be returned could not be found!" });
         }
         const oldStatus = oldOrder.rows[0].status;
 
@@ -126,12 +126,12 @@ exports.returnOrderToCustomer = async (req, res) => {
         await pool.query(
             `INSERT INTO order_logs (order_id, notes, old_status, new_status)
              VALUES ($1, $2, $3, $4)`,
-            [id, `Hoàn trả đơn hàng về khách hàng. Lý do: ${safeReason}`, oldStatus, 'RETURNED']
+            [id, `Return the order to the customer. Reason: ${safeReason}`, oldStatus, 'RETURNED']
         );
 
-        res.json({ message: `Đã hoàn trả thành công!`, order: result.rows[0] });
+        res.json({ message: `Return successful!`, order: result.rows[0] });
     } catch (err) {
-        res.status(500).json({ error: "Lỗi hệ thống", detail: err.message });
+        res.status(500).json({ error: "Error system", detail: err.message });
     }
 };
 
@@ -145,7 +145,7 @@ exports.getOrderHistory = async (req, res) => {
         );
         res.json(result.rows);
     } catch (err) {
-        console.error("🔴 LỖI LẤY LỊCH SỬ ĐƠN HÀNG:", err.message);
+        console.error("🔴 ERROR AT OMS_CONTROLLER (getOrderHistory):", err.message);
         res.json([]);
     }
 };

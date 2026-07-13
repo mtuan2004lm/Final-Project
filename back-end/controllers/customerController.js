@@ -27,7 +27,7 @@ exports.getCustomerOrders = async (req, res) => {
         // xe đang chở đơn hàng của mình trên bản đồ, thay vì chỉ biết trạng thái chữ.
         const queryText = `
             SELECT o.id, o.username, o.customer_name, o.product_name, o.quantity, o.status, o.current_dept, o.notes, o.driver_notes,
-                   COALESCE(o.cargo_type, 'Hàng hóa thông thường') as cargo_type,
+                   COALESCE(o.cargo_type, 'Normal goods') as cargo_type,
                    COALESCE(o.total_price, 0) as total_price,
                    COALESCE(o.payment_status, '') as payment_status,
                    COALESCE(o.product_image, '') as product_image,
@@ -48,8 +48,8 @@ exports.getCustomerOrders = async (req, res) => {
         const result = await pool.query(queryText, [searchName]);
         res.json(result.rows);
     } catch (err) {
-        console.error("🔴 LỖI TRUY XUẤT ĐƠN HÀNG CUSTOMER:", err.message);
-        res.status(500).json({ error: "Lỗi hệ thống khi truy xuất đơn hàng" });
+        console.error("🔴 ERROR AT CUSTOMER_CONTROLLER (getCustomerOrders):", err.message);
+        res.status(500).json({ error: "Error system when retrieving customer orders" });
     }
 };
 
@@ -77,7 +77,7 @@ exports.createOrder = async (req, res) => {
             username,
             customer_name,
             product_name,
-            cargo_type || 'Hàng hóa thông thường',
+            cargo_type || 'Normal goods',
             parseInt(quantity) || 1,
             safePrice,          // $6: total_price
             safePrice,          // $7: total_cost
@@ -90,16 +90,16 @@ exports.createOrder = async (req, res) => {
         // Ghi log hành trình đơn hàng mới khởi tạo
         await pool.query(
             "INSERT INTO order_logs (order_id, old_status, new_status, notes) VALUES ($1, 'NONE', 'NEW', $2)",
-            [newOrder.id, `Khách hàng tạo tờ khai trực tuyến thành công, chuyển cấp thẩm định OMS cho lô hàng: ${product_name}`]
+            [newOrder.id, `The customer successfully created the online declaration, transferred the OMS for the shipment: ${product_name}`]
         );
 
         res.status(201).json({
-            message: "Tạo yêu cầu luân chuyển thành công!",
+            message: "Request for shipment creation successful!",
             order: newOrder
         });
     } catch (err) {
-        console.error("🔴 LỖI KHỞI TẠO ĐƠN HÀNG:", err.message);
-        res.status(500).json({ error: "Lỗi hệ thống khi khởi tạo đơn hàng" });
+        console.error("🔴 ERROR AT CUSTOMER_CONTROLLER (createOrder):", err.message);
+        res.status(500).json({ error: "Error system when creating order" });
     }
 };
 
@@ -116,7 +116,7 @@ exports.confirmPaymentSubmitted = async (req, res) => {
     try {
         const oldOrder = await pool.query("SELECT status FROM orders WHERE id = $1", [id]);
         if (oldOrder.rows.length === 0) {
-            return res.status(404).json({ error: "Không tìm thấy đơn hàng cần xác nhận thanh toán!" });
+            return res.status(404).json({ error: "The order to be confirmed for payment could not be found!" });
         }
         const oldStatus = oldOrder.rows[0].status;
 
@@ -130,12 +130,12 @@ exports.confirmPaymentSubmitted = async (req, res) => {
         await pool.query(
             `INSERT INTO order_logs (order_id, notes, old_status, new_status)
              VALUES ($1, $2, $3, $4)`,
-            [id, 'Khách hàng xác nhận đã chuyển khoản thanh toán qua QR. Hồ sơ chuyển phòng Kế toán (ACC) đối soát và duyệt thu tiền.', oldStatus, 'PENDING']
+            [id, 'The customer confirmed the payment transfer via QR. The document was transferred to the Accounting Department (ACC) for reconciliation and approval of the payment.', oldStatus, 'PENDING']
         );
 
-        res.json({ message: "✅ Đã ghi nhận xác nhận thanh toán! Chờ phòng Kế toán đối soát và duyệt.", order: result.rows[0] });
+        res.json({ message: "✅ Payment confirmation has been recorded! Waiting for the Accounting Department to reconcile and approve.", order: result.rows[0] });
     } catch (err) {
-        console.error("🔴 LỖI XÁC NHẬN THANH TOÁN CỦA KHÁCH HÀNG:", err.message);
-        res.status(500).json({ error: "Lỗi hệ thống khi xác nhận thanh toán", detail: err.message });
+        console.error("🔴 ERROR AT CUSTOMER_CONTROLLER (confirmPaymentSubmitted):", err.message);
+        res.status(500).json({ error: "Error system when confirming payment", detail: err.message });
     }
 };

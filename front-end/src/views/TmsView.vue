@@ -5,59 +5,59 @@
        <div class="user-info">
          <div class="avatar">{{ userRole.charAt(0) }}</div>
          <div>
-            <h3>PHÒNG XE ({{ userRole }})</h3>
-            <small style="color: #2ecc71;">Trực tuyến điều độ</small>
+            <h3>VEHICLE DEPARTMENT ({{ userRole }})</h3>
+            <small style="color: #2ecc71;">Dispatch Online</small>
          </div>
        </div>
 
        <div class="navigation-menu">
           <button @click="activeTab = 'planning'" :class="{ active: activeTab === 'planning' }" class="menu-btn">
-             🗺️ Điều phối & Gom đơn
+             🗺️ Dispatch & Consolidate Orders
           </button>
           <button @click="activeTab = 'fleet'" :class="{ active: activeTab === 'fleet' }" class="menu-btn">
-             🚚 Quản lý Đội Xe (Fleet)
+             🚚 Fleet Management
           </button>
        </div>
 
-       <button @click="logout" class="btn-logout">Đăng Xuất</button>
+       <button @click="logout" class="btn-logout">Log Out</button>
      </div>
 
      <div class="main-content">
 
         <div v-if="activeTab === 'planning'">
-           <header><h1>HỆ THỐNG ĐIỀU PHỐI GOM ĐƠN THÔNG MINH (PLANNING)</h1></header>
+           <header><h1>SMART ORDER CONSOLIDATION DISPATCH SYSTEM (PLANNING)</h1></header>
 
            <div class="card list-card">
-               <h3>🚚 Danh sách đơn hàng nhận từ Kho (Chờ chỉ định lộ trình & Tài xế)</h3>
+               <h3>🚚 Orders Received from Warehouse (Awaiting Route & Driver Assignment)</h3>
                <table class="data-table">
                    <thead>
                        <tr>
-                          <th>Mã Kiện</th><th>Khách hàng</th><th>Chi tiết Hàng Hóa</th><th>Lộ Trình Hiện Tại</th><th>Phương Tiện</th><th>Hành Động Nghiệp Vụ</th>
+                          <th>Package Code</th><th>Customer</th><th>Cargo Details</th><th>Current Route</th><th>Vehicle</th><th>Actions</th>
                        </tr>
                    </thead>
                    <tbody>
                        <tr v-for="order in orders" :key="order.id">
                            <td><b class="barcode-tag">PKG-600{{ order.id }}</b></td>
                            <td><b>{{ order.customer_name }}</b></td>
-                           <td>{{ order.product_name }} (SL: {{ order.quantity }})</td>
+                           <td>{{ order.product_name }} (Qty: {{ order.quantity }})</td>
                            <td>
                               <span v-if="order.delivery_route" class="location-badge" style="background: #e8f5e9; color: #2e7d32;">
                                  🛣️ {{ order.delivery_route }}
                               </span>
-                              <span v-else style="color: #e74c3c; font-style: italic; font-weight: bold;">🚨 Chờ gom chuyến</span>
+                              <span v-else style="color: #e74c3c; font-style: italic; font-weight: bold;">🚨 Awaiting Consolidation</span>
                            </td>
                            <td>
                               <span v-if="order.assigned_truck" class="location-badge" style="background: #fff3cd; color: #856404;">
                                  🚛 {{ order.assigned_truck }}
                               </span>
-                              <span v-else style="color: #95a5a6; font-style: italic;">Chưa gán xe</span>
+                              <span v-else style="color: #95a5a6; font-style: italic;">No vehicle assigned</span>
                            </td>
                            <td>
                               <div style="display: flex; gap: 6px; align-items: center;">
                                  <select :id="'select-route-' + order.id" class="form-select-custom" style="width: 140px;">
-                                     <option value="Trục Bắc Nam - Quốc Lộ 1A">Tuyến QL1A (Bắc Nam)</option>
-                                     <option value="Nội Thành Express - Giao Nhanh">Nội Thành (Giao Nhanh)</option>
-                                     <option value="Tuyến Cao Tốc TPHCM - Đà Nẵng">Cao Tốc TPHCM - Đà Nẵng</option>
+                                     <option value="Trục Bắc Nam - Quốc Lộ 1A">QL1A Route (North-South)</option>
+                                     <option value="Nội Thành Express - Giao Nhanh">Inner City (Express)</option>
+                                     <option value="Tuyến Cao Tốc TPHCM - Đà Nẵng">HCMC - Da Nang Expressway</option>
                                  </select>
                                  <!--
                                    ĐÃ SỬA: value giờ là license_plate THUẦN (khớp cột trucks.license_plate)
@@ -69,10 +69,10 @@
                                      <option v-for="truck in availableTrucks" :key="truck.id" :value="truck.license_plate">
                                         {{ truck.type }} [{{ truck.license_plate }}]
                                      </option>
-                                     <option v-if="availableTrucks.length === 0" disabled value="">Không có xe sẵn sàng</option>
+                                     <option v-if="availableTrucks.length === 0" disabled value="">No vehicles available</option>
                                  </select>
                                  <button @click="dispatchTruck(order.id)" class="btn-action" style="background: #e67e22; color: white;">
-                                    🚀 Xuất Bến
+                                    🚀 Dispatch
                                  </button>
                               </div>
                            </td>
@@ -82,39 +82,39 @@
            </div>
 
            <div class="card list-card" style="margin-top: 25px; border-top: 4px solid #2980b9;">
-               <h3 style="color: #2980b9;">📱 GIAO DIỆN MÔ PHỎNG APP ĐIỆN THOẠI CỦA TÀI XẾ (DRIVER MOBILE POD)</h3>
+               <h3 style="color: #2980b9;">📱 DRIVER MOBILE APP SIMULATION INTERFACE (DRIVER MOBILE POD)</h3>
                <p style="font-size: 13px; color: #7f8c8d; margin-bottom: 15px;">
-                  Tài xế đi dọc đường phát sinh chi phí, khi tới kho khách hàng sẽ nhấn nút này để cập nhật định vị vệ tinh GPS, nộp biên bản ký nhận (POD) và đẩy đơn về phòng Kế Toán thanh quyết toán.
-                  Vị trí xe thời gian thực (do app tài xế bắn định kỳ) hiển thị ở tab "Quản lý Đội Xe".
+                  As the driver travels and incurs costs, upon arriving at the customer's warehouse they will press this button to update the GPS satellite location, submit the proof-of-delivery (POD) form, and push the order to the Accounting department for settlement.
+                  Real-time vehicle location (periodically sent by the driver app) is shown in the "Fleet Management" tab.
                </p>
 
                <table class="data-table">
                    <thead>
                        <tr>
-                          <th>Đơn xe</th><th>Hành trình đang đi</th><th>Chi phí phát sinh (USD)</th><th>Nộp E-POD tài xế</th>
+                          <th>Order/Vehicle</th><th>Current Journey</th><th>Incurred Costs (USD)</th><th>Driver E-POD Submission</th>
                        </tr>
                    </thead>
                    <tbody>
                        <tr v-for="order in orders.filter(o => o.status === 'SHIPPING')" :key="order.id">
                            <td><b class="barcode-tag">PKG-600{{ order.id }}</b><br/><small>{{ order.assigned_truck }}</small></td>
-                           <td><span style="color: #2e7d32; font-weight: bold;">🚚 Đang trên đường:</span><br/><small>{{ order.delivery_route }}</small></td>
+                           <td><span style="color: #2e7d32; font-weight: bold;">🚚 En Route:</span><br/><small>{{ order.delivery_route }}</small></td>
                            <td>
                               <div style="display: flex; flex-direction: column; gap: 4px;">
-                                 <input type="number" step="0.01" :id="'bot-' + order.id" placeholder="Phí trạm BOT (USD)" class="form-input-custom-small" />
-                                 <input type="number" step="0.01" :id="'fuel-' + order.id" placeholder="Tiền dầu (USD)" class="form-input-custom-small" />
+                                 <input type="number" step="0.01" :id="'bot-' + order.id" placeholder="BOT Toll Fee (USD)" class="form-input-custom-small" />
+                                 <input type="number" step="0.01" :id="'fuel-' + order.id" placeholder="Fuel Cost (USD)" class="form-input-custom-small" />
                               </div>
                            </td>
                            <td>
                               <div style="display: flex; gap: 6px;">
-                                 <input type="text" :id="'notes-' + order.id" placeholder="Ghi chú tài xế..." class="form-input-custom-small" style="flex:1;" />
+                                 <input type="text" :id="'notes-' + order.id" placeholder="Driver notes..." class="form-input-custom-small" style="flex:1;" />
                                  <button @click="submitDriverPod(order.id)" class="btn-action" style="background: #2ecc71; color: white;">
-                                    📸 Ký nhận & Gửi To Kế Toán
+                                    📸 Sign & Send to Accounting
                                  </button>
                               </div>
                            </td>
                        </tr>
                        <tr v-if="orders.filter(o => o.status === 'SHIPPING').length === 0">
-                           <td colspan="4" style="text-align: center; color: #95a5a6; padding: 20px; font-style: italic;">Hiện không có xe tải nào đang lăn bánh ngoài đường (SHIPPING). Hãy bấm nút "Xuất Bến" ở bảng trên để điều phối xe chạy.</td>
+                           <td colspan="4" style="text-align: center; color: #95a5a6; padding: 20px; font-style: italic;">There are currently no trucks on the road (SHIPPING). Click the "Dispatch" button in the table above to dispatch a vehicle.</td>
                        </tr>
                    </tbody>
                </table>
@@ -122,29 +122,29 @@
         </div>
 
         <div v-if="activeTab === 'fleet'">
-           <header><h1>QUẢN LÝ ĐỘI XE VẬN TẢI & NHẬT KÝ BẢO TRÌ ĐỊNH KỲ</h1></header>
+           <header><h1>TRANSPORT FLEET MANAGEMENT & PERIODIC MAINTENANCE LOG</h1></header>
 
            <!-- FORM THÊM XE MỚI -->
            <div class="card list-card">
-               <h3>➕ Thêm xe mới vào đội xe</h3>
+               <h3>➕ Add a New Vehicle to the Fleet</h3>
                <div class="fleet-form-grid">
-                   <input v-model="newTruck.license_plate" placeholder="Biển số (VD: 29C-123.45)" class="form-input-custom" />
-                   <input v-model="newTruck.type" placeholder="Chủng loại tải trọng" class="form-input-custom" />
-                   <input v-model="newTruck.driver_name" placeholder="Tài xế phụ trách" class="form-input-custom" />
-                   <input v-model="newTruck.fuel_norm" placeholder="Định mức dầu (VD: 12L/100km)" class="form-input-custom" />
+                   <input v-model="newTruck.license_plate" placeholder="License plate (e.g.: 29C-123.45)" class="form-input-custom" />
+                   <input v-model="newTruck.type" placeholder="Load type/category" class="form-input-custom" />
+                   <input v-model="newTruck.driver_name" placeholder="Assigned driver" class="form-input-custom" />
+                   <input v-model="newTruck.fuel_norm" placeholder="Fuel norm (e.g.: 12L/100km)" class="form-input-custom" />
                    <input v-model="newTruck.maintenance_date" type="date" class="form-input-custom" />
                    <input v-model="newTruck.registry_expiry" type="date" class="form-input-custom" />
-                   <button @click="createTruck" class="btn-action" style="background: #2980b9; color: white;">➕ Thêm xe</button>
+                   <button @click="createTruck" class="btn-action" style="background: #2980b9; color: white;">➕ Add Vehicle</button>
                </div>
            </div>
 
            <div class="card list-card" style="margin-top: 25px;">
-               <h3>🚚 Đội xe tải nội bộ (Số liệu thời gian thực từ Garage)</h3>
+               <h3>🚚 Internal Truck Fleet (Real-Time Data from Garage)</h3>
                <table class="data-table">
                    <thead>
                        <tr>
-                          <th>Biển Kiểm Soát</th><th>Chủng loại tải trọng</th><th>Định mức dầu</th><th>Tài xế phụ trách</th>
-                          <th>Lịch bảo trì / Đăng kiểm</th><th>Vị trí GPS thời gian thực</th><th>Tình trạng kỹ thuật</th><th>Hành động</th>
+                          <th>License Plate</th><th>Load Type</th><th>Fuel Norm</th><th>Assigned Driver</th>
+                          <th>Maintenance / Inspection Schedule</th><th>Real-Time GPS Location</th><th>Technical Condition</th><th>Action</th>
                        </tr>
                    </thead>
                    <tbody>
@@ -169,41 +169,41 @@
                                  <input type="date" v-model="editDraft.registry_expiry" class="form-input-custom-small" />
                               </div>
                               <small v-else style="line-height: 1.6;">
-                                 Bảo trì: {{ formatDate(truck.maintenance_date) }}<br/>
-                                 Đăng kiểm: {{ formatDate(truck.registry_expiry) }}
+                                 Maintenance: {{ formatDate(truck.maintenance_date) }}<br/>
+                                 Inspection: {{ formatDate(truck.registry_expiry) }}
                               </small>
                            </td>
                            <td>
                               <small v-if="truck.current_lat && truck.current_lng" style="line-height: 1.6;">
                                  📍 {{ Number(truck.current_lat).toFixed(5) }}, {{ Number(truck.current_lng).toFixed(5) }}<br/>
-                                 <span style="color:#95a5a6;">Cập nhật: {{ formatDateTime(truck.gps_updated_at) }}</span>
+                                 <span style="color:#95a5a6;">Updated: {{ formatDateTime(truck.gps_updated_at) }}</span>
                               </small>
-                              <span v-else style="color:#95a5a6; font-style: italic;">Chưa có tín hiệu GPS</span>
+                              <span v-else style="color:#95a5a6; font-style: italic;">No GPS signal yet</span>
                            </td>
                            <td>
                               <select class="form-select-custom" :value="truck.status" @change="updateTruckStatus(truck.id, $event.target.value)">
-                                 <option value="Sẵn sàng">Sẵn sàng</option>
-                                 <option value="Đang đi giao hàng">Đang đi giao hàng</option>
-                                 <option value="Bảo trì">Bảo trì</option>
-                                 <option value="⚠️ Quá hạn bảo trì">⚠️ Quá hạn bảo trì</option>
-                                 <option value="Hỏng - Ngừng khai thác">Hỏng - Ngừng khai thác</option>
+                                 <option value="Sẵn sàng">Available</option>
+                                 <option value="Đang đi giao hàng">Delivering</option>
+                                 <option value="Bảo trì">Under Maintenance</option>
+                                 <option value="⚠️ Quá hạn bảo trì">⚠️ Maintenance Overdue</option>
+                                 <option value="Hỏng - Ngừng khai thác">Broken - Decommissioned</option>
                               </select>
                            </td>
                            <td>
                               <div style="display:flex; gap:6px;">
                                  <template v-if="editingId === truck.id">
-                                    <button @click="saveEdit(truck.id)" class="btn-action" style="background:#2ecc71; color:white;">💾 Lưu</button>
-                                    <button @click="cancelEdit" class="btn-action" style="background:#95a5a6; color:white;">✖ Hủy</button>
+                                    <button @click="saveEdit(truck.id)" class="btn-action" style="background:#2ecc71; color:white;">💾 Save</button>
+                                    <button @click="cancelEdit" class="btn-action" style="background:#95a5a6; color:white;">✖ Cancel</button>
                                  </template>
                                  <template v-else>
-                                    <button @click="startEdit(truck)" class="btn-action" style="background:#3498db; color:white;">✏️ Sửa</button>
-                                    <button @click="deleteTruck(truck.id)" class="btn-action" style="background:#e74c3c; color:white;">🗑️ Xóa</button>
+                                    <button @click="startEdit(truck)" class="btn-action" style="background:#3498db; color:white;">✏️ Edit</button>
+                                    <button @click="deleteTruck(truck.id)" class="btn-action" style="background:#e74c3c; color:white;">🗑️ Delete</button>
                                  </template>
                               </div>
                            </td>
                        </tr>
                        <tr v-if="fleet.length === 0">
-                           <td colspan="8" style="text-align:center; color:#95a5a6; padding:20px; font-style:italic;">Chưa có xe nào trong đội xe. Hãy thêm xe mới ở trên.</td>
+                           <td colspan="8" style="text-align:center; color:#95a5a6; padding:20px; font-style:italic;">There are no vehicles in the fleet yet. Add a new vehicle above.</td>
                        </tr>
                    </tbody>
                </table>
@@ -238,7 +238,7 @@
      const resFleet = await axios.get('http://localhost:3000/api/orders/tms/fleet');
      fleet.value = resFleet.data;
    } catch (error) {
-      console.error("Lỗi tải thông tin phòng điều vận TMS:", error);
+      console.error("Error loading TMS dispatch department data:", error);
    }
  };
 
@@ -248,7 +248,7 @@
     const truckVal = document.getElementById(`select-truck-${orderId}`).value;
 
     if (!truckVal) {
-       alert("Không có xe nào sẵn sàng để điều phối!");
+       alert("No vehicle is available for dispatch!");
        return;
     }
 
@@ -263,13 +263,13 @@
             status: 'SHIPPING',
             current_dept: 'TMS',
             from_dept: 'TMS',
-            notes: `Điều phối chuyến đi thành công. Xe tải: ${truckVal}, tuyến đường di chuyển: ${routeVal}.`
+            notes: `Dispatch successful. Truck: ${truckVal}, route: ${routeVal}.`
         });
 
-        alert("Lập tờ lệnh điều xe xuất bến thành công! Kiện hàng chuyển sang trạng thái SHIPPING.");
+        alert("Dispatch order created successfully! The package has moved to SHIPPING status.");
         fetchTmsData();
     } catch (err) {
-        alert("Lỗi lệnh xuất bến xe tải!");
+        alert("Error dispatching the truck!");
     }
  };
 
@@ -285,7 +285,7 @@
             fuel_fee: fuelFee,
             driver_notes: driverNotes,
             pod_image: 'https://cdn-storage.logistics.pro/pod_600' + orderId + '.jpg',
-            gps_coordinates: '10.762622, 106.660172 (Kho khách hàng)'
+            gps_coordinates: '10.762622, 106.660172 (Customer warehouse)'
         });
 
         // Đồng thời ghi nhận vào sổ cái lịch sử hành trình chung
@@ -293,13 +293,13 @@
             status: 'DELIVERED',
             current_dept: 'ACC',
             from_dept: 'TMS',
-            notes: `Tài xế bàn giao hàng cho khách thành công tại tọa độ GPS vệ tinh. Nộp chi phí dọc đường (BOT: $${botFee}, Dầu: $${fuelFee}). Hồ sơ chuyển phòng Kế toán duyệt doanh thu.`
+            notes: `Driver successfully handed over the goods to the customer at the GPS satellite coordinates. Submitted road expenses (BOT: $${botFee}, Fuel: $${fuelFee}). The record has been forwarded to Accounting for revenue approval.`
         });
 
-        alert("Tài xế hoàn tất hành trình! Đơn hàng đã giao thành công và chuyển số liệu về phòng Kế Toán.");
+        alert("Driver completed the journey! The order has been delivered successfully and the data has been sent to Accounting.");
         fetchTmsData();
     } catch (err) {
-        alert("Lỗi nộp biên bản chặng đi!");
+        alert("Error submitting the delivery report!");
     }
  };
 
@@ -311,16 +311,16 @@
 
  const createTruck = async () => {
     if (!newTruck.value.license_plate || !newTruck.value.type) {
-       alert("Vui lòng nhập ít nhất Biển số và Chủng loại xe!");
+       alert("Please enter at least the license plate and vehicle type!");
        return;
     }
     try {
        await axios.post('http://localhost:3000/api/orders/tms/fleet', newTruck.value);
-       alert("Đã thêm xe mới vào đội xe!");
+       alert("New vehicle added to the fleet!");
        newTruck.value = { license_plate: '', type: '', driver_name: '', fuel_norm: '', maintenance_date: '', registry_expiry: '' };
        fetchTmsData();
     } catch (err) {
-       alert(err.response?.data?.error || "Lỗi thêm xe mới!");
+       alert(err.response?.data?.error || "Error adding new vehicle!");
     }
  };
 
@@ -343,11 +343,11 @@
  const saveEdit = async (truckId) => {
     try {
        await axios.put(`http://localhost:3000/api/orders/tms/fleet/${truckId}`, editDraft.value);
-       alert("Đã cập nhật thông tin xe!");
+       alert("Vehicle information updated!");
        cancelEdit();
        fetchTmsData();
     } catch (err) {
-       alert("Lỗi cập nhật xe!");
+       alert("Error updating vehicle!");
     }
  };
 
@@ -356,17 +356,17 @@
        await axios.put(`http://localhost:3000/api/orders/tms/fleet/${truckId}/status`, { status });
        fetchTmsData();
     } catch (err) {
-       alert("Lỗi cập nhật tình trạng xe!");
+       alert("Error updating vehicle status!");
     }
  };
 
  const deleteTruck = async (truckId) => {
-    if (!confirm("Xác nhận xóa xe này khỏi đội xe?")) return;
+    if (!confirm("Confirm deleting this vehicle from the fleet?")) return;
     try {
        await axios.delete(`http://localhost:3000/api/orders/tms/fleet/${truckId}`);
        fetchTmsData();
     } catch (err) {
-       alert("Lỗi xóa xe!");
+       alert("Error deleting vehicle!");
     }
  };
 

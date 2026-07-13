@@ -5,56 +5,56 @@
        <div class="user-info">
          <div class="avatar">{{ userRole.charAt(0) }}</div>
          <div>
-            <h3>PHÒNG BAN {{ userRole }}</h3>
-            <small style="color: #2ecc71;">Trực tuyến quản trị</small>
+            <h3>{{ userRole }} DEPARTMENT</h3>
+            <small style="color: #2ecc71;">Admin Online</small>
          </div>
        </div>
 
        <div class="navigation-menu">
           <button @click="activeTab = 'orders'" :class="{ active: activeTab === 'orders' }" class="menu-btn">
-             📦 Duyệt & Hoàn đơn
+             📦 Approve & Return Orders
           </button>
           <button @click="activeTab = 'customers'" :class="{ active: activeTab === 'customers' }" class="menu-btn">
-             👥 Quản lý Khách hàng
+             👥 Customer Management
           </button>
           <button @click="activeTab = 'analytics'" :class="{ active: activeTab === 'analytics' }" class="menu-btn">
-             📊 Báo cáo Doanh thu
+             📊 Revenue Report
           </button>
        </div>
 
-       <button @click="logout" class="btn-logout">Đăng Xuất</button>
+       <button @click="logout" class="btn-logout">Log Out</button>
      </div>
 
      <div class="main-content">
 
         <div v-if="activeTab === 'orders'">
-           <header><h1>PHÒNG QUẢN LÝ ĐƠN HÀNG (OMS) - ĐIỀU PHỐI LUỒNG</h1></header>
+           <header><h1>ORDER MANAGEMENT DEPARTMENT (OMS) - FLOW COORDINATION</h1></header>
            <div class="card list-card" style="margin-top: 25px;">
-               <h3>📋 Danh sách đơn hàng mới nhận (Chờ thẩm định duyệt)</h3>
+               <h3>📋 Newly Received Orders (Pending Review)</h3>
                <table class="data-table">
                    <thead>
                        <tr>
-                         <th>ID Đơn</th>
-                         <th>Hình ảnh</th>
-                         <th>Khách hàng</th>
-                         <th>Hàng hóa</th>
-                         <th>SL</th>
-                         <th>Trạng thái</th>
-                         <th>Thao tác nghiệp vụ</th>
+                         <th>Order ID</th>
+                         <th>Image</th>
+                         <th>Customer</th>
+                         <th>Cargo</th>
+                         <th>Qty</th>
+                         <th>Status</th>
+                         <th>Actions</th>
                        </tr>
                    </thead>
                    <tbody>
                        <tr v-for="order in orders" :key="order.id">
-                           <td @click="openOrderTimeline(order.id)" class="clickable-id" title="Bấm vào xem chi tiết dòng lịch sử">
+                           <td @click="openOrderTimeline(order.id)" class="clickable-id" title="Click to view history details">
                               <b>#{{ order.id }}</b> 🔍
                            </td>
 
                            <td class="img-cell">
                               <img v-if="order.product_image"
                                    :src="'http://localhost:3000' + order.product_image"
-                                   alt="Sản phẩm"
+                                   alt="Product"
                                    class="product-thumb" />
-                              <span v-else class="no-img">Không có ảnh</span>
+                              <span v-else class="no-img">No image</span>
                            </td>
 
                            <td><b>{{ order.customer_name }}</b></td>
@@ -62,12 +62,12 @@
                            <td>{{ order.quantity }}</td>
                            <td><span class="badge status-new">{{ order.status }}</span></td>
                            <td class="action-cell">
-                             <button @click="approveOrder(order.id)" class="btn-action btn-ok">Duyệt & Chuyển WMS</button>
-                             <button @click="handleReturnOrder(order.id)" class="btn-action btn-fail">↩️ Hoàn trả đơn (Lỗi giá/Giấy tờ)</button>
+                             <button @click="approveOrder(order.id)" class="btn-action btn-ok">Approve & Transfer to WMS</button>
+                             <button @click="handleReturnOrder(order.id)" class="btn-action btn-fail">↩️ Return Order (Pricing/Documentation Error)</button>
                            </td>
                        </tr>
                        <tr v-if="orders.length === 0">
-                           <td colspan="7" style="text-align: center; color: #7f8c8d; padding: 30px; font-style: italic;">Không có đơn hàng nào chờ duyệt.</td>
+                           <td colspan="7" style="text-align: center; color: #7f8c8d; padding: 30px; font-style: italic;">There are no orders awaiting approval.</td>
                        </tr>
                    </tbody>
                </table>
@@ -75,32 +75,32 @@
         </div>
 
         <div v-if="activeTab === 'customers'">
-           <header><h1>👥 HỒ SƠ & LỊCH SỬ MUA SẮM CỦA KHÁCH HÀNG</h1></header>
+           <header><h1>👥 CUSTOMER PROFILES & PURCHASE HISTORY</h1></header>
            <div class="card list-card" style="margin-top: 25px;">
-               <h3>📈 Thống kê giá trị đóng góp của từng tài khoản</h3>
+               <h3>📈 Contribution Value Statistics per Account</h3>
                <table class="data-table">
                    <thead>
                        <tr>
-                         <th>Tên Khách hàng</th>
-                         <th>Tổng số đơn hàng đã đặt</th>
-                         <th>Tổng tiền tích lũy trọn đời</th>
-                         <th>Lần mua sắm gần nhất</th>
-                         <th>Phân loại chăm sóc</th>
+                         <th>Customer Name</th>
+                         <th>Total Orders Placed</th>
+                         <th>Lifetime Total Spent</th>
+                         <th>Last Purchase</th>
+                         <th>Care Tier</th>
                        </tr>
                    </thead>
                    <tbody>
                        <tr v-for="cus in customerAnalytics" :key="cus.customer_name">
-                           <td><b>{{ cus.customer_name || 'Khách vãng lai' }}</b></td>
-                           <td>{{ cus.total_orders }} đơn</td>
+                           <td><b>{{ cus.customer_name || 'Walk-in Customer' }}</b></td>
+                           <td>{{ cus.total_orders }} orders</td>
                            <td style="color: #2980b9; font-weight: bold;">${{ cus.total_spent }}</td>
                            <td>{{ new Date(cus.last_purchase).toLocaleString() }}</td>
                            <td>
                               <span v-if="cus.total_spent >= 3000" class="badge-vip">💎 VIP Member</span>
-                              <span v-else class="badge-normal">⭐ Thân thiết</span>
+                              <span v-else class="badge-normal">⭐ Loyal</span>
                            </td>
                        </tr>
                        <tr v-if="customerAnalytics.length === 0">
-                           <td colspan="5" style="text-align: center; color: #7f8c8d; padding: 20px;">Chưa có dữ liệu khách hàng.</td>
+                           <td colspan="5" style="text-align: center; color: #7f8c8d; padding: 20px;">No customer data yet.</td>
                        </tr>
                    </tbody>
                </table>
@@ -108,15 +108,15 @@
         </div>
 
         <div v-if="activeTab === 'analytics'">
-           <header><h1>📊 SỐ LIỆU TRỰC QUAN BÁO CÁO DOANH THU DOANH NGHIỆP</h1></header>
+           <header><h1>📊 VISUAL COMPANY REVENUE REPORT DATA</h1></header>
            <div class="revenue-container">
               <div class="box-rev today">
-                 <p>DOANH THU NGÀY HÔM NAY</p>
+                 <p>TODAY'S REVENUE</p>
                  <h2>${{ revenueReport.today }}</h2>
                  <div class="custom-progress"><div class="line" style="width: 35%"></div></div>
               </div>
               <div class="box-rev month">
-                 <p>DOANH THU THÁNG NÀY</p>
+                 <p>REVENUE THIS MONTH</p>
                  <h2>${{ revenueReport.month }}</h2>
                  <div class="custom-progress"><div class="line" style="width: 75%"></div></div>
               </div>
@@ -128,7 +128,7 @@
      <div v-if="showHistoryModal" class="modal-overlay" @click="showHistoryModal = false">
        <div class="modal-content-box" @click.stop>
           <div class="modal-header">
-             <h2>📜 Nhật Ký Hành Trình Đơn Hàng #{{ selectedOrderId }}</h2>
+             <h2>📜 Order Journey Log #{{ selectedOrderId }}</h2>
              <button class="close-btn" @click="showHistoryModal = false">×</button>
           </div>
 
@@ -142,14 +142,14 @@
                    <div class="timeline-content-card">
                       <div class="time-stamp">{{ new Date(log.changed_at).toLocaleString() }}</div>
                       <h4 class="action-title">
-                         Trạng thái: <span class="dept-tag">{{ log.old_status || '—' }}</span> ➡️ <span class="dept-tag">{{ log.new_status }}</span>
+                         Status: <span class="dept-tag">{{ log.old_status || '—' }}</span> ➡️ <span class="dept-tag">{{ log.new_status }}</span>
                       </h4>
-                      <p v-if="log.notes" class="log-notes">📌 <b>Lý do / Nội dung chi tiết:</b> {{ log.notes }}</p>
+                      <p v-if="log.notes" class="log-notes">📌 <b>Reason / Details:</b> {{ log.notes }}</p>
                    </div>
                 </div>
 
                 <div v-if="activeOrderHistory.length === 0" style="text-align: center; color: #95a5a6; padding: 25px; font-style: italic;">
-                   Đơn hàng này vừa được khởi tạo, chưa có lịch sử luân chuyển phòng ban.
+                   This order was just created and has no department transfer history yet.
                 </div>
              </div>
           </div>
@@ -181,7 +181,7 @@
      const res = await axios.get('http://localhost:3000/api/orders/oms');
      orders.value = res.data;
    } catch (error) {
-     console.error("Lỗi tải dữ liệu phòng OMS");
+     console.error("Error loading OMS department data");
    }
  };
  const fetchCustomerData = async () => {
@@ -189,7 +189,7 @@
      const res = await axios.get('http://localhost:3000/api/orders/oms/analytics/customers');
      customerAnalytics.value = res.data;
    } catch (error) {
-     console.error("Không thể tải báo cáo khách hàng");
+     console.error("Unable to load customer report");
    }
  };
  const fetchRevenueData = async () => {
@@ -197,7 +197,7 @@
      const res = await axios.get('http://localhost:3000/api/orders/oms/analytics/revenue');
      revenueReport.value = res.data;
    } catch (error) {
-     console.error("Không thể tải dữ liệu doanh thu");
+     console.error("Unable to load revenue data");
    }
  };
 
@@ -209,7 +209,7 @@
        activeOrderHistory.value = res.data;
        showHistoryModal.value = true;
     } catch (error) {
-       alert("Không thể tải lịch sử hành trình đơn hàng này!");
+       alert("Unable to load this order's history!");
     }
  };
 
@@ -220,23 +220,23 @@
        current_dept: 'WMS',
        from_dept: 'OMS'
      });
-     alert("Đã duyệt đơn và chuyển giao cho bộ phận Kho (WMS)!");
+     alert("Order approved and transferred to the Warehouse (WMS)!");
      refreshAllData();
    } catch (error) {
-     alert("Duyệt đơn hàng thất bại!");
+     alert("Failed to approve the order!");
    }
  };
  const handleReturnOrder = async (orderId) => {
-    const reason = prompt("Nhập lý do hoàn trả đơn hàng này về cho Khách hàng:");
+    const reason = prompt("Enter the reason for returning this order to the Customer:");
     if (reason === null) return;
-    if (!reason.trim()) return alert("Vui lòng nhập lý do cụ thể!");
+    if (!reason.trim()) return alert("Please enter a specific reason!");
 
     try {
        const res = await axios.put(`http://localhost:3000/api/orders/${orderId}/return-order`, { reason });
        alert(res.data.message);
        refreshAllData();
     } catch (error) {
-       alert("Xử lý hoàn trả đơn gặp lỗi!");
+       alert("An error occurred while processing the return!");
     }
  };
  const refreshAllData = () => {

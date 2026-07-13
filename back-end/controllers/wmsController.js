@@ -30,8 +30,8 @@ exports.getWmsOrders = async (req, res) => {
 
         res.json(safeRows);
     } catch (err) {
-        console.error('🔴 LỖI TẠI WMS_CONTROLLER (getWmsOrders):', err.message);
-        res.status(500).json({ error: 'Lỗi cơ sở dữ liệu phòng WMS' });
+        console.error('🔴 ERROR AT WMS_CONTROLLER (getWmsOrders):', err.message);
+        res.status(500).json({ error: 'Error database of the WMS department' });
     }
 };
 
@@ -50,23 +50,23 @@ exports.updateOrderLocation = async (req, res) => {
         );
 
         if (result.rows.length === 0) {
-            return res.status(404).json({ error: 'Không tìm thấy đơn hàng!' });
+            return res.status(404).json({ error: 'The order could not be found!' });
         }
 
         // 🌟 TỰ ĐỘNG GHI LOG: Sắp xếp vị trí ô kệ
         await pool.query(
             `INSERT INTO order_logs (order_id, notes, old_status, new_status)
              VALUES ($1, $2, $3, $4)`,
-            [id, `Sắp xếp vị trí kiện hàng vào ô/kệ: ${warehouse_location}`, result.rows[0].status, result.rows[0].status]
+            [id, `Sorting the location of the cargo into the shelf/rack: ${warehouse_location}`, result.rows[0].status, result.rows[0].status]
         );
 
         res.json({
-            message: '🎯 Cập nhật vị trí thành công!',
+            message: '🎯 The location has been updated successfully!',
             order: result.rows[0]
         });
     } catch (err) {
         res.status(500).json({
-            error: 'Lỗi cập nhật vị trí kho',
+            error: 'Error updating the warehouse location',
             detail: err.message
         });
     }
@@ -101,23 +101,23 @@ exports.updateCargoCondition = async (req, res) => {
         }
 
         if (result.rows.length === 0) {
-            return res.status(404).json({ error: 'Không tìm thấy đơn hàng!' });
+            return res.status(404).json({ error: 'The order could not be found!' });
         }
 
         // 🌟 TỰ ĐỘNG GHI LOG: Cập nhật tình trạng hàng hóa tại kho
         await pool.query(
             `INSERT INTO order_logs (order_id, notes, old_status, new_status)
              VALUES ($1, $2, $3, $4)`,
-            [id, `Cập nhật tình trạng kiện hàng tại kho: ${cargo_condition}`, result.rows[0].status, result.rows[0].status]
+            [id, `Update the cargo condition at the warehouse: ${cargo_condition}`, result.rows[0].status, result.rows[0].status]
         );
 
         res.json({
-            message: '⚠️ Đã ghi nhận báo cáo hư hại!',
+            message: '⚠️ The damage report has been recorded!',
             order: result.rows[0]
         });
     } catch (err) {
         res.status(500).json({
-            error: 'Lỗi ghi nhận báo cáo hư hại',
+            error: 'Error recording the damage report',
             detail: err.message
         });
     }
@@ -137,23 +137,23 @@ exports.releaseToTms = async (req, res) => {
         );
 
         if (result.rows.length === 0) {
-            return res.status(400).json({ error: 'Không thể bàn giao! Đơn hàng này chưa được thực hiện quét xác nhận mã kiện.' });
+            return res.status(400).json({ error: 'Cannot release! The order has not been scanned and verified.' });
         }
 
         // 🌟 TỰ ĐỘNG GHI LOG: Xuất kho bàn giao sang phòng xe
         await pool.query(
             `INSERT INTO order_logs (order_id, notes, old_status, new_status)
              VALUES ($1, $2, $3, $4)`,
-            [id, `Xuất kho thành công, bàn giao kiện hàng sang phòng Vận tải TMS`, 'APPROVED', 'APPROVED']
+            [id, `The order has been released and handed over to the TMS department.`, 'APPROVED', 'APPROVED']
         );
 
         res.json({
-            message: '📤 Xuất kho bàn giao TMS thành công!',
+            message: '📤 The order has been released and handed over to the TMS department successfully!',
             order: result.rows[0]
         });
     } catch (err) {
         res.status(500).json({
-            error: 'Lỗi lệnh xuất kho sang TMS',
+            error: 'Error releasing the order to the TMS department',
             detail: err.message
         });
     }
@@ -179,7 +179,7 @@ exports.getWarehouseGlobalLogs = async (req, res) => {
         );
         res.json(result.rows);
     } catch (err) {
-        console.error("🔴 LỖI FETCH LOGS KHO WMS:", err.message);
+        console.error("🔴 ERROR AT WMS_CONTROLLER (getWarehouseGlobalLogs):", err.message);
         res.json([]);
     }
 };
@@ -204,8 +204,8 @@ exports.getWarehouseLogsByOrder = async (req, res) => {
         );
         res.json(result.rows);
     } catch (err) {
-        console.error("🔴 LỖI FETCH LOGS KHO WMS THEO MÃ ĐƠN:", err.message);
-        res.status(500).json({ error: 'Lỗi truy vấn nhật ký kho theo mã đơn' });
+        console.error("🔴 ERROR AT WMS_CONTROLLER (getWarehouseLogsByOrder):", err.message);
+        res.status(500).json({ error: 'Error querying the warehouse logs by order' });
     }
 };
 
@@ -225,7 +225,7 @@ exports.scanBarcode = async (req, res) => {
 
         if (result.rows.length === 0) {
             return res.status(404).json({
-                error: 'Không tìm thấy đơn WMS cần quét!'
+                error: 'The WMS order to be scanned could not be found!'
             });
         }
 
@@ -233,16 +233,16 @@ exports.scanBarcode = async (req, res) => {
         await pool.query(
             `INSERT INTO order_logs (order_id, notes, old_status, new_status)
              VALUES ($1, $2, $3, $4)`,
-            [id, `Quét xác nhận mã đối chiếu kiện hàng nhập kho bãi thành công`, result.rows[0].status, result.rows[0].status]
+            [id, `The barcode has been successfully scanned and verified.`, result.rows[0].status, result.rows[0].status]
         );
 
         res.json({
-            message: '⚡ Đã xác nhận mã kiện nhập kho!',
+            message: '⚡ The barcode has been successfully scanned and verified!',
             order: result.rows[0]
         });
     } catch (err) {
         res.status(500).json({
-            error: 'Lỗi hệ thống',
+            error: 'Error system',
             detail: err.message
         });
     }

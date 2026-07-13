@@ -61,8 +61,8 @@ exports.getAccOrders = async (req, res) => {
             }
         });
     } catch (err) {
-        console.error("🔴 LỖI TẠI ACC_CONTROLLER (getAccOrders):", err.message);
-        res.status(500).json({ error: "Lỗi lấy danh sách dữ liệu tài chính kế toán", detail: err.message });
+        console.error("🔴 ERROR AT ACC_CONTROLLER (getAccOrders):", err.message);
+        res.status(500).json({ error: "Error retrieving list of financial accounting data", detail: err.message });
     }
 };
 
@@ -75,7 +75,7 @@ exports.approvePayment = async (req, res) => {
         // Kiểm tra trạng thái hiện tại của đơn hàng
         const orderCheck = await pool.query("SELECT status, total_cost, COALESCE(bot_fee,0) as bot_fee, COALESCE(fuel_fee,0) as fuel_fee FROM orders WHERE id = $1", [id]);
         if (orderCheck.rows.length === 0) {
-            return res.status(404).json({ error: "Không tìm thấy hồ sơ đơn hàng cần duyệt!" });
+            return res.status(404).json({ error: "No order records matching the review requirement were found!" });
         }
 
         const currentOrder = orderCheck.rows[0];
@@ -85,11 +85,11 @@ exports.approvePayment = async (req, res) => {
         if (currentOrder.status === 'DELIVERED') {
             // TRƯỜNG HỢP 1: Duyệt quyết toán phần chi phí E-POD của Tài xế gửi về khi giao xong
             updateQuery = `UPDATE orders SET current_dept = 'DONE', status = 'DONE' WHERE id = $1 RETURNING *`;
-            logNotes = `Kế toán đã thẩm định chứng từ E-POD: Duyệt chi phần tiền cầu đường BOT (${currentOrder.bot_fee} USD) và nhiên liệu (${currentOrder.fuel_fee} USD). Đóng hồ sơ quyết toán đơn hàng thành công.`;
+            logNotes = `The accountant has reviewed the E-POD documents: Approved the payment for the toll fee portion BOT (${currentOrder.bot_fee} USD) and fuel(${currentOrder.fuel_fee} USD). Order settlement file successfully closed.`;
         } else {
             // TRƯỜNG HỢP 2: Duyệt thu tiền cọc/tiền hàng đầu kỳ của Khách hàng gửi lên
             updateQuery = `UPDATE orders SET payment_status = 'PAID', current_dept = 'WMS', status = 'APPROVED' WHERE id = $1 RETURNING *`;
-            logNotes = `Kế toán xác nhận nhận đủ phần tiền thanh toán của Khách hàng (${currentOrder.total_cost} USD). Kích hoạt lệnh chuyển giao bốc dỡ hạ bãi xuống phòng Kho (WMS).`;
+            logNotes = `The accountant confirms receipt of the full payment from the customer.(${currentOrder.total_cost} USD). Activate the order to transfer unloading/delivery to the Warehouse Management System (WMS).`;
         }
 
         const result = await pool.query(updateQuery, [id]);
@@ -102,11 +102,11 @@ exports.approvePayment = async (req, res) => {
         );
 
         res.json({
-            message: "⚡ Đối soát tài chính và phê duyệt dòng tiền thành công!",
+            message: "⚡ Financial reconciliation and cash flow approval were successful!",
             order: result.rows[0]
         });
     } catch (err) {
-        console.error("🔴 LỖI TẠI ACC_CONTROLLER (approvePayment):", err.message);
-        res.status(500).json({ error: "Lỗi hệ thống phê duyệt kế toán", detail: err.message });
+        console.error("🔴 ERROR AT ACC_CONTROLLER (approvePayment):", err.message);
+        res.status(500).json({ error: "Accounting approval system error", detail: err.message });
     }
 };

@@ -22,7 +22,7 @@ exports.getDocsOrders = async (req, res) => {
             const dept = (order.current_dept || '').trim().toUpperCase();
 
             // Định nghĩa các trạng thái ban đầu (Khi chưa được OMS duyệt)
-            const isPendingStatus = ['PENDING', 'CHỜ DUYỆT', 'CHỜ OMS DUYỆT', 'MỚI TẠO'].includes(status);
+            const isPendingStatus = ['PENDING', 'PENDING APPROVAL', 'PENDING OMS APPROVAL', 'NEW'].includes(status);
             const isInitialDept = ['OMS', 'CUSTOMER'].includes(dept);
 
             // ĐIỀU KIỆN: Chỉ cần đơn đã được duyệt (Không còn Pending) hoặc đã đi qua các phòng ban khác
@@ -38,13 +38,13 @@ exports.getDocsOrders = async (req, res) => {
                 current_dept: order.current_dept,
                 payment_status: order.payment_status,
                 total_cost: order.total_cost,
-                warehouse_location: order.warehouse_location || 'Chưa gán',
-                delivery_route: order.delivery_route || 'Chưa lập',
-                assigned_truck: order.assigned_truck || 'Chưa gán',
+                warehouse_location: order.warehouse_location || 'Not assigned',
+                delivery_route: order.delivery_route || 'Not assigned',
+                assigned_truck: order.assigned_truck || 'Not assigned',
                 truck_driver_name: order.truck_driver_name || '',
                 bot_fee: Number(order.bot_fee) || 0,
                 fuel_fee: Number(order.fuel_fee) || 0,
-                driver_notes: order.driver_notes || 'Không có',
+                driver_notes: order.driver_notes || 'No',
                 pod_image: order.pod_image || '',
                 created_at: order.created_at
             };
@@ -83,8 +83,8 @@ exports.getDocsOrders = async (req, res) => {
         });
 
     } catch (err) {
-        console.error("🔴 LỖI NGHIÊM TRỌNG TẠI READ_ONLY_DEPT_CONTROLLER:", err.message);
-        res.status(500).json({ error: "Lỗi cơ sở dữ liệu phòng DOCS", detail: err.message });
+        console.error("🔴 ERROR AT READ_ONLY_DEPT_CONTROLLER (getDocsOrders):", err.message);
+        res.status(500).json({ error: "Error database of the DOCS department", detail: err.message });
     }
 };
 
@@ -101,20 +101,20 @@ exports.lockArchiveFile = async (req, res) => {
         const result = await pool.query(queryText, [id]);
 
         if (result.rows.length === 0) {
-            return res.status(404).json({ error: "Không tìm thấy mã hồ sơ cần niêm phong!" });
+            return res.status(404).json({ error: "The document to be locked could not be found!" });
         }
 
         // Ghi nhật ký hệ thống
         await pool.query(
             `INSERT INTO order_logs (order_id, old_status, new_status, notes)
-             VALUES ($1, 'DONE', 'DONE', 'Phòng chứng từ (DOCS) tiến hành kiểm toán dữ liệu và Niêm phong hồ sơ vào kho số vĩnh viễn.')`,
+             VALUES ($1, 'DONE', 'DONE', 'The DOCS department conducted data audit and sealed the document into the electronic archive permanently.')`,
             [id]
         );
 
-        res.json({ message: "🔒 Đã niêm phong hồ sơ vào kho điện tử thành công!", order: result.rows[0] });
+        res.json({ message: "🔒 The document has been sealed into the electronic archive successfully!", order: result.rows[0] });
     } catch (err) {
-        console.error("🔴 LỖI KHI KHÓA CHỨNG TỪ:", err.message);
-        res.status(500).json({ error: "Lỗi hệ thống khi khóa hồ sơ" });
+        console.error("🔴 ERROR AT READ_ONLY_DEPT_CONTROLLER (lockArchiveFile):", err.message);
+        res.status(500).json({ error: "Error system when locking the document" });
     }
 };
 
@@ -130,7 +130,7 @@ exports.submitOrderReportToAdmin = async (req, res) => {
     try {
         const { order_id } = req.body;
         if (!order_id) {
-            return res.status(400).json({ error: "Thiếu order_id: phải chọn 1 đơn hàng cụ thể để gửi báo cáo" });
+            return res.status(400).json({ error: "Missing order_id: must select a specific order to send a report" });
         }
 
         const orderResult = await pool.query(
@@ -142,7 +142,7 @@ exports.submitOrderReportToAdmin = async (req, res) => {
         );
 
         if (orderResult.rows.length === 0) {
-            return res.status(404).json({ error: "Không tìm thấy đơn hàng cần gửi báo cáo" });
+            return res.status(404).json({ error: "The order to be sent a report could not be found" });
         }
 
         const order = orderResult.rows[0];
@@ -154,9 +154,9 @@ exports.submitOrderReportToAdmin = async (req, res) => {
             status: order.status,
             current_dept: order.current_dept,
             payment_status: order.payment_status || '',
-            warehouse_location: order.warehouse_location || 'Chưa gán',
-            delivery_route: order.delivery_route || 'Chưa lập',
-            assigned_truck: order.assigned_truck || 'Chưa gán',
+            warehouse_location: order.warehouse_location || 'Not assigned',
+            delivery_route: order.delivery_route || 'Not assigned',
+            assigned_truck: order.assigned_truck || 'Not assigned',
             truck_driver_name: order.truck_driver_name || '',
             bot_fee: Number(order.bot_fee) || 0,
             fuel_fee: Number(order.fuel_fee) || 0,
@@ -167,8 +167,8 @@ exports.submitOrderReportToAdmin = async (req, res) => {
 
         const title = (req.body.title && req.body.title.trim())
             ? req.body.title.trim()
-            : `Báo cáo đơn hàng #${order.id} - ${new Date().toLocaleDateString('vi-VN')}`;
-        const createdBy = req.body.created_by || 'Phòng Chứng Từ (DOCS)';
+            : `Order report #${order.id} - ${new Date().toLocaleDateString('vi-VN')}`;
+        const createdBy = req.body.created_by || 'DOCS Department';
 
         const result = await pool.query(
             `INSERT INTO reports (title, report_type, created_by, data)
@@ -178,11 +178,11 @@ exports.submitOrderReportToAdmin = async (req, res) => {
         );
 
         res.json({
-            message: `📤 Đã gửi báo cáo đơn hàng #${order.id} cho Admin thành công!`,
+            message: `📤 The order report #${order.id} has been sent to the Admin successfully!`,
             report: result.rows[0]
         });
     } catch (err) {
-        console.error("🔴 LỖI GỬI BÁO CÁO CHO ADMIN:", err.message);
-        res.status(500).json({ error: "Lỗi hệ thống khi gửi báo cáo", detail: err.message });
+        console.error("🔴 ERROR AT READ_ONLY_DEPT_CONTROLLER (submitOrderReportToAdmin):", err.message);
+        res.status(500).json({ error: "Error system when sending the order report", detail: err.message });
     }
 };

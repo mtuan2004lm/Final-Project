@@ -6,75 +6,75 @@
         <div class="avatar">{{ username.charAt(0) }}</div>
         <div>
            <h3>{{ username }}</h3>
-           <small>Đang online</small>
+           <small>Online</small>
         </div>
       </div>
 
       <div class="notification-box">
-         <h4>🔔 Thông báo hệ thống</h4>
+         <h4>🔔 System Notifications</h4>
          <div v-if="returnedOrderNotice">
             <p style="color: #ff7675; font-weight: bold; margin-bottom: 4px; font-size: 13px;">
-               ⚠️ Đơn hàng #{{ returnedOrderNotice.id }} bị hoàn trả!
+               ⚠️ Order #{{ returnedOrderNotice.id }} has been returned!
             </p>
             <p style="color: #f1c40f; font-size: 12px; font-style: italic; margin-top: 0; line-height: 1.4; max-height: 60px; overflow-y: auto;">
-               Lý do: {{ returnedOrderNotice.driver_notes || 'Chưa cập nhật lý do cụ thể.' }}
+               Reason: {{ returnedOrderNotice.driver_notes || 'No specific reason provided yet.' }}
             </p>
          </div>
          <p v-else-if="latestNotification">{{ latestNotification }}</p>
-         <p v-else style="color: #bdc3c7;">Chưa có biến động trạng thái.</p>
+         <p v-else style="color: #bdc3c7;">No status changes yet.</p>
       </div>
 
       <div class="navigation-menu">
         <button :class="{'active-nav': currentTab === 'create'}" @click="currentTab = 'create'">
-          ➕ Tạo đơn hàng mới
+          ➕ Create New Order
         </button>
         <button :class="{'active-nav': currentTab === 'list'}" @click="currentTab = 'list'">
-          📦 Đơn hàng hiện tại
+          📦 Current Orders
         </button>
         <button :class="{'active-nav': currentTab === 'history'}" @click="currentTab = 'history'">
-          📜 Lịch sử đơn hàng & Đánh giá
+          📜 Order History & Reviews
         </button>
         <button :class="{'active-nav': currentTab === 'payment'}" @click="currentTab = 'payment'">
-          💳 Cổng thanh toán hóa đơn
+          💳 Invoice Payment Gateway
         </button>
       </div>
 
-      <button @click="logout" class="btn-logout">Đăng Xuất</button>
+      <button @click="logout" class="btn-logout">Log Out</button>
     </div>
 
     <div class="main-content">
 
       <div v-if="currentTab === 'create'">
         <header>
-          <h1>KHỞI TẠO YÊU CẦU VẬN CHUYỂN HÀNG HÓA KÝ GỬI</h1>
+          <h1>CREATE CONSIGNMENT SHIPPING REQUEST</h1>
         </header>
 
         <div class="create-order-layout">
           <div class="price-table-card">
-            <h3>📊 BẢNG GIÁ DỊCH VỤ VẬN CHUYỂN</h3>
-            <p class="price-note">* Giá thực tế = Đơn giá loại hàng × Số lượng kiện</p>
+            <h3>📊 SHIPPING SERVICE PRICE LIST</h3>
+            <p class="price-note">* Actual price = Unit price by cargo type × Number of packages</p>
             <table class="price-mini-table">
               <thead>
                 <tr>
-                  <th>Loại Hàng Hóa</th>
-                  <th>Đơn Giá / Kiện</th>
+                  <th>Cargo Type</th>
+                  <th>Unit Price / Package</th>
                 </tr>
               </thead>
               <tbody>
                 <tr :class="{'highlight-row': newOrder.cargo_type === 'Hàng hóa thông thường'}">
-                  <td>📦 Hàng thông thường</td>
+                  <td>📦 Regular Goods</td>
                   <td class="price-tag-green">$100</td>
                 </tr>
                 <tr :class="{'highlight-row': newOrder.cargo_type === 'Hàng hóa điện tử'}">
-                  <td>⚡ Hàng điện tử</td>
+                  <td>⚡ Electronics</td>
                   <td class="price-tag-green">$250</td>
                 </tr>
                 <tr :class="{'highlight-row': newOrder.cargo_type === 'Hàng hóa nguy hiểm'}">
-                  <td>☣️ Hàng nguy hiểm</td>
+                  <td>☣️ Hazardous Goods</td>
                   <td class="price-tag-green">$180</td>
                 </tr>
                 <tr :class="{'highlight-row': newOrder.cargo_type === 'Hàng hóa nhanh'}">
-                  <td>🚀 Hàng hỏa tốc</td>
+                  <td>🚀 Express Goods</td>
                   <td class="price-tag-green">$400</td>
                 </tr>
               </tbody>
@@ -82,44 +82,44 @@
           </div>
 
           <div class="form-card">
-            <h3>📝 Thông tin tờ khai hàng hóa</h3>
+            <h3>📝 Cargo Declaration Information</h3>
             <form @submit.prevent="createOrder" class="grid-form">
               <div class="form-group">
-                <label>Tên khách hàng / Đối tác doanh nghiệp:</label>
-                <input type="text" v-model="newOrder.customer_name" required placeholder="Nhập tên công ty..." />
+                <label>Customer Name / Business Partner:</label>
+                <input type="text" v-model="newOrder.customer_name" required placeholder="Enter company name..." />
               </div>
 
               <div class="form-group">
-                <label>Tên mặt hàng cần vận chuyển:</label>
-                <input type="text" v-model="newOrder.product_name" required placeholder="Ví dụ: Thùng gỗ linh kiện..." />
+                <label>Product Name to Ship:</label>
+                <input type="text" v-model="newOrder.product_name" required placeholder="E.g.: Wooden crate of components..." />
               </div>
 
               <div class="form-group">
-                <label>Phân loại nhóm hàng hóa:</label>
+                <label>Cargo Category:</label>
                 <select v-model="newOrder.cargo_type" @change="calculateEstimatedPrice">
-                  <option value="Hàng hóa thông thường">📦 Hàng hóa thông thường</option>
-                  <option value="Hàng hóa điện tử">⚡ Hàng hóa điện tử</option>
-                  <option value="Hàng hóa nguy hiểm">☣️ Hàng hóa nguy hiểm</option>
-                  <option value="Hàng hóa nhanh">🚀 Hàng hóa nhanh</option>
+                  <option value="Hàng hóa thông thường">📦 Regular Goods</option>
+                  <option value="Hàng hóa điện tử">⚡ Electronics</option>
+                  <option value="Hàng hóa nguy hiểm">☣️ Hazardous Goods</option>
+                  <option value="Hàng hóa nhanh">🚀 Express Goods</option>
                 </select>
               </div>
 
               <div class="form-group">
-                <label>Số lượng kiện hàng (Pcs):</label>
+                <label>Number of Packages (Pcs):</label>
                 <input type="number" v-model.number="newOrder.quantity" min="1" required @input="calculateEstimatedPrice" />
               </div>
 
               <div class="form-group full-width">
-                <label>Hình ảnh thực tế hàng hóa:</label>
+                <label>Actual Cargo Image:</label>
                 <input type="file" accept="image/*" required @change="onProductImageChange" class="file-input-styled" />
               </div>
 
               <div class="price-estimate-box full-width">
-                <span>Ước tính chi phí vận chuyển: </span>
+                <span>Estimated shipping cost: </span>
                 <strong style="color: #e67e22; font-size: 18px;">{{ formatCurrency(estimatedPrice) }}</strong>
               </div>
 
-              <button type="submit" class="btn-submit full-width">🚀 Gửi yêu cầu tiếp nhận</button>
+              <button type="submit" class="btn-submit full-width">🚀 Submit Request</button>
             </form>
           </div>
         </div>
@@ -127,30 +127,30 @@
 
       <div v-if="currentTab === 'list'">
         <header>
-          <h1>DANH SÁCH ĐƠN HÀNG VẬN HÀNH HIỆN TẠI</h1>
+          <h1>CURRENT OPERATIONAL ORDER LIST</h1>
         </header>
         <div class="card">
           <table class="data-table">
             <thead>
               <tr>
-                <th>Mã Đơn</th>
-                <th>Hình Ảnh</th>
-                <th>Mặt Hàng</th>
-                <th>Phân Loại</th>
-                <th>Số Lượng</th>
-                <th>Tổng Tiền</th>
-                <th>Trạng Thái</th>
-                <th>Vị Trí Xe (Thời Gian Thực)</th>
+                <th>Order Code</th>
+                <th>Image</th>
+                <th>Product</th>
+                <th>Category</th>
+                <th>Quantity</th>
+                <th>Total Amount</th>
+                <th>Status</th>
+                <th>Vehicle Location (Real-Time)</th>
               </tr>
             </thead>
             <tbody>
               <tr v-for="order in activeOrders" :key="order.id">
                 <td><b class="order-tag">#{{ order.id }}</b></td>
                 <td>
-                  <img v-if="order.product_image" :src="'http://localhost:3000' + order.product_image" class="table-img-preview" alt="Hàng hóa" />
-                  <span v-else style="color: #95a5a6; font-style: italic; font-size: 12px;">Không có ảnh</span>
+                  <img v-if="order.product_image" :src="'http://localhost:3000' + order.product_image" class="table-img-preview" alt="Cargo" />
+                  <span v-else style="color: #95a5a6; font-style: italic; font-size: 12px;">No image</span>
                 </td>
-                <td><b>{{ order.product_name }}</b><br><small style="color: #7f8c8d;">Khách: {{ order.customer_name }}</small></td>
+                <td><b>{{ order.product_name }}</b><br><small style="color: #7f8c8d;">Customer: {{ order.customer_name }}</small></td>
                 <td><span class="type-badge">{{ order.cargo_type || 'Hàng hóa thông thường' }}</span></td>
                 <td>{{ order.quantity }} pcs</td>
                 <td><b style="color: #2c3e50;">{{ formatCurrency(getOrderPrice(order)) }}</b></td>
@@ -169,17 +169,17 @@
                       referrerpolicy="no-referrer-when-downgrade">
                     </iframe>
                     <a :href="getGoogleMapsUrl(DEMO_LAT, DEMO_LNG)" target="_blank" class="map-link-full">
-                      🔗 Mở bản đồ lớn
+                      🔗 Open Full Map
                     </a>
-                    <small class="gps-updated-txt">📍 Greenwich Việt Nam</small>
+                    <small class="gps-updated-txt">📍 Greenwich Vietnam</small>
                   </div>
                   <span v-else style="color: #95a5a6; font-style: italic; font-size: 12px;">
-                    Chưa vận chuyển
+                    Not yet shipped
                   </span>
                 </td>
               </tr>
               <tr v-if="activeOrders.length === 0">
-                <td colspan="8" style="text-align: center; color: #7f8c8d; padding: 20px;">Không có đơn hàng nào đang trong quá trình xử lý.</td>
+                <td colspan="8" style="text-align: center; color: #7f8c8d; padding: 20px;">There are no orders currently being processed.</td>
               </tr>
             </tbody>
           </table>
@@ -188,18 +188,18 @@
 
       <div v-if="currentTab === 'history'">
         <header>
-          <h1>LỊCH SỬ ĐƠN HÀNG ĐÃ GIAO NHẬN THÀNH CÔNG</h1>
+          <h1>HISTORY OF SUCCESSFULLY DELIVERED ORDERS</h1>
         </header>
         <div class="card">
           <table class="data-table">
             <thead>
               <tr>
-                <th>Mã Đơn</th>
-                <th>Mặt Hàng</th>
-                <th>Phân Loại</th>
-                <th>Tổng Tiền</th>
-                <th>Trạng Thái</th>
-                <th>Đánh Giá Dịch Vụ</th>
+                <th>Order Code</th>
+                <th>Product</th>
+                <th>Category</th>
+                <th>Total Amount</th>
+                <th>Status</th>
+                <th>Service Rating</th>
               </tr>
             </thead>
             <tbody>
@@ -208,19 +208,19 @@
                 <td><b>{{ order.product_name }}</b></td>
                 <td><span class="type-badge">{{ order.cargo_type || 'Hàng hóa thông thường' }}</span></td>
                 <td><b>{{ formatCurrency(getOrderPrice(order)) }}</b></td>
-                <td><span class="status-badge done">🏁 HOÀN THÀNH</span></td>
+                <td><span class="status-badge done">🏁 COMPLETED</span></td>
                 <td>
                   <div v-if="order.rating">
                     <span class="stars-display">{{ '⭐'.repeat(order.rating) }}</span>
                     <p class="feedback-txt-preview" v-if="order.feedback">💬 {{ order.feedback }}</p>
                   </div>
                   <button v-else @click="openFeedbackModal(order)" class="btn-review-trigger">
-                    ⭐ Viết đánh giá
+                    ⭐ Write a Review
                   </button>
                 </td>
               </tr>
               <tr v-if="completedOrders.length === 0">
-                <td colspan="6" style="text-align: center; color: #7f8c8d; padding: 20px;">Chưa có đơn hàng nào hoàn thành chuỗi cung ứng logistics.</td>
+                <td colspan="6" style="text-align: center; color: #7f8c8d; padding: 20px;">No orders have completed the logistics supply chain yet.</td>
               </tr>
             </tbody>
           </table>
@@ -229,19 +229,19 @@
 
       <div v-if="currentTab === 'payment'">
         <header>
-          <h1>CỔNG THANH TOÁN HÓA ĐƠN ĐIỀU PHỐI VẬN TẢI</h1>
+          <h1>TRANSPORT DISPATCH INVOICE PAYMENT GATEWAY</h1>
         </header>
         <div class="payment-layout">
           <div class="card payment-card-main">
-            <h3>💳 Các hóa đơn đang chờ quyết toán cước phí</h3>
+            <h3>💳 Invoices Pending Freight Settlement</h3>
             <table class="data-table">
               <thead>
                 <tr>
-                  <th>Mã Đơn</th>
-                  <th>Mặt Hàng</th>
-                  <th>Phân Loại</th>
-                  <th>Thành Tiền</th>
-                  <th>Hành Động</th>
+                  <th>Order Code</th>
+                  <th>Product</th>
+                  <th>Category</th>
+                  <th>Amount</th>
+                  <th>Action</th>
                 </tr>
               </thead>
               <tbody>
@@ -252,31 +252,31 @@
                   <td><b class="price-txt">{{ formatCurrency(getOrderPrice(order)) }}</b></td>
                   <td>
                     <button @click="selectOrderToPay(order)" class="btn-pay-action">
-                      💸 Chọn thanh toán
+                      💸 Select to Pay
                     </button>
                   </td>
                 </tr>
                 <tr v-if="unpaidOrders.length === 0">
-                  <td colspan="5" style="text-align: center; color: #7f8c8d; padding: 20px;">Không có hóa đơn tồn đọng.</td>
+                  <td colspan="5" style="text-align: center; color: #7f8c8d; padding: 20px;">No outstanding invoices.</td>
                 </tr>
               </tbody>
             </table>
           </div>
 
           <div class="qr-payment-box" v-if="selectedOrderForPay && selectedOrderForPay.id">
-            <h3>📥 THÔNG TIN CHUYỂN KHOẢN QUA QR CODE</h3>
+            <h3>📥 QR CODE BANK TRANSFER INFORMATION</h3>
             <div class="qr-card-body">
-              <p>Mã hóa đơn: <b>#{{ selectedOrderForPay.id }}</b></p>
-              <p>Loại hàng: <span class="type-badge">{{ selectedOrderForPay.cargo_type || 'Hàng hóa thông thường' }}</span></p>
-              <p>Số tiền: <b style="color: #e74c3c; font-size: 16px;">{{ formatCurrency(getOrderPrice(selectedOrderForPay)) }}</b></p>
+              <p>Invoice Code: <b>#{{ selectedOrderForPay.id }}</b></p>
+              <p>Cargo Type: <span class="type-badge">{{ selectedOrderForPay.cargo_type || 'Hàng hóa thông thường' }}</span></p>
+              <p>Amount: <b style="color: #e74c3c; font-size: 16px;">{{ formatCurrency(getOrderPrice(selectedOrderForPay)) }}</b></p>
 
               <div class="qr-container">
-                <img :src="generateQRUrl(selectedOrderForPay)" alt="Mã QR" class="qr-image" />
-                <div class="qr-scan-guide">Mở ứng dụng Ngân hàng quét để thanh toán nhanh</div>
+                <img :src="generateQRUrl(selectedOrderForPay)" alt="QR Code" class="qr-image" />
+                <div class="qr-scan-guide">Open your Banking app to scan and pay quickly</div>
               </div>
 
               <button @click="mockConfirmPayment(selectedOrderForPay.id)" class="btn-confirm-payment">
-                ✓ Tôi đã hoàn tất chuyển khoản
+                ✓ I have completed the transfer
               </button>
             </div>
           </div>
@@ -288,21 +288,21 @@
     <div v-if="showReviewModal" class="review-modal-backdrop">
       <div class="review-modal-box">
         <div class="modal-header-review">
-          <h3>✍️ ĐÁNH GIÁ ĐƠN HÀNG #{{ activeReviewOrder.id }}</h3>
+          <h3>✍️ REVIEW ORDER #{{ activeReviewOrder.id }}</h3>
           <button @click="closeFeedbackModal" class="close-review-btn">&times;</button>
         </div>
         <div class="modal-body-review">
-          <label class="block-label">Mức độ hài lòng của bạn:</label>
+          <label class="block-label">Your satisfaction level:</label>
           <div class="stars-selector-row">
             <span v-for="star in 5" :key="star" @click="feedbackRating = star" class="star-clickable">
               {{ star <= feedbackRating ? '★' : '☆' }}
             </span>
           </div>
 
-          <label class="block-label">Nội dung phản hồi góp ý:</label>
-          <textarea v-model="feedbackText" placeholder="Hãy để lại ý kiến..." rows="4" class="review-textarea"></textarea>
+          <label class="block-label">Feedback content:</label>
+          <textarea v-model="feedbackText" placeholder="Please leave your feedback..." rows="4" class="review-textarea"></textarea>
 
-          <button @click="submitOrderFeedback" class="btn-send-review">🚀 Gửi đánh giá dịch vụ</button>
+          <button @click="submitOrderFeedback" class="btn-send-review">🚀 Submit Service Review</button>
         </div>
       </div>
     </div>
@@ -316,7 +316,7 @@ import axios from 'axios';
 import { useRouter } from 'vue-router';
 
 const router = useRouter();
-const username = ref(localStorage.getItem('username') || 'Khách hàng');
+const username = ref(localStorage.getItem('username') || 'Customer');
 const currentTab = ref('create');
 
 // MỚI: toạ độ GPS cố định hiển thị cho khách hàng (theo yêu cầu), thay vì lấy
@@ -410,13 +410,13 @@ const fetchOrders = async () => {
     const returned = res.data.find(o => o.status === 'RETURNED');
     returnedOrderNotice.value = returned || null;
   } catch (error) {
-    console.error("Lỗi lấy danh sách đơn hàng:", error);
+    console.error("Error fetching order list:", error);
   }
 };
 
 const createOrder = async () => {
   if (!productImageFile.value) {
-    alert("⚠️ Vui lòng tải lên hình ảnh thực tế của hàng hóa để tạo tờ khai bến bãi!");
+    alert("⚠️ Please upload an actual image of the cargo to create the yard declaration!");
     return;
   }
 
@@ -435,7 +435,7 @@ const createOrder = async () => {
     await axios.post('http://localhost:3000/api/orders', formData, {
       headers: { 'Content-Type': 'multipart/form-data' }
     });
-    alert("🚀 Khởi tạo yêu cầu ký gửi hàng hóa thành công!");
+    alert("🚀 Consignment request created successfully!");
 
     newOrder.value = { customer_name: '', product_name: '', cargo_type: 'Hàng hóa thông thường', quantity: 1 };
     productImageFile.value = null;
@@ -446,8 +446,8 @@ const createOrder = async () => {
     fetchOrders();
     currentTab.value = 'list';
   } catch (err) {
-    console.error("Lỗi gửi dữ liệu Multipart:", err);
-    alert("Lỗi khi gửi đơn hàng lên hệ thống!");
+    console.error("Error sending multipart data:", err);
+    alert("Error submitting the order to the system!");
   }
 };
 
@@ -470,11 +470,11 @@ const submitOrderFeedback = async () => {
       rating: feedbackRating.value,
       feedback: feedbackText.value
     });
-    alert("✓ Cảm ơn bạn đã gửi phản hồi dịch vụ!");
+    alert("✓ Thank you for submitting your service feedback!");
     closeFeedbackModal();
     fetchOrders();
   } catch (err) {
-    alert("Không thể gửi đánh giá, xin hãy thử lại sau!");
+    alert("Unable to submit the review, please try again later!");
   }
 };
 
@@ -491,7 +491,7 @@ const generateQRUrl = (order) => {
   const template = "qr_only";
   const amountUsd = getOrderPrice(order);
   const amountVnd = amountUsd * 25000;
-  const description = `Thanh toan don hang ${order.id}`;
+  const description = `Payment for order ${order.id}`;
   return `https://img.vietqr.io/image/${bankId}-${accountNo}-${template}.png?amount=${amountVnd}&addInfo=${encodeURIComponent(description)}`;
 };
 
@@ -499,11 +499,11 @@ const mockConfirmPayment = async (orderId) => {
   if (!orderId || isNaN(orderId)) return;
   try {
     await axios.put(`http://localhost:3000/api/orders/${orderId}/pay`);
-    alert("✓ Đã gửi yêu cầu xác nhận thanh toán thành công!");
+    alert("✓ Payment confirmation request sent successfully!");
     selectedOrderForPay.value = null;
     fetchOrders();
   } catch (err) {
-    alert("Thao tác thất bại!");
+    alert("Operation failed!");
   }
 };
 
@@ -511,17 +511,17 @@ const mockConfirmPayment = async (orderId) => {
 // nhãn mặc định "Đợi duyệt đơn" rất dễ gây hiểu lầm cho khách hàng).
 const translateStatus = (status) => {
   const dict = {
-    'NEW': '⏳ Đợi duyệt đơn',
-    'APPROVED': '✅ Điều độ tiếp nhận',
-    'WMS': '🏬 Đang ở phòng Kho',
-    'PACKED': '📦 Đã đóng gói',
-    'TMS': '🚛 Đang vận chuyển',
-    'SHIPPING': '🚛 Đang vận chuyển',
-    'DELIVERED': '🏁 Đã giao hàng thành công',
-    'DONE': '🏁 Hoàn thành',
-    'RETURNED': '⚠️ Bị hoàn trả'
+    'NEW': '⏳ Awaiting Approval',
+    'APPROVED': '✅ Dispatched for Processing',
+    'WMS': '🏬 At Warehouse',
+    'PACKED': '📦 Packed',
+    'TMS': '🚛 In Transit',
+    'SHIPPING': '🚛 In Transit',
+    'DELIVERED': '🏁 Delivered Successfully',
+    'DONE': '🏁 Completed',
+    'RETURNED': '⚠️ Returned'
   };
-  return dict[status] || '⏳ Đợi duyệt đơn';
+  return dict[status] || '⏳ Awaiting Approval';
 };
 
 const formatCurrency = (val) => {

@@ -5,60 +5,60 @@
        <div class="user-info">
          <div class="avatar">🗄️</div>
          <div>
-            <h3>Phòng Tài Liệu</h3>
+            <h3>Documentation Department</h3>
             <small style="color: #f1c40f;">Docs & Digital Archive</small>
          </div>
        </div>
        <div class="mission-box">
-          <p>📌 Nghiệm thu hồ sơ:</p>
-          <small>Rà soát chứng từ giao nhận (POD), đối chiếu phí BOT, phụ phí đường bộ và thực hiện đóng/niêm phong sổ sách kế toán kiểm toán.</small>
+          <p>📌 Document Acceptance Role:</p>
+          <small>Review delivery documents (POD), reconcile BOT fees, road surcharges, and seal/close the accounting audit records.</small>
        </div>
-       <button @click="logout" class="btn-logout">Đăng Xuất</button>
+       <button @click="logout" class="btn-logout">Log Out</button>
      </div>
 
      <div class="main-content">
        <header class="header-flex">
-         <h1>🗄️ TRUNG TÂM QUẢN TRỊ LƯU TRỮ HỒ SƠ & CHỨNG TỪ VẬN TẢI (DOCS DEPT)</h1>
-         <button @click="exportDataExcel" class="btn-export-secondary">📥 Tải CSV toàn bộ</button>
+         <h1>🗄️ TRANSPORT DOCUMENT & RECORD ARCHIVE MANAGEMENT CENTER (DOCS DEPT)</h1>
+         <button @click="exportDataExcel" class="btn-export-secondary">📥 Download All (CSV)</button>
        </header>
-       <p class="hint-text-header">📤 Muốn gửi báo cáo cho Admin? Bấm nút "Gửi Admin" ngay trên từng đơn hàng bạn muốn gửi (không gửi toàn bộ cùng lúc).</p>
+       <p class="hint-text-header">📤 Want to send a report to Admin? Click the "Send to Admin" button on each order you want to send (it does not send everything at once).</p>
 
        <div class="kpi-grid">
           <div class="kpi-card total">
              <div class="kpi-icon">📁</div>
              <div class="kpi-info">
-                <p>Hồ sơ đang lưu giữ</p>
-                <h2>{{ kpi.totalArchives }} Bộ</h2>
+                <p>Archived Records</p>
+                <h2>{{ kpi.totalArchives }} Sets</h2>
              </div>
           </div>
           <div class="kpi-card done">
              <div class="kpi-icon">🔒</div>
              <div class="kpi-info">
-                <p>Đã niêm phong kho số</p>
-                <h2>{{ kpi.closedArchives }} Hồ sơ</h2>
+                <p>Sealed in Digital Archive</p>
+                <h2>{{ kpi.closedArchives }} Records</h2>
              </div>
           </div>
           <div class="kpi-card warning">
              <div class="kpi-icon">📸</div>
              <div class="kpi-info">
-                <p>Đã có ảnh minh chứng POD</p>
-                <h2>{{ kpi.hasPodProof }} Đơn vị</h2>
+                <p>With POD Proof Image</p>
+                <h2>{{ kpi.hasPodProof }} Units</h2>
              </div>
           </div>
        </div>
 
        <div class="card list-card" style="margin-top: 25px;">
-          <h3>📋 Danh mục quản lý chứng từ trực tuyến</h3>
+          <h3>📋 Online Document Management List</h3>
           <table class="data-table">
              <thead>
                 <tr>
-                   <th>Mã Đơn</th>
-                   <th>Khách hàng</th>
-                   <th>Hàng hóa</th>
-                   <th>Số lượng</th>
-                   <th>Trạng thái hồ sơ</th>
-                   <th>Vị trí kho bãi</th>
-                   <th>Hành động</th>
+                   <th>Order Code</th>
+                   <th>Customer</th>
+                   <th>Cargo</th>
+                   <th>Quantity</th>
+                   <th>Record Status</th>
+                   <th>Warehouse Location</th>
+                   <th>Action</th>
                 </tr>
              </thead>
              <tbody>
@@ -67,28 +67,28 @@
                    <td><span class="customer-txt">{{ doc.customer_name }}</span></td>
                    <td>
                       <span class="product-txt">{{ doc.product_name }}</span>
-                      <span class="sub-txt">Tuyến đường: {{ doc.delivery_route }}</span>
+                      <span class="sub-txt">Route: {{ doc.delivery_route }}</span>
                    </td>
-                   <td>{{ doc.quantity }} kiện</td>
+                   <td>{{ doc.quantity }} packages</td>
                    <td>
                       <span :class="['badge', doc.status === 'DONE' ? 'badge-success' : 'badge-warning']">
-                         {{ doc.status === 'DONE' ? 'Đã nghiệm thu vĩnh viễn' : 'Đang tập kết Docs' }}
+                         {{ doc.status === 'DONE' ? 'Permanently Accepted' : 'Staged at Docs' }}
                       </span>
                    </td>
                    <td><span class="id-tag">{{ doc.warehouse_location }}</span></td>
                    <td>
                       <div style="display: flex; gap: 8px; flex-wrap: wrap;">
-                         <button @click="openDetails(doc)" class="btn-action view-btn">👁️ Xem chi tiết</button>
-                         <button v-if="doc.status !== 'DONE'" @click="lockArchive(doc.id)" class="btn-action lock-btn">🔒 Niêm phong</button>
+                         <button @click="openDetails(doc)" class="btn-action view-btn">👁️ View Details</button>
+                         <button v-if="doc.status !== 'DONE'" @click="lockArchive(doc.id)" class="btn-action lock-btn">🔒 Seal</button>
                          <button @click="sendReportToAdmin(doc)" class="btn-action send-btn" :disabled="sendingReportId === doc.id">
-                            {{ sendingReportId === doc.id ? '⏳ Đang gửi...' : '📤 Gửi Admin' }}
+                            {{ sendingReportId === doc.id ? '⏳ Sending...' : '📤 Send to Admin' }}
                          </button>
                       </div>
                    </td>
                 </tr>
                 <tr v-if="docs.length === 0">
                    <td colspan="7" style="text-align: center; color: #7f8c8d; padding: 30px;">
-                      Hiện tại chưa có hồ sơ nào luân chuyển đến phân hệ này.
+                      No records have been routed to this module yet.
                    </td>
                 </tr>
              </tbody>
@@ -99,10 +99,10 @@
      <div v-if="showModal" class="modal-overlay" @click.self="showModal = false">
         <div class="modal-container">
            <div class="modal-header">
-              <h2>🗂️ CHI TIẾT HỒ SƠ LƯU TRỮ ĐIỆN TỬ - ĐƠN HÀNG #{{ selectedDoc.id }}</h2>
+              <h2>🗂️ ELECTRONIC ARCHIVE RECORD DETAILS - ORDER #{{ selectedDoc.id }}</h2>
               <div style="display:flex; align-items:center; gap:10px;">
                  <button @click="sendReportToAdmin(selectedDoc)" class="btn-action send-btn" :disabled="sendingReportId === selectedDoc.id">
-                    {{ sendingReportId === selectedDoc.id ? '⏳ Đang gửi...' : '📤 Gửi Admin' }}
+                    {{ sendingReportId === selectedDoc.id ? '⏳ Sending...' : '📤 Send to Admin' }}
                  </button>
                  <button @click="showModal = false" class="close-btn">&times;</button>
               </div>
@@ -110,36 +110,36 @@
            <div class="modal-body">
               <div class="modal-grid-layout">
                  <div>
-                    <h4>📌 THÔNG TIN TỜ KHAI CƠ BẢN</h4>
+                    <h4>📌 BASIC DECLARATION INFORMATION</h4>
 
                     <table class="doc-table">
                        <tbody>
-                          <tr><td><b>Mã định danh đơn hàng:</b></td><td>#{{ selectedDoc.id }}</td></tr>
-                          <tr><td><b>Đơn vị khai báo khách hàng:</b></td><td>{{ selectedDoc.customer_name }}</td></tr>
-                          <tr><td><b>Chi tiết danh mục hàng hóa:</b></td><td>{{ selectedDoc.product_name }}</td></tr>
-                          <tr><td><b>Tổng khối lượng định biên:</b></td><td>{{ selectedDoc.quantity }} kiện hàng chuyên chở</td></tr>
-                          <tr><td><b>Định giá trị hợp đồng (Cước):</b></td><td><b class="cost-txt">${{ selectedDoc.total_cost }} USD</b></td></tr>
-                          <tr><td><b>Thời điểm xuất xưởng (OMS):</b></td><td>{{ new Date(selectedDoc.created_at).toLocaleString() }}</td></tr>
-                          <tr><td><b>Vị trí kiểm soát hiện tại:</b></td><td><span style="color: #2980b9; font-weight: bold;">Phân hệ [{{ selectedDoc.current_dept }}] - Trạng thái: {{ selectedDoc.status }}</span></td></tr>
+                          <tr><td><b>Order ID:</b></td><td>#{{ selectedDoc.id }}</td></tr>
+                          <tr><td><b>Declaring Customer:</b></td><td>{{ selectedDoc.customer_name }}</td></tr>
+                          <tr><td><b>Cargo Details:</b></td><td>{{ selectedDoc.product_name }}</td></tr>
+                          <tr><td><b>Total Registered Quantity:</b></td><td>{{ selectedDoc.quantity }} packages shipped</td></tr>
+                          <tr><td><b>Contract Valuation (Freight):</b></td><td><b class="cost-txt">${{ selectedDoc.total_cost }} USD</b></td></tr>
+                          <tr><td><b>Dispatch Time (OMS):</b></td><td>{{ new Date(selectedDoc.created_at).toLocaleString() }}</td></tr>
+                          <tr><td><b>Current Control Location:</b></td><td><span style="color: #2980b9; font-weight: bold;">Module [{{ selectedDoc.current_dept }}] - Status: {{ selectedDoc.status }}</span></td></tr>
                        </tbody>
                     </table>
 
-                    <h4 style="margin-top: 20px;">🚚 THÔNG TIN ĐIỀU PHỐI VẬN TẢI</h4>
+                    <h4 style="margin-top: 20px;">🚚 TRANSPORT DISPATCH INFORMATION</h4>
                     <table class="doc-table">
                        <tbody>
-                          <tr><td><b>Tuyến đường vận chuyển:</b></td><td>{{ selectedDoc.delivery_route }}</td></tr>
+                          <tr><td><b>Shipping Route:</b></td><td>{{ selectedDoc.delivery_route }}</td></tr>
                           <!-- ĐÃ SỬA: thêm tên tài xế phụ trách (lấy từ bảng trucks qua join biển số),
                                trước đây chỉ hiện biển số dù nhãn có ghi "Tài xế phụ trách". -->
                           <tr>
-                             <td><b>Đội xe & Tài xế phụ trách:</b></td>
+                             <td><b>Assigned Vehicle & Driver:</b></td>
                              <td>
                                 {{ selectedDoc.assigned_truck }}
-                                <span v-if="selectedDoc.truck_driver_name"> - Tài xế: {{ selectedDoc.truck_driver_name }}</span>
+                                <span v-if="selectedDoc.truck_driver_name"> - Driver: {{ selectedDoc.truck_driver_name }}</span>
                              </td>
                           </tr>
-                          <tr><td><b>Chi phí cầu đường (BOT):</b></td><td>${{ selectedDoc.bot_fee }} USD</td></tr>
-                          <tr><td><b>Định mức tiêu hao nhiên liệu:</b></td><td>${{ selectedDoc.fuel_fee }} USD</td></tr>
-                          <tr><td><b>Ghi chú từ hiện trường (Driver):</b></td><td><span class="driver-note">"{{ selectedDoc.driver_notes }}"</span></td></tr>
+                          <tr><td><b>Toll/BOT Fee:</b></td><td>${{ selectedDoc.bot_fee }} USD</td></tr>
+                          <tr><td><b>Fuel Consumption Fee:</b></td><td>${{ selectedDoc.fuel_fee }} USD</td></tr>
+                          <tr><td><b>Field Notes (Driver):</b></td><td><span class="driver-note">"{{ selectedDoc.driver_notes }}"</span></td></tr>
                        </tbody>
                     </table>
                  </div>
@@ -179,8 +179,8 @@
          this.docs = response.data.archives || [];
          this.kpi = response.data.kpi || { totalArchives: 0, closedArchives: 0, hasPodProof: 0 };
        } catch (error) {
-         console.error('🔴 Lỗi tải dữ liệu phòng Docs:', error);
-         alert('Không thể kết nối đến máy chủ Backend!');
+         console.error('🔴 Error loading Docs department data:', error);
+         alert('Unable to connect to the Backend server!');
        }
      },
      openDetails(doc) {
@@ -192,7 +192,7 @@
      // xem trực tiếp trong app, không cần tải file về máy.
      async sendReportToAdmin(doc) {
        if (!doc || !doc.id) return;
-       const title = prompt('Đặt tên cho báo cáo gửi Admin:', `Báo cáo đơn hàng #${doc.id} - ${new Date().toLocaleDateString('vi-VN')}`);
+       const title = prompt('Name the report to send to Admin:', `Order Report #${doc.id} - ${new Date().toLocaleDateString('vi-VN')}`);
        if (title === null) return; // Bấm Hủy
 
        this.sendingReportId = doc.id;
@@ -200,28 +200,28 @@
          const response = await axios.post('http://localhost:3000/api/orders/docs/reports', {
            order_id: doc.id,
            title: title.trim(),
-           created_by: 'Phòng Chứng Từ (DOCS)'
+           created_by: 'Documentation Department (DOCS)'
          });
-         alert(response.data.message || `📤 Đã gửi báo cáo đơn hàng #${doc.id} cho Admin thành công!`);
+         alert(response.data.message || `📤 Successfully sent order report #${doc.id} to Admin!`);
        } catch (error) {
-         console.error('🔴 Lỗi gửi báo cáo cho Admin:', error);
-         alert('Gửi báo cáo thất bại, vui lòng thử lại!');
+         console.error('🔴 Error sending report to Admin:', error);
+         alert('Failed to send report, please try again!');
        } finally {
          this.sendingReportId = null;
        }
      },
      async lockArchive(id) {
-       if (!confirm(`Bạn có chắc chắn muốn NIÊM PHONG hồ sơ #${id}? Sau khi khóa, dữ liệu sẽ được chuyển vào kho lưu trữ số vĩnh viễn và không thể chỉnh sửa chéo khâu.`)) return;
+       if (!confirm(`Are you sure you want to SEAL record #${id}? Once locked, the data will be moved to permanent digital archive storage and cannot be edited across departments.`)) return;
        try {
          await axios.put(`http://localhost:3000/api/orders/docs/${id}/lock`);
-         alert('🔒 Đã niêm phong chứng từ thành công vào kho lưu trữ!');
+         alert('🔒 Record successfully sealed into the archive!');
          if (this.showModal && this.selectedDoc && this.selectedDoc.id === id) {
             this.showModal = false;
          }
          this.fetchDocsData();
        } catch (error) {
-         console.error('🔴 Lỗi niêm phong hồ sơ:', error);
-         alert('Thao tác khóa hồ sơ thất bại!');
+         console.error('🔴 Error sealing record:', error);
+         alert('Failed to lock the record!');
        }
      },
      // ĐÃ SỬA: trước đây chỉ là placeholder (alert), giờ thực sự xuất file báo cáo
@@ -229,14 +229,14 @@
      // để phòng Docs xuất báo cáo tổng hợp gửi cho Admin xem/lưu trữ.
      exportDataExcel() {
         if (!this.docs || this.docs.length === 0) {
-           alert('⚠️ Không có đơn hàng nào để xuất báo cáo!');
+           alert('⚠️ There are no orders to export a report for!');
            return;
         }
 
         const headers = [
-           'Mã Đơn', 'Khách Hàng', 'Hàng Hóa', 'Số Lượng', 'Trạng Thái', 'Phòng Ban Hiện Tại',
-           'Vị Trí Kho Bãi', 'Tuyến Đường', 'Xe & Tài Xế', 'Phí BOT (USD)', 'Phí Nhiên Liệu (USD)',
-           'Cước Phí (USD)', 'Ghi Chú Tài Xế', 'Ngày Tạo'
+           'Order Code', 'Customer', 'Cargo', 'Quantity', 'Status', 'Current Department',
+           'Warehouse Location', 'Route', 'Vehicle & Driver', 'BOT Fee (USD)', 'Fuel Fee (USD)',
+           'Freight Fee (USD)', 'Driver Notes', 'Creation Date'
         ];
 
         const rows = this.docs.map(d => [
@@ -275,7 +275,7 @@
 
         const now = new Date();
         const stamp = `${now.getFullYear()}${String(now.getMonth() + 1).padStart(2, '0')}${String(now.getDate()).padStart(2, '0')}`;
-        const fileName = `BaoCao_DonHang_${stamp}.csv`;
+        const fileName = `Order_Report_${stamp}.csv`;
 
         const link = document.createElement('a');
         link.href = url;
