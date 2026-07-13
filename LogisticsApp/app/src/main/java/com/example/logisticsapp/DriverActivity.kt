@@ -44,7 +44,7 @@ class DriverActivity : AppCompatActivity() {
             lastLat = lat
             lastLng = lng
             hasGpsFix = true
-            txtLiveGps.text = "Vĩ độ (Lat): $lat\nKinh độ (Lng): $lng"
+            txtLiveGps.text = "Latitude (Lat): $lat\nLongitude (Lng): $lng"
         }
     }
 
@@ -78,7 +78,7 @@ class DriverActivity : AppCompatActivity() {
             val plate = edtTruckPlate.text.toString().trim()
 
             if (name.isEmpty() || plate.isEmpty()) {
-                Toast.makeText(this, "Vui lòng điền đủ thông tin!", Toast.LENGTH_SHORT).show()
+                Toast.makeText(this, "Please fill in all the information!", Toast.LENGTH_SHORT).show()
                 return@setOnClickListener
             }
 
@@ -89,7 +89,7 @@ class DriverActivity : AppCompatActivity() {
                 .apply()
 
             val serviceIntent = Intent(this, GpsBaseService::class.java)
-            serviceIntent.putExtra("INFO_XE", "$name - Xe: $plate")
+            serviceIntent.putExtra("VEHICLE_INFO", "$name - Vehicle: $plate")
             serviceIntent.putExtra("LICENSE_PLATE", plate) // Dùng để GpsBaseService bắn GPS định kỳ lên server theo đúng biển số xe
 
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
@@ -97,22 +97,22 @@ class DriverActivity : AppCompatActivity() {
             } else {
                 startService(serviceIntent)
             }
-            Toast.makeText(this, "Đã khởi chạy định vị ngầm!", Toast.LENGTH_SHORT).show()
+            Toast.makeText(this, "Background location tracking started!", Toast.LENGTH_SHORT).show()
 
             loadDriverTrips(plate)
         }
 
         btnStop.setOnClickListener {
             stopService(Intent(this, GpsBaseService::class.java))
-            txtLiveGps.text = "Vĩ độ (Lat): Đã dừng\nKinh độ (Lng): Đã dừng"
+            txtLiveGps.text = "Latitude (Lat): Stopped\nLongitude (Lng): Stopped"
             hasGpsFix = false
-            Toast.makeText(this, "Đã tắt định vị.", Toast.LENGTH_SHORT).show()
+            Toast.makeText(this, "Location tracking stopped.", Toast.LENGTH_SHORT).show()
         }
 
         btnRefreshTrips.setOnClickListener {
             val plate = edtTruckPlate.text.toString().trim()
             if (plate.isEmpty()) {
-                Toast.makeText(this, "Nhập biển số xe trước đã!", Toast.LENGTH_SHORT).show()
+                Toast.makeText(this, "Enter the license plate first!", Toast.LENGTH_SHORT).show()
                 return@setOnClickListener
             }
             loadDriverTrips(plate)
@@ -140,7 +140,7 @@ class DriverActivity : AppCompatActivity() {
         TmsRetrofitClient.api.getDriverTrips(licensePlate).enqueue(object : Callback<List<TripOrder>> {
             override fun onResponse(call: Call<List<TripOrder>>, response: Response<List<TripOrder>>) {
                 if (!response.isSuccessful) {
-                    Toast.makeText(this@DriverActivity, "Lỗi tải danh sách chuyến: ${response.code()}", Toast.LENGTH_SHORT).show()
+                    Toast.makeText(this@DriverActivity, "Error loading trip list: ${response.code()}", Toast.LENGTH_SHORT).show()
                     return
                 }
                 val trips = response.body() ?: emptyList()
@@ -148,7 +148,7 @@ class DriverActivity : AppCompatActivity() {
             }
 
             override fun onFailure(call: Call<List<TripOrder>>, t: Throwable) {
-                Toast.makeText(this@DriverActivity, "Không thể kết nối máy chủ: ${t.message}", Toast.LENGTH_SHORT).show()
+                Toast.makeText(this@DriverActivity, "Unable to connect to the server: ${t.message}", Toast.LENGTH_SHORT).show()
             }
         })
     }
@@ -166,18 +166,18 @@ class DriverActivity : AppCompatActivity() {
         for (trip in trips) {
             val row = inflater.inflate(R.layout.item_trip_row, llTripList, false)
             row.findViewById<TextView>(R.id.txtTripTitle).text =
-                "PKG-600${trip.id}  •  ${trip.customer_name}  (${trip.product_name} SL:${trip.quantity})"
+                "PKG-600${trip.id}  •  ${trip.customer_name}  (${trip.product_name} Qty:${trip.quantity})"
             row.findViewById<TextView>(R.id.txtTripRoute).text =
                 "🛣️ ${trip.delivery_route ?: ""}"
             row.findViewById<TextView>(R.id.txtTripStatus).text =
-                "Trạng thái: ${trip.status}  •  Xe: ${trip.assigned_truck ?: licensePlate}"
+                "Status: ${trip.status}  •  Vehicle: ${trip.assigned_truck ?: licensePlate}"
 
             row.findViewById<Button>(R.id.btnTripDetail).setOnClickListener {
                 val gpsString = if (hasGpsFix) "$lastLat, $lastLng" else ""
                 val intent = Intent(this, DriverTripDetailActivity::class.java)
                 intent.putExtra(DriverTripDetailActivity.EXTRA_ORDER_ID, trip.id)
                 intent.putExtra(DriverTripDetailActivity.EXTRA_CUSTOMER, trip.customer_name)
-                intent.putExtra(DriverTripDetailActivity.EXTRA_PRODUCT, "${trip.product_name} (SL: ${trip.quantity})")
+                intent.putExtra(DriverTripDetailActivity.EXTRA_PRODUCT, "${trip.product_name} (Qty: ${trip.quantity})")
                 intent.putExtra(DriverTripDetailActivity.EXTRA_ROUTE, trip.delivery_route ?: "")
                 intent.putExtra(DriverTripDetailActivity.EXTRA_TRUCK_PLATE, licensePlate)
                 intent.putExtra(DriverTripDetailActivity.EXTRA_GPS, gpsString)

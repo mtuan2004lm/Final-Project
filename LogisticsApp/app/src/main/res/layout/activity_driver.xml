@@ -22,7 +22,7 @@
                 android:layout_width="0dp"
                 android:layout_height="wrap_content"
                 android:layout_weight="1"
-                android:text="TÀI XẾ TMS"
+                android:text="TMS DRIVER"
                 android:textStyle="bold"
                 android:textSize="18sp"
                 android:textColor="#2c3e50"/>
@@ -31,7 +31,7 @@
                 android:id="@+id/btnLogout"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="🚪 Đăng Xuất"
+                android:text="🚪 Log Out"
                 android:textSize="12sp"
                 android:backgroundTint="#c0392b"/>
         </LinearLayout>
@@ -40,21 +40,21 @@
             android:id="@+id/edtDriverName"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:hint="Tên tài xế"
+            android:hint="Driver name"
             android:layout_marginBottom="10dp"/>
 
         <EditText
             android:id="@+id/edtTruckPlate"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:hint="Biển số xe (VD: 29C-123.45)"
+            android:hint="License plate (e.g.: 29C-123.45)"
             android:layout_marginBottom="20dp"/>
 
         <Button
             android:id="@+id/btnStartLog"
             android:layout_width="match_parent"
             android:layout_height="55dp"
-            android:text="BẮT ĐẦU CHUYẾN ĐI (BẬT GPS)"
+            android:text="START TRIP (ENABLE GPS)"
             android:backgroundTint="#4CAF50"
             android:layout_marginBottom="10dp"/>
 
@@ -62,14 +62,14 @@
             android:id="@+id/btnStopLog"
             android:layout_width="match_parent"
             android:layout_height="55dp"
-            android:text="KẾT THÚC CHUYẾN ĐI"
+            android:text="END TRIP"
             android:backgroundTint="#F44336"
             android:layout_marginBottom="30dp"/>
 
         <TextView
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="Tọa độ GPS hiện tại nhận được:"
+            android:text="Current GPS coordinates received:"
             android:textStyle="bold"
             android:textSize="16sp"/>
 
@@ -77,7 +77,7 @@
             android:id="@+id/txtLiveGps"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:text="Vĩ độ (Lat): ---\nKinh độ (Lng): ---"
+            android:text="Latitude (Lat): ---\nLongitude (Lng): ---"
             android:background="#EEEEEE"
             android:padding="15dp"
             android:layout_marginTop="10dp"
@@ -103,7 +103,7 @@
                 android:layout_width="0dp"
                 android:layout_height="wrap_content"
                 android:layout_weight="1"
-                android:text="Chuyến hàng đang giao (SHIPPING)"
+                android:text="Trips in delivery (SHIPPING)"
                 android:textStyle="bold"
                 android:textSize="17sp"/>
 
@@ -111,7 +111,7 @@
                 android:id="@+id/btnRefreshTrips"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="Tải lại"
+                android:text="Reload"
                 android:backgroundTint="#2196F3"/>
         </LinearLayout>
 
@@ -119,7 +119,7 @@
             android:id="@+id/txtTripEmpty"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:text="Chưa có chuyến nào. Hãy bấm 'Bắt đầu chuyến đi' hoặc 'Tải lại' sau khi được phòng TMS điều xe."
+            android:text="No trips yet. Press 'Start Trip' or 'Reload' after being dispatched by the TMS department."
             android:textColor="#999999"
             android:padding="10dp"/>
 

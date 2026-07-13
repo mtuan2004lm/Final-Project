@@ -76,12 +76,12 @@ class WmsLogsActivity : AppCompatActivity() {
                     allLogs = response.body()!!
                     listViewLogs.adapter = LogAdapter(this@WmsLogsActivity, allLogs)
                 } else {
-                    Toast.makeText(this@WmsLogsActivity, "Lỗi lấy dữ liệu lịch sử nhật ký kho!", Toast.LENGTH_SHORT).show()
+                    Toast.makeText(this@WmsLogsActivity, "Error fetching warehouse log history!", Toast.LENGTH_SHORT).show()
                 }
             }
 
             override fun onFailure(call: Call<List<WarehouseLog>>, t: Throwable) {
-                Toast.makeText(this@WmsLogsActivity, "Mất kết nối máy chủ dữ liệu nhật ký!", Toast.LENGTH_SHORT).show()
+                Toast.makeText(this@WmsLogsActivity, "Lost connection to the log data server!", Toast.LENGTH_SHORT).show()
             }
         })
     }
@@ -96,11 +96,11 @@ class WmsLogsActivity : AppCompatActivity() {
             val text1 = view.findViewById<TextView>(android.R.id.text1)
             val text2 = view.findViewById<TextView>(android.R.id.text2)
 
-            text1.text = "📦 Đơn: PKG-${60000 + log.orderId} | ${log.notes}"
+            text1.text = "📦 Order: PKG-${60000 + log.orderId} | ${log.notes}"
             text1.setTypeface(null, android.graphics.Typeface.BOLD)
             text1.setTextColor(android.graphics.Color.parseColor("#2C3E50"))
 
-            text2.text = "Lịch trình: ${log.oldStatus} ➡️ ${log.newStatus}\nThời gian: ${log.changedAt}"
+            text2.text = "Timeline: ${log.oldStatus} ➡️ ${log.newStatus}\nTime: ${log.changedAt}"
             text2.setTextColor(android.graphics.Color.parseColor("#7F8C8D"))
 
             return view

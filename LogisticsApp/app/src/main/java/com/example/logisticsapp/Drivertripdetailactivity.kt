@@ -37,22 +37,22 @@ class DriverTripDetailActivity : AppCompatActivity() {
         val gpsFromDriverScreen = intent.getStringExtra(EXTRA_GPS) ?: ""
 
         if (orderId == -1) {
-            Toast.makeText(this, "Thiếu mã đơn hàng!", Toast.LENGTH_SHORT).show()
+            Toast.makeText(this, "Missing order code!", Toast.LENGTH_SHORT).show()
             finish()
             return
         }
 
-        findViewById<TextView>(R.id.txtDetailOrderId).text = "Mã kiện: PKG-600$orderId"
-        findViewById<TextView>(R.id.txtDetailCustomer).text = "Khách hàng: $customer"
-        findViewById<TextView>(R.id.txtDetailProduct).text = "Hàng hóa: $product"
-        findViewById<TextView>(R.id.txtDetailRoute).text = "🛣️ Lộ trình: $route"
-        findViewById<TextView>(R.id.txtDetailTruck).text = "🚛 Xe: $truckPlate"
+        findViewById<TextView>(R.id.txtDetailOrderId).text = "Package Code: PKG-600$orderId"
+        findViewById<TextView>(R.id.txtDetailCustomer).text = "Customer: $customer"
+        findViewById<TextView>(R.id.txtDetailProduct).text = "Cargo: $product"
+        findViewById<TextView>(R.id.txtDetailRoute).text = "🛣️ Route: $route"
+        findViewById<TextView>(R.id.txtDetailTruck).text = "🚛 Vehicle: $truckPlate"
 
         val txtGps = findViewById<TextView>(R.id.txtDetailGps)
         txtGps.text = if (gpsFromDriverScreen.isNotEmpty())
             gpsFromDriverScreen
         else
-            "Chưa có tín hiệu GPS (hãy bấm 'Bắt đầu chuyến đi' ở màn trước để bật định vị)"
+            "No GPS signal yet (press 'Start Trip' on the previous screen to enable location tracking)"
 
         val edtBotFee = findViewById<EditText>(R.id.edtBotFee)
         val edtFuelFee = findViewById<EditText>(R.id.edtFuelFee)
@@ -63,7 +63,7 @@ class DriverTripDetailActivity : AppCompatActivity() {
             val botFee = edtBotFee.text.toString().trim().ifEmpty { "0" }
             val fuelFee = edtFuelFee.text.toString().trim().ifEmpty { "0" }
             val notes = edtNotes.text.toString().trim()
-            val gpsCoordinates = if (gpsFromDriverScreen.isNotEmpty()) gpsFromDriverScreen else "Không xác định"
+            val gpsCoordinates = if (gpsFromDriverScreen.isNotEmpty()) gpsFromDriverScreen else "Unknown"
 
             btnSubmit.isEnabled = false
             val body = PodSubmitRequest(
@@ -80,16 +80,16 @@ class DriverTripDetailActivity : AppCompatActivity() {
                 override fun onResponse(call: Call<Any>, response: Response<Any>) {
                     btnSubmit.isEnabled = true
                     if (response.isSuccessful) {
-                        Toast.makeText(this@DriverTripDetailActivity, "Nộp E-POD thành công! Đơn đã chuyển về phòng Kế Toán.", Toast.LENGTH_LONG).show()
+                        Toast.makeText(this@DriverTripDetailActivity, "E-POD submitted successfully! The order has been forwarded to Accounting.", Toast.LENGTH_LONG).show()
                         finish() // Quay lại DriverActivity, onResume() ở đó sẽ tự tải lại danh sách chuyến
                     } else {
-                        Toast.makeText(this@DriverTripDetailActivity, "Lỗi phản hồi hệ thống: ${response.code()}", Toast.LENGTH_LONG).show()
+                        Toast.makeText(this@DriverTripDetailActivity, "System response error: ${response.code()}", Toast.LENGTH_LONG).show()
                     }
                 }
 
                 override fun onFailure(call: Call<Any>, t: Throwable) {
                     btnSubmit.isEnabled = true
-                    Toast.makeText(this@DriverTripDetailActivity, "Không thể kết nối máy chủ: ${t.message}", Toast.LENGTH_LONG).show()
+                    Toast.makeText(this@DriverTripDetailActivity, "Unable to connect to the server: ${t.message}", Toast.LENGTH_LONG).show()
                 }
             })
         }

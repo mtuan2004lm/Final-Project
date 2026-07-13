@@ -35,7 +35,7 @@ class LoginActivity : AppCompatActivity() {
             val password = edtPassword.text.toString().trim()
 
             if (username.isEmpty() || password.isEmpty()) {
-                Toast.makeText(this, "Vui lòng điền đủ thông tin!", Toast.LENGTH_SHORT).show()
+                Toast.makeText(this, "Please fill in all the information!", Toast.LENGTH_SHORT).show()
                 return@setOnClickListener
             }
 
@@ -61,32 +61,32 @@ class LoginActivity : AppCompatActivity() {
                                 // "driver": vẫn giữ lại phòng trường hợp sau này bạn tách riêng
                                 // role cho tài xế khỏi role "tms".
                                 "driver", "tms" -> {
-                                    Toast.makeText(this@LoginActivity, "Đăng nhập Tài xế (TMS) thành công!", Toast.LENGTH_SHORT).show()
+                                    Toast.makeText(this@LoginActivity, "Driver (TMS) login successful!", Toast.LENGTH_SHORT).show()
                                     val intent = Intent(this@LoginActivity, DriverActivity::class.java)
                                     startActivity(intent)
                                     finish()
                                 }
                                 "wms" -> {
-                                    Toast.makeText(this@LoginActivity, "Đăng nhập WMS thành công!", Toast.LENGTH_SHORT).show()
+                                    Toast.makeText(this@LoginActivity, "WMS login successful!", Toast.LENGTH_SHORT).show()
                                     val intent = Intent(this@LoginActivity, WarehouseActivity::class.java)
                                     startActivity(intent)
                                     finish()
                                 }
                                 else -> {
-                                    Toast.makeText(this@LoginActivity, "Tài khoản không có quyền truy cập app Mobile!", Toast.LENGTH_LONG).show()
+                                    Toast.makeText(this@LoginActivity, "This account does not have access to the Mobile app!", Toast.LENGTH_LONG).show()
                                 }
                             }
                         } else {
-                            val msg = resBody?.get("message") as? String ?: "Sai tài khoản hoặc mật khẩu!"
+                            val msg = resBody?.get("message") as? String ?: "Incorrect username or password!"
                             Toast.makeText(this@LoginActivity, msg, Toast.LENGTH_LONG).show()
                         }
                     } else {
-                        Toast.makeText(this@LoginActivity, "Lỗi phản hồi hệ thống: ${response.code()}", Toast.LENGTH_LONG).show()
+                        Toast.makeText(this@LoginActivity, "System response error: ${response.code()}", Toast.LENGTH_LONG).show()
                     }
                 }
 
                 override fun onFailure(call: Call<Any>, t: Throwable) {
-                    Toast.makeText(this@LoginActivity, "Không thể kết nối đến máy chủ: ${t.message}", Toast.LENGTH_LONG).show()
+                    Toast.makeText(this@LoginActivity, "Unable to connect to the server: ${t.message}", Toast.LENGTH_LONG).show()
                 }
             })
         }

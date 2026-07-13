@@ -59,13 +59,13 @@ class GpsBaseService : Service() {
     }
 
     override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
-        val infoXe = intent?.getStringExtra("INFO_XE") ?: "Chưa rõ xe"
+        val vehicleInfo = intent?.getStringExtra("VEHICLE_INFO") ?: "Unknown vehicle"
         licensePlate = intent?.getStringExtra("LICENSE_PLATE") ?: ""
 
-        taoNotificationChannel()
+        createNotificationChannel()
         val notification = NotificationCompat.Builder(this, "BASE_GPS_CHANNEL")
-            .setContentTitle("Hành trình: $infoXe")
-            .setContentText("Hệ thống Base đang ghi nhận toạ độ ngầm...")
+            .setContentTitle("Trip: $vehicleInfo")
+            .setContentText("Base system is recording location in the background...")
             .setSmallIcon(android.R.drawable.ic_menu_mylocation)
             .build()
 
@@ -90,9 +90,9 @@ class GpsBaseService : Service() {
         })
     }
 
-    private fun taoNotificationChannel() {
+    private fun createNotificationChannel() {
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-            val channel = NotificationChannel("BASE_GPS_CHANNEL", "Mô phỏng GPS", NotificationManager.IMPORTANCE_LOW)
+            val channel = NotificationChannel("BASE_GPS_CHANNEL", "GPS Simulation", NotificationManager.IMPORTANCE_LOW)
             val manager = getSystemService(NotificationManager::class.java)
             manager.createNotificationChannel(channel)
         }

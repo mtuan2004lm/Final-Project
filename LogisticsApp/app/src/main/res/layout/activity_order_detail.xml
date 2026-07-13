@@ -16,7 +16,7 @@
             android:id="@+id/btnBackTop"
             android:layout_width="wrap_content"
             android:layout_height="42dp"
-            android:text="← Quay lại"
+            android:text="← Back"
             android:textAllCaps="false"
             android:backgroundTint="#555555"
             android:textColor="#FFFFFF"
@@ -28,7 +28,7 @@
             android:id="@+id/txtDetailTitle"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:text="THÔNG TIN CHI TIẾT KIỆN HÀNG WMS"
+            android:text="WMS PACKAGE DETAIL INFORMATION"
             android:textSize="17sp"
             android:textStyle="bold"
             android:textColor="#111111"
@@ -70,7 +70,7 @@
         <TextView
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="🖼️ Hình ảnh kiện hàng lúc tạo (OMS):"
+            android:text="🖼️ Package image at creation (OMS):"
             android:textStyle="bold"
             android:layout_marginBottom="4dp"/>
         <ImageView
@@ -85,7 +85,7 @@
         <TextView
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="📸 Ảnh chụp hiện trạng hư hại tại bãi (WMS):"
+            android:text="📸 Damage condition photo at the yard (WMS):"
             android:textStyle="bold"
             android:layout_marginBottom="4dp"/>
         <ImageView
@@ -106,7 +106,7 @@
         <TextView
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="⌨️ Nhập thủ công mã barcode kiện hàng để kiểm tra:"
+            android:text="⌨️ Manually enter the package barcode to verify:"
             android:textStyle="bold"
             android:textColor="#F0AD4E"
             android:layout_marginBottom="6dp"/>
@@ -115,7 +115,7 @@
             android:id="@+id/edtBarcodeInput"
             android:layout_width="match_parent"
             android:layout_height="50dp"
-            android:hint="Gõ đúng định dạng: PKG-600xx"
+            android:hint="Enter the correct format: PKG-600xx"
             android:inputType="textCapCharacters"
             android:background="@android:drawable/edit_text"
             android:padding="10dp"
@@ -125,7 +125,7 @@
             android:id="@+id/btnConfirmScan"
             android:layout_width="match_parent"
             android:layout_height="50dp"
-            android:text="XÁC THỰC NHẬP XUẤT KHO"
+            android:text="CONFIRM WAREHOUSE INTAKE"
             android:backgroundTint="#5CB85C"
             android:textColor="#FFFFFF"
             android:textStyle="bold"
@@ -136,7 +136,7 @@
             android:id="@+id/btnBack"
             android:layout_width="match_parent"
             android:layout_height="50dp"
-            android:text="QUAY VỀ DANH SÁCH SƠ ĐỒ"
+            android:text="BACK TO LIST"
             android:backgroundTint="#777777"
             android:textColor="#FFFFFF" />
     </LinearLayout>

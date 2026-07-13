@@ -10,7 +10,7 @@
         android:id="@+id/txtOrderCode"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:text="Mã kiện: PKG-600xx"
+        android:text="Package Code: PKG-600xx"
         android:textSize="16sp"
         android:textStyle="bold"
         android:textColor="#2C3E50"
@@ -20,7 +20,7 @@
         android:id="@+id/txtOrderInfo"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:text="SP: Tên sản phẩm | SL: 0 kiện"
+        android:text="Product: Product Name | Qty: 0 packages"
         android:textSize="14sp"
         android:textColor="#34495E"
         android:layout_marginBottom="6dp" />
@@ -29,7 +29,7 @@
         android:id="@+id/txtOrderLocation"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:text="📍 Vị trí | ⚠️ Tình trạng | ✅ Trạng thái"
+        android:text="📍 Location | ⚠️ Condition | ✅ Status"
         android:textSize="13sp"
         android:textStyle="italic"
         android:textColor="#7F8C8D" />

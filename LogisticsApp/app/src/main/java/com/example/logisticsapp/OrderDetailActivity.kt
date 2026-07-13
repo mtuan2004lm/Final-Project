@@ -53,7 +53,7 @@ class OrderDetailActivity : AppCompatActivity() {
         if (currentOrder != null) {
             setupOrderDetails(currentOrder!!)
         } else {
-            Toast.makeText(this, "Không tìm thấy dữ liệu kiện hàng hợp lệ!", Toast.LENGTH_SHORT).show()
+            Toast.makeText(this, "No valid package data found!", Toast.LENGTH_SHORT).show()
             finish()
         }
 
@@ -73,24 +73,24 @@ class OrderDetailActivity : AppCompatActivity() {
             val expectedCode = "PKG-${60000 + currentOrder!!.id}"
 
             if (inputCode.isEmpty()) {
-                Toast.makeText(this, "Vui lòng nhập/quét mã xác thực!", Toast.LENGTH_SHORT).show()
+                Toast.makeText(this, "Please enter/scan the verification code!", Toast.LENGTH_SHORT).show()
                 return@setOnClickListener
             }
 
             if (inputCode.equals(expectedCode, ignoreCase = true)) {
                 submitScanBarcode(currentOrder!!.id)
             } else {
-                Toast.makeText(this, "Mã kiện nhập sai! Yêu cầu chính xác: $expectedCode", Toast.LENGTH_LONG).show()
+                Toast.makeText(this, "Incorrect package code! Expected: $expectedCode", Toast.LENGTH_LONG).show()
             }
         }
     }
 
     private fun setupOrderDetails(order: WmsOrder) {
-        txtDetailTitle.text = "CHI TIẾT KIỆN HÀNG: PKG-${60000 + order.id}"
-        txtDetailInfo.text = "Chủ đơn hàng: ${order.customer_name}\nTên mặt hàng: ${order.product_name}\nSố lượng: ${order.quantity} sản phẩm"
+        txtDetailTitle.text = "PACKAGE DETAILS: PKG-${60000 + order.id}"
+        txtDetailInfo.text = "Order Owner: ${order.customer_name}\nProduct Name: ${order.product_name}\nQuantity: ${order.quantity} items"
 
-        txtDetailLocation.text = "📍 Vị trí ô kệ lưu kho: ${if (order.warehouseLocation.isNullOrEmpty()) "Chưa gán vị trí ô bãi" else order.warehouseLocation}"
-        txtDetailCondition.text = "⚠️ Tình trạng báo hư tổn: ${if (order.cargoCondition.isNullOrEmpty()) "Hàng hóa nguyên vẹn" else order.cargoCondition}"
+        txtDetailLocation.text = "📍 Storage Bin/Shelf Location: ${if (order.warehouseLocation.isNullOrEmpty()) "Not assigned yet" else order.warehouseLocation}"
+        txtDetailCondition.text = "⚠️ Damage Condition Report: ${if (order.cargoCondition.isNullOrEmpty()) "Goods intact" else order.cargoCondition}"
 
         if (!order.productImage.isNullOrEmpty()) {
             val fullUrl = ApiConfig.BASE_URL + order.productImage.removePrefix("/")
@@ -134,22 +134,22 @@ class OrderDetailActivity : AppCompatActivity() {
         apiService.scanWmsBarcode(orderId).enqueue(object : Callback<ScanResponse> {
             override fun onResponse(call: Call<ScanResponse>, response: Response<ScanResponse>) {
                 if (response.isSuccessful) {
-                    Toast.makeText(this@OrderDetailActivity, "Xác nhận nhập kho bãi thành công!", Toast.LENGTH_SHORT).show()
+                    Toast.makeText(this@OrderDetailActivity, "Yard intake confirmed successfully!", Toast.LENGTH_SHORT).show()
                     finish()
                 } else {
                     val statusCode = response.code()
-                    val errorBody = response.errorBody()?.string() ?: "Không có thông tin mô tả lỗi."
-                    Log.e("WMS_API_ERROR", "Mã HTTP: $statusCode | Nội dung lỗi từ Server: $errorBody")
+                    val errorBody = response.errorBody()?.string() ?: "No error description available."
+                    Log.e("WMS_API_ERROR", "HTTP Code: $statusCode | Error content from Server: $errorBody")
                     Toast.makeText(
                         this@OrderDetailActivity,
-                        "Hệ thống kho từ chối (Lỗi $statusCode): $errorBody",
+                        "Warehouse system rejected (Error $statusCode): $errorBody",
                         Toast.LENGTH_LONG
                     ).show()
                 }
             }
 
             override fun onFailure(call: Call<ScanResponse>, t: Throwable) {
-                Toast.makeText(this@OrderDetailActivity, "Lỗi kết nối mạng đến máy chủ kho: ${t.message}", Toast.LENGTH_SHORT).show()
+                Toast.makeText(this@OrderDetailActivity, "Network connection error to warehouse server: ${t.message}", Toast.LENGTH_SHORT).show()
             }
         })
     }

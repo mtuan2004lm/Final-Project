@@ -89,12 +89,12 @@ class WarehouseActivity : AppCompatActivity() {
                     val adapter = WmsOrderAdapter(this@WarehouseActivity, orders)
                     listViewOrders.adapter = adapter
                 } else {
-                    Toast.makeText(this@WarehouseActivity, "Lỗi lấy dữ liệu danh sách kho!", Toast.LENGTH_SHORT).show()
+                    Toast.makeText(this@WarehouseActivity, "Error fetching warehouse order list!", Toast.LENGTH_SHORT).show()
                 }
             }
 
             override fun onFailure(call: Call<List<WmsOrder>>, t: Throwable) {
-                Toast.makeText(this@WarehouseActivity, "Lỗi kết nối Server: ${t.message}", Toast.LENGTH_SHORT).show()
+                Toast.makeText(this@WarehouseActivity, "Server connection error: ${t.message}", Toast.LENGTH_SHORT).show()
             }
         })
     }
@@ -110,12 +110,12 @@ class WarehouseActivity : AppCompatActivity() {
             val txtOrderInfo = view.findViewById<TextView>(R.id.txtOrderInfo)
             val txtOrderLocation = view.findViewById<TextView>(R.id.txtOrderLocation)
 
-            txtOrderCode.text = "Mã kiện: PKG-${60000 + order.id}"
-            txtOrderInfo.text = "SP: ${order.product_name} | SL: ${order.quantity} kiện"
+            txtOrderCode.text = "Package Code: PKG-${60000 + order.id}"
+            txtOrderInfo.text = "Product: ${order.product_name} | Qty: ${order.quantity} packages"
 
-            val locStr = if (order.warehouseLocation.isNullOrEmpty()) "Chưa xếp kệ" else order.warehouseLocation
-            val condStr = if (order.cargoCondition.isNullOrEmpty()) "Bình thường" else order.cargoCondition
-            val scanStr = if (order.isScanned) "✅ Đã quét" else "❌ Chưa quét"
+            val locStr = if (order.warehouseLocation.isNullOrEmpty()) "Not shelved yet" else order.warehouseLocation
+            val condStr = if (order.cargoCondition.isNullOrEmpty()) "Normal" else order.cargoCondition
+            val scanStr = if (order.isScanned) "✅ Scanned" else "❌ Not scanned"
 
             txtOrderLocation.text = "📍 $locStr | ⚠️ $condStr | $scanStr"
 

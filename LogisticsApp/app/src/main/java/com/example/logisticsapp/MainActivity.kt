@@ -55,7 +55,7 @@ class MainActivity : AppCompatActivity() {
         super.onRequestPermissionsResult(requestCode, permissions, grantResults)
         if (requestCode == 101) {
             if (grantResults.isNotEmpty() && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
-                Toast.makeText(this, "Đã kích hoạt quyền vị trí bản Base!", Toast.LENGTH_SHORT).show()
+                Toast.makeText(this, "Base location permission activated!", Toast.LENGTH_SHORT).show()
             }
         }
     }

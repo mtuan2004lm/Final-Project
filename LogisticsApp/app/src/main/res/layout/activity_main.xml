@@ -10,7 +10,7 @@
     <TextView
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:text="HỆ THỐNG LOGISTICS BASE"
+        android:text="LOGISTICS BASE SYSTEM"
         android:textSize="22sp"
         android:textStyle="bold"
         android:textColor="#333333"
@@ -20,7 +20,7 @@
         android:id="@+id/btnGoToDriver"
         android:layout_width="match_parent"
         android:layout_height="60dp"
-        android:text="GIAO DIỆN TÀI XẾ (GPS)"
+        android:text="DRIVER INTERFACE (GPS)"
         android:backgroundTint="#4CAF50"
         android:textSize="16sp"
         android:layout_marginBottom="20dp"/>
@@ -29,7 +29,7 @@
         android:id="@+id/btnGoToWarehouse"
         android:layout_width="match_parent"
         android:layout_height="60dp"
-        android:text="GIAO DIỆN KHO (SCAN)"
+        android:text="WAREHOUSE INTERFACE (SCAN)"
         android:backgroundTint="#2196F3"
         android:textSize="16sp"/>
 

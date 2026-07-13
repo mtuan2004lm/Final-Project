@@ -14,7 +14,7 @@
         <TextView
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="CHI TIẾT CHUYẾN HÀNG"
+            android:text="TRIP DETAILS"
             android:textStyle="bold"
             android:textSize="20sp"
             android:layout_marginBottom="16dp"/>
@@ -66,7 +66,7 @@
         <TextView
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="Nhập chi phí phát sinh dọc đường (USD)"
+            android:text="Enter road expenses incurred (USD)"
             android:textStyle="bold"
             android:textSize="15sp"
             android:layout_marginBottom="10dp"/>
@@ -75,7 +75,7 @@
             android:id="@+id/edtBotFee"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:hint="Phí trạm BOT (USD)"
+            android:hint="BOT Toll Fee (USD)"
             android:inputType="numberDecimal"
             android:layout_marginBottom="10dp"/>
 
@@ -83,7 +83,7 @@
             android:id="@+id/edtFuelFee"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:hint="Tiền dầu / xăng (USD)"
+            android:hint="Fuel / Gas Cost (USD)"
             android:inputType="numberDecimal"
             android:layout_marginBottom="10dp"/>
 
@@ -91,13 +91,13 @@
             android:id="@+id/edtDriverNotes"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:hint="Ghi chú tài xế..."
+            android:hint="Driver notes..."
             android:layout_marginBottom="16dp"/>
 
         <TextView
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="Tọa độ GPS đính kèm biên bản:"
+            android:text="GPS coordinates attached to the report:"
             android:textStyle="bold"
             android:textSize="13sp"/>
 
@@ -115,7 +115,7 @@
             android:id="@+id/btnSubmitPod"
             android:layout_width="match_parent"
             android:layout_height="55dp"
-            android:text="📸 KÝ NHẬN &amp; GỬI VỀ KẾ TOÁN (E-POD)"
+            android:text="📸 SIGN &amp; SEND TO ACCOUNTING (E-POD)"
             android:backgroundTint="#2ecc71"/>
 
     </LinearLayout>
