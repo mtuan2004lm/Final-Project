@@ -244,7 +244,7 @@ exports.submitDriverPod = async (req, res) => {
         // Xe vừa giao xong đơn -> trả lại tình trạng "Sẵn sàng" cho lượt điều xe kế tiếp
         if (result.rows[0]?.assigned_truck) {
             await pool.query(
-                `UPDATE trucks SET status = 'Ready', updated_at = NOW() WHERE license_plate = $1`,   
+                `UPDATE trucks SET status = 'Ready', updated_at = NOW() WHERE license_plate = $1`,
                 [result.rows[0].assigned_truck]
             );
         }

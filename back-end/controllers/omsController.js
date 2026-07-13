@@ -4,13 +4,13 @@ const pool = require('../config/db');
 exports.getOmsOrders = async (req, res) => {
     try {
         const queryText = `
-            SELECT * FROM orders 
+            SELECT * FROM orders
             WHERE (TRIM(UPPER(current_dept)) = 'OMS' OR TRIM(UPPER(status)) = 'NEW')
               AND TRIM(UPPER(status)) NOT IN ('RETURNED', 'RETURN', 'DONE', 'COMPLETED')
             ORDER BY id ASC
         `;
         const result = await pool.query(queryText);
-        
+
         const safeRows = result.rows.map(row => {
             const cleanedRow = { ...row };
             Object.keys(cleanedRow).forEach(key => {
@@ -23,7 +23,7 @@ exports.getOmsOrders = async (req, res) => {
 
         res.json(safeRows);
     } catch (err) {
-        console.error("🔴 LỖI TẠI OMS_CONTROLLER (GET ORDERS):", err.message);
+        console.error("🔴 ERROR AT OMS_CONTROLLER (GET ORDERS):", err.message);
         res.status(500).json({ error: "Error DB OMS", detail: err.message });
     }
 };
@@ -67,19 +67,19 @@ exports.getRevenueReport = async (req, res) => {
         const todayResult = await pool.query(
             "SELECT COALESCE(SUM(total_cost), 0) as total FROM orders WHERE created_at >= CURRENT_DATE"
         );
-        
+
         // Doanh thu tháng này (tính từ ngày đầu tiên của tháng hiện tại)
         const monthResult = await pool.query(
             "SELECT COALESCE(SUM(total_cost), 0) as total FROM orders WHERE created_at >= DATE_TRUNC('month', CURRENT_DATE)"
         );
 
-        res.json({ 
-            today: parseFloat(todayResult.rows[0].total), 
-            month: parseFloat(monthResult.rows[0].total) 
+        res.json({
+            today: parseFloat(todayResult.rows[0].total),
+            month: parseFloat(monthResult.rows[0].total)
         });
     } catch (err) {
         console.error("🔴 ERROR AT OMS_CONTROLLER (getRevenueReport):", err.message);
-        res.json({ today: 0, month: 0 }); 
+        res.json({ today: 0, month: 0 });
     }
 };
 
@@ -87,20 +87,20 @@ exports.getRevenueReport = async (req, res) => {
 exports.getCustomerAnalytics = async (req, res) => {
     try {
         const queryText = `
-            SELECT 
-                customer_name, 
-                COUNT(id)::int as total_orders, 
-                COALESCE(SUM(total_cost), 0)::float as total_spent, 
-                MAX(created_at) as last_purchase 
-            FROM orders 
-            GROUP BY customer_name 
+            SELECT
+                customer_name,
+                COUNT(id)::int as total_orders,
+                COALESCE(SUM(total_cost), 0)::float as total_spent,
+                MAX(created_at) as last_purchase
+            FROM orders
+            GROUP BY customer_name
             ORDER BY total_spent DESC
         `;
         const result = await pool.query(queryText);
         res.json(result.rows);
     } catch (err) {
         console.error("🔴 ERROR AT OMS_CONTROLLER (getCustomerAnalytics):", err.message);
-        res.json([]); 
+        res.json([]);
     }
 };
 
@@ -118,7 +118,7 @@ exports.returnOrderToCustomer = async (req, res) => {
         const oldStatus = oldOrder.rows[0].status;
 
         const result = await pool.query(
-            `UPDATE orders SET status = 'RETURNED', current_dept = 'CUSTOMER', notes = $1 WHERE id = $2 RETURNING *`, 
+            `UPDATE orders SET status = 'RETURNED', current_dept = 'CUSTOMER', notes = $1 WHERE id = $2 RETURNING *`,
             [safeReason, id]
         );
 
@@ -140,7 +140,7 @@ exports.getOrderHistory = async (req, res) => {
     const { id } = req.params;
     try {
         const result = await pool.query(
-            `SELECT * FROM order_logs WHERE order_id = $1 ORDER BY changed_at DESC`, 
+            `SELECT * FROM order_logs WHERE order_id = $1 ORDER BY changed_at DESC`,
             [id]
         );
         res.json(result.rows);

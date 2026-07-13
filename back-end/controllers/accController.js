@@ -11,11 +11,11 @@ exports.getAccOrders = async (req, res) => {
         // "COALESCE types text and boolean cannot be matched" -> sập toàn bộ API.
         const ordersResult = await pool.query(
             `SELECT id, customer_name, product_name, quantity, status, current_dept, payment_status, total_cost,
-                    COALESCE(warehouse_location, 'Chưa gán') as warehouse_location,
-                    COALESCE(cargo_condition, 'Bình thường') as cargo_condition,
+                    COALESCE(warehouse_location, 'Not assigned') as warehouse_location,
+                    COALESCE(cargo_condition, 'Normal') as cargo_condition,
                     COALESCE(cargo_image, '') as cargo_image,
-                    COALESCE(delivery_route, 'Chưa lập lộ trình') as delivery_route,
-                    COALESCE(assigned_truck, 'Chưa điều xe') as assigned_truck,
+                    COALESCE(delivery_route, 'Route not yet planned') as delivery_route,
+                    COALESCE(assigned_truck, 'No vehicle assigned') as assigned_truck,
                     COALESCE(bot_fee, 0) as bot_fee,
                     COALESCE(fuel_fee, 0) as fuel_fee,
                     COALESCE(driver_notes, '') as driver_notes,
