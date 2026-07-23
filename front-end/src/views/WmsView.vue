@@ -97,12 +97,12 @@
                       <td>
                         <select v-model="locationInputs[order.id]" class="table-input">
                             <option value="" disabled>-- Select Storage Bin / Shelf --</option>
-                            <option value="Khu A - Kệ 01 (Hàng Thường)">Zone A - Shelf 01 (Regular Goods)</option>
-                            <option value="Khu A - Kệ 02 (Hàng Thường)">Zone A - Shelf 02 (Regular Goods)</option>
-                            <option value="Khu B - Kệ 01 (Hàng Nặng/Cồng kềnh)">Zone B - Shelf 01 (Heavy/Bulky Goods)</option>
-                            <option value="Khu C - Kệ Lạnh (Nhiệt độ thấp)">Zone C - Cold Shelf (Low Temperature)</option>
-                            <option value="Khu D - Kệ Hàng Dễ Vỡ (VIP)">Zone D - Fragile Goods Shelf (VIP)</option>
-                            <option value="Khu E - Kệ Hàng đi nhanh (VIP)">Zone E - Urgent Delivery Shelf (VVIP)</option>
+                            <option value="Zone A - Shelf 01 (Regular Goods)">Zone A - Shelf 01 (Regular Goods)</option>
+                            <option value="Zone A - Shelf 02 (Regular Goods)">Zone A - Shelf 02 (Regular Goods)</option>
+                            <option value="Zone B - Shelf 01 (Heavy/Bulky Goods)">Zone B - Shelf 01 (Heavy/Bulky Goods)</option>
+                            <option value="Zone C - Cold Shelf (Low Temperature)">Zone C - Cold Shelf (Low Temperature)</option>
+                            <option value="Zone D - Fragile Goods Shelf (VIP)">Zone D - Fragile Goods Shelf (VIP)</option>
+                            <option value="Zone E - Urgent Delivery Shelf (VVIP)">Zone E - Urgent Delivery Shelf (VVIP)</option>
                         </select>
                       </td>
                       <td>
@@ -151,7 +151,21 @@
                       <td>
                          <div class="report-box-grid">
                             <input type="text" v-model="conditionInputs[order.id]" placeholder="Describe damage if any..." class="table-input" />
-                            <input type="file" @change="onFileChange($event, order.id)" accept="image/*" class="mini-file-input" />
+                            <!-- Native <input type="file"> button text ("Chọn tệp" / "No file chosen") is rendered
+                                 by the browser itself based on its OS/browser locale and cannot be overridden via
+                                 HTML/Vue. So the real input is hidden and a custom English button + filename label
+                                 is used instead, triggering the hidden input via .click(). -->
+                            <input
+                               type="file"
+                               :ref="el => { if (el) fileInputRefs[order.id] = el }"
+                               @change="onFileChange($event, order.id)"
+                               accept="image/*"
+                               style="display: none;"
+                            />
+                            <div class="file-upload-row">
+                               <button type="button" class="btn-choose-file" @click="fileInputRefs[order.id]?.click()">📎 Choose File</button>
+                               <span class="file-name-txt">{{ fileInputs[order.id]?.name || 'No file chosen' }}</span>
+                            </div>
                             <button @click="submitConditionReport(order.id)" class="btn-action-orange">⚠️ Submit Report</button>
                          </div>
                       </td>
@@ -283,6 +297,7 @@ const hasSearched = ref(false);
 const locationInputs = ref({});
 const conditionInputs = ref({});
 const fileInputs = ref({});
+const fileInputRefs = ref({}); // holds the hidden <input type="file"> DOM elements, keyed by order id
 
 let wmsInterval = null;
 
@@ -418,7 +433,7 @@ const releaseToTms = async (id) => {
 const formatDate = (dateStr) => {
    if (!dateStr) return '';
    const d = new Date(dateStr);
-   return d.toLocaleString('vi-VN');
+   return d.toLocaleString('en-US');
 };
 
 const logout = () => {
@@ -474,6 +489,10 @@ header h1 { font-size: 22px; font-weight: 800; color: #2c3e50; margin-bottom: 25
 .table-input { padding: 8px 12px; border: 1px solid #cbd5e1; border-radius: 4px; font-size: 13px; width: 160px; }
 .mini-file-input { font-size: 11px; color: #7f8c8d; max-width: 150px; }
 .report-box-grid { display: flex; flex-direction: column; gap: 6px; max-width: 220px; }
+.file-upload-row { display: flex; align-items: center; gap: 8px; }
+.btn-choose-file { background: #ecf0f1; color: #34495e; border: 1px solid #cbd5e1; padding: 6px 10px; font-size: 11px; font-weight: bold; border-radius: 4px; cursor: pointer; white-space: nowrap; }
+.btn-choose-file:hover { background: #dfe6e9; }
+.file-name-txt { font-size: 11px; color: #7f8c8d; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; max-width: 110px; }
 .condition-text { margin: 0; font-size: 13px; color: #d35400; font-style: italic; font-weight: 500; }
 
 .btn-action-cyan { background: #16a085; color: white; border: none; padding: 8px 14px; font-weight: bold; font-size: 12px; border-radius: 4px; cursor: pointer; }

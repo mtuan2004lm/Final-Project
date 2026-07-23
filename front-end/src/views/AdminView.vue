@@ -20,9 +20,9 @@
            <button @click="activeTab = 'ops'" :class="{ active: activeTab === 'ops' }" class="menu-btn">
               📦 Operations Overview
            </button>
-           <!-- HIDDEN as requested: sidebar button for the "Report from Docs" tab.
-                Code kept below, just commented out - uncomment this and the matching block
-                further down to bring the feature back instantly. -->
+           <!-- ĐÃ ẨN theo yêu cầu: nút sidebar dẫn tới tab "Report from Docs".
+                Code vẫn giữ nguyên bên dưới, chỉ comment lại - bỏ comment ở đây và khối
+                tương ứng phía dưới là dùng lại được ngay. -->
            <!--
            <button @click="activeTab = 'reports'" :class="{ active: activeTab === 'reports' }" class="menu-btn">
               📄 Report from Docs
@@ -35,7 +35,7 @@
  
       <div class="main-content">
  
-         <!-- ============ TAB 1: ORDER PROCESS (DETAILED, TIKTOK-SHOP STYLE) ============ -->
+         <!-- ============ TAB 1: QUY TRÌNH ĐƠN HÀNG (CHI TIẾT, KIỂU TIKTOK SHOP) ============ -->
          <div v-if="activeTab === 'pipeline'">
             <header><h1>🔄 MONITOR THE ENTIRE ORDER FLOW</h1></header>
  
@@ -78,7 +78,7 @@
             </div>
          </div>
  
-         <!-- ============ TAB 2: REVENUE OVERVIEW ============ -->
+         <!-- ============ TAB 2: TỔNG QUAN DOANH THU ============ -->
          <div v-if="activeTab === 'revenue'">
             <header><h1>📊 COMPANY-WIDE REVENUE & PROFIT OVERVIEW</h1></header>
  
@@ -121,7 +121,7 @@
             </div>
          </div>
  
-         <!-- ============ TAB 3: OPERATIONS OVERVIEW (SUMMARY ONLY) ============ -->
+         <!-- ============ TAB 3: TỔNG QUAN VẬN HÀNH (CHỈ TÓM TẮT) ============ -->
          <div v-if="activeTab === 'ops'">
             <header class="header-flex">
                <h1>📦 SYSTEM-WIDE OPERATIONS OVERVIEW (BY DEPARTMENT)</h1>
@@ -169,10 +169,10 @@
             </div>
          </div>
  
-         <!-- ============ TAB 4: REPORT FROM DOCS (HIDDEN AS REQUESTED) ============ -->
-         <!-- The whole tab is hidden from the UI (the sidebar button that switches to it is also
-              commented out above, so activeTab can never become 'reports' anymore). Code is kept
-              intact - uncomment both this block and the sidebar button to restore it instantly.
+         <!-- ============ TAB 4: BÁO CÁO TỪ DOCS (ĐÃ ẨN THEO YÊU CẦU) ============ -->
+         <!-- Toàn bộ tab này đã bị ẩn khỏi giao diện (nút sidebar chuyển sang tab này ở trên
+              cũng đã bị comment, nên activeTab không bao giờ nhận giá trị 'reports' nữa). Code
+              vẫn được giữ nguyên - bỏ comment cả khối này lẫn nút sidebar là dùng lại được ngay.
          <div v-if="activeTab === 'reports'">
             <header><h1>📄 ORDER REPORT SENT BY THE DOCUMENTATION DEPARTMENT (DOCS)</h1></header>
  
@@ -207,7 +207,7 @@
  
       </div>
  
-      <!-- ============ MODAL: VIEW REPORT FROM DOCS (HIDDEN ALONGSIDE TAB 4 - no longer reachable) ============ -->
+      <!-- ============ MODAL: XEM BÁO CÁO TỪ DOCS (ĐÃ ẨN CÙNG TAB 4 - không còn cách nào mở được) ============ -->
       <!--
       <div v-if="showReportModal" class="modal-overlay" @click.self="showReportModal = false">
          <div class="modal-content-box report-modal-box">
@@ -251,7 +251,7 @@
       </div>
       -->
  
-      <!-- ============ MODAL: DETAILED ORDER TIMELINE (TIKTOK-SHOP STYLE) ============ -->
+      <!-- ============ MODAL: HÀNH TRÌNH CHI TIẾT ĐƠN HÀNG (KIỂU TIKTOK SHOP) ============ -->
       <div v-if="showTimelineModal" class="modal-overlay" @click.self="showTimelineModal = false">
          <div class="modal-content-box">
             <div class="modal-header">
@@ -260,7 +260,7 @@
             </div>
  
             <div class="modal-body">
-               <!-- Visual progress bar, TikTok Shop tracking style -->
+               <!-- Thanh tiến trình trực quan, kiểu tracking TikTok Shop -->
                <div v-if="selectedOrder?.status !== 'RETURNED'" class="stepper-row">
                   <div v-for="(label, idx) in stepLabels" :key="idx" class="stepper-step">
                      <div class="stepper-circle" :class="{ done: (idx + 1) <= getStepIndex(selectedOrder), current: (idx + 1) === getStepIndex(selectedOrder) }">
@@ -314,16 +314,16 @@
   const selectedOrder = ref(null);
   const activeOrderHistory = ref([]);
  
-  // Kept as-is (not deleted) so the "Report from Docs" feature can be re-enabled quickly,
-  // even though the matching template block (tab + modal + sidebar button) is now hidden.
+  // Giữ nguyên (không xoá) để có thể bật lại tính năng "Report from Docs" nhanh chóng,
+  // dù khối template tương ứng (tab + modal + nút sidebar) hiện đã bị ẩn.
   const reports = ref([]);
   const showReportModal = ref(false);
   const activeReport = ref(null);
  
   const stepLabels = ['Order Placed', 'Approved (OMS)', 'Warehouse Processing (WMS)', 'Shipping (TMS)', 'Delivered', 'Completed'];
  
-  // Infers which of the 6 standard steps an order is currently at, based on status + current_dept.
-  // This is a visual estimate for the Admin overview, not a replacement for each department's own workflow.
+  // Suy luận đơn hàng đang ở bước thứ mấy trong 6 bước chuẩn, dựa trên status + current_dept.
+  // Đây là ước lượng trực quan cho phần tổng quan của Admin, không thay thế nghiệp vụ chi tiết của từng phòng ban.
   const getStepIndex = (order) => {
      if (!order) return 1;
      const status = (order.status || '').toUpperCase();
@@ -347,7 +347,7 @@
      }
   };
  
-  // Exports a CSV report (opens directly in Excel) from every order currently in overview.orders
+  // Xuất báo cáo CSV (mở trực tiếp bằng Excel) từ toàn bộ đơn hàng đang có trong overview.orders
   const exportOrdersReport = () => {
      const list = overview.value.orders || [];
      if (list.length === 0) {
@@ -408,8 +408,8 @@
      }
   };
  
-  // FIXED: uses the correct "/history/:id" route registered in orderRoutes.js
-  // (unlike OmsView.vue, which incorrectly calls "/:id/history" - that route doesn't exist and errors out).
+  // ĐÃ SỬA: dùng đúng route "/history/:id" đã đăng ký trong orderRoutes.js
+  // (khác với OmsView.vue đang gọi nhầm "/:id/history" - route đó không tồn tại nên bị lỗi).
   const openTimeline = async (order) => {
      selectedOrder.value = order;
      try {
@@ -421,8 +421,8 @@
      }
   };
  
-  // Report list sent by Docs + open a single report's detail directly inside the app
-  // (function kept, just no longer called from refreshAllData() now that the tab is hidden)
+  // Danh sách báo cáo Docs đã gửi + mở xem chi tiết 1 báo cáo trực tiếp trong app
+  // (hàm vẫn giữ lại, chỉ không còn được gọi trong refreshAllData() nữa vì tab đã bị ẩn)
   const fetchReports = async () => {
      try {
         const res = await axios.get('http://localhost:3000/api/orders/admin/reports');
@@ -450,7 +450,7 @@
      fetchOverview();
      fetchRevenue();
      fetchAccSummary();
-     // fetchReports(); // HIDDEN alongside the "Report from Docs" tab - uncomment when re-enabling it
+     // fetchReports(); // ĐÃ ẨN cùng tab "Report from Docs" - bỏ comment dòng này khi bật lại tab
   };
  
   onMounted(() => {
@@ -538,7 +538,7 @@
  
   .returned-banner { background: #ffebee; color: #c62828; padding: 14px; border-radius: 6px; font-weight: bold; text-align: center; border: 1px dashed #ef5350; }
  
-  /* STEPPER TRACKING, TIKTOK SHOP STYLE */
+  /* THANH THEO DÕI TIẾN TRÌNH, KIỂU TIKTOK SHOP */
   .stepper-row { display: flex; align-items: flex-start; }
   .stepper-step { flex: 1; display: flex; flex-direction: column; align-items: center; position: relative; }
   .stepper-circle { width: 30px; height: 30px; border-radius: 50%; background: #dcdde1; color: #7f8c8d; display: flex; align-items: center; justify-content: center; font-weight: bold; font-size: 13px; z-index: 2; }

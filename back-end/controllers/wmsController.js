@@ -205,7 +205,7 @@ exports.getWarehouseLogsByOrder = async (req, res) => {
         res.json(result.rows);
     } catch (err) {
         console.error("🔴 ERROR AT WMS_CONTROLLER (getWarehouseLogsByOrder):", err.message);
-        res.status(500).json({ error: 'Error querying the warehouse logs by order' });
+        res.status(500).json({ error: 'Lỗi truy vấn nhật ký kho theo mã đơn' });
     }
 };
 
