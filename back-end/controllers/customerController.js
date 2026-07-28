@@ -33,6 +33,8 @@ exports.getCustomerOrders = async (req, res) => {
                    COALESCE(o.product_image, '') as product_image,
                    COALESCE(o.assigned_truck, '') as assigned_truck,
                    COALESCE(o.delivery_route, '') as delivery_route,
+                   o.rating,
+                   o.feedback,
                    t.current_lat as truck_lat,
                    t.current_lng as truck_lng,
                    t.gps_updated_at as truck_gps_updated_at
@@ -137,5 +139,60 @@ exports.confirmPaymentSubmitted = async (req, res) => {
     } catch (err) {
         console.error("🔴 ERROR AT CUSTOMER_CONTROLLER (confirmPaymentSubmitted):", err.message);
         res.status(500).json({ error: "Error system when confirming payment", detail: err.message });
+    }
+};
+
+// =========================================================================
+// 4. MỚI: KHÁCH HÀNG ĐÁNH GIÁ DỊCH VỤ SAU KHI NHẬN HÀNG
+//    Route này trước đây bị THIẾU HOÀN TOÀN ở backend (POST /api/orders/:id/feedback),
+//    khiến nút "Submit Service Review" trên CustomerView.vue luôn báo lỗi 404 Not Found.
+//    Hai cột rating (integer) và feedback (text) đã có sẵn trong bảng orders nên
+//    chỉ cần UPDATE, không phải sửa schema.
+// =========================================================================
+exports.submitFeedback = async (req, res) => {
+    const { id } = req.params;
+    const { rating, feedback } = req.body;
+
+    try {
+        // Chỉ nhận điểm từ 1-5 để tránh dữ liệu rác làm sai thống kê phía Admin
+        const safeRating = parseInt(rating);
+        if (isNaN(safeRating) || safeRating < 1 || safeRating > 5) {
+            return res.status(400).json({ error: "The rating must be a number between 1 and 5!" });
+        }
+
+        const existing = await pool.query("SELECT status FROM orders WHERE id = $1", [id]);
+        if (existing.rows.length === 0) {
+            return res.status(404).json({ error: "The order to be reviewed could not be found!" });
+        }
+
+        // Chỉ cho đánh giá khi hàng đã thực sự tới tay khách (DELIVERED hoặc DONE),
+        // khớp với điều kiện lọc completedOrders bên CustomerView.vue.
+        const currentStatus = existing.rows[0].status;
+        if (currentStatus !== 'DELIVERED' && currentStatus !== 'DONE') {
+            return res.status(400).json({ error: "Only delivered or completed orders can be reviewed!" });
+        }
+
+        const result = await pool.query(
+            `UPDATE orders
+             SET rating = $1, feedback = $2
+             WHERE id = $3 RETURNING *`,
+            [safeRating, feedback || '', id]
+        );
+
+        await pool.query(
+            `INSERT INTO order_logs (order_id, notes, old_status, new_status)
+             VALUES ($1, $2, $3, $4)`,
+            [
+                id,
+                `The customer rated the service ${safeRating}/5 stars. Feedback: ${feedback || '(no comment)'}`,
+                currentStatus,
+                currentStatus
+            ]
+        );
+
+        res.json({ message: "✅ Thank you for your service review!", order: result.rows[0] });
+    } catch (err) {
+        console.error("🔴 ERROR AT CUSTOMER_CONTROLLER (submitFeedback):", err.message);
+        res.status(500).json({ error: "Error system when submitting the review", detail: err.message });
     }
 };

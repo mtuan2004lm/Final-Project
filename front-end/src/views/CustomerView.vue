@@ -111,7 +111,24 @@
 
               <div class="form-group full-width">
                 <label>Actual Cargo Image:</label>
-                <input type="file" accept="image/*" required @change="onProductImageChange" class="file-input-styled" />
+                <!-- Chữ trên nút <input type="file"> gốc ("Chọn tệp" / "Không có tệp nào được chọn")
+                     do chính trình duyệt vẽ ra theo ngôn ngữ hệ điều hành, không thể đổi bằng
+                     HTML/Vue. Vì vậy input thật được ẩn đi, thay bằng nút tiếng Anh tự tạo +
+                     nhãn hiển thị tên file, bấm vào sẽ kích hoạt input ẩn qua .click().
+                     LƯU Ý: đã bỏ thuộc tính "required" vì input bị ẩn không thể focus được,
+                     trình duyệt sẽ chặn submit kèm lỗi "not focusable". Việc bắt buộc chọn ảnh
+                     đã được kiểm tra bằng JS trong hàm createOrder() bên dưới. -->
+                <input
+                  type="file"
+                  accept="image/*"
+                  ref="fileInputRef"
+                  @change="onProductImageChange"
+                  style="display: none;"
+                />
+                <div class="file-upload-row">
+                  <button type="button" class="btn-choose-file" @click="fileInputRef?.click()">📎 Choose File</button>
+                  <span class="file-name-txt">{{ productImageFile?.name || 'No file chosen' }}</span>
+                </div>
               </div>
 
               <div class="price-estimate-box full-width">
@@ -329,6 +346,7 @@ const orders = ref([]);
 const estimatedPrice = ref(100);
 const selectedOrderForPay = ref(null);
 const productImageFile = ref(null);
+const fileInputRef = ref(null); // tham chiếu tới <input type="file"> đang bị ẩn
 
 const showReviewModal = ref(false);
 const activeReviewOrder = ref(null);
@@ -439,8 +457,9 @@ const createOrder = async () => {
 
     newOrder.value = { customer_name: '', product_name: '', cargo_type: 'Hàng hóa thông thường', quantity: 1 };
     productImageFile.value = null;
-    const fileInput = document.querySelector('.file-input-styled');
-    if (fileInput) fileInput.value = '';
+    // ĐÃ SỬA: dùng ref thay cho document.querySelector('.file-input-styled') vì input
+    // đã được ẩn và đổi cách khai báo (class cũ không còn tồn tại trên input nữa).
+    if (fileInputRef.value) fileInputRef.value.value = '';
 
     calculateEstimatedPrice();
     fetchOrders();
@@ -598,6 +617,10 @@ header h1 { font-size: 24px; font-weight: 800; color: #2c3e50; margin-bottom: 25
 .form-group label { font-size: 13px; font-weight: 600; color: #4a5568; }
 .form-group input, .form-group select { padding: 10px; border: 1px solid #cbd5e1; border-radius: 4px; font-size: 14px; background: #fff; }
 .file-input-styled { background: #f8fafc; padding: 8px; border: 1px dashed #cbd5e1; cursor: pointer; }
+.file-upload-row { display: flex; align-items: center; gap: 10px; background: #f8fafc; padding: 8px; border: 1px dashed #cbd5e1; border-radius: 4px; }
+.btn-choose-file { background: #ecf0f1; color: #34495e; border: 1px solid #cbd5e1; padding: 8px 14px; font-size: 13px; font-weight: bold; border-radius: 4px; cursor: pointer; white-space: nowrap; }
+.btn-choose-file:hover { background: #dfe6e9; }
+.file-name-txt { font-size: 13px; color: #7f8c8d; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .full-width { grid-column: span 2; }
 .price-estimate-box { background: #fff9db; padding: 12px; border-radius: 4px; border: 1px solid #ffe3e3; font-weight: bold; text-align: right; }
 .btn-submit { background: #27ae60; color: white; border: none; padding: 12px; font-weight: bold; border-radius: 4px; cursor: pointer; }

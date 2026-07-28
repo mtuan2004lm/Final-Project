@@ -27,6 +27,7 @@ const adminController = require('../controllers/adminController');
 router.post('/', upload.single('product_image'), customerController.createOrder);
 router.get('/customer', customerController.getCustomerOrders);
 router.put('/:id/pay', customerController.confirmPaymentSubmitted); // THIẾU TRƯỚC ĐÂY: nút "Tôi đã hoàn tất chuyển khoản" gọi route này
+router.post('/:id/feedback', customerController.submitFeedback); // THIẾU TRƯỚC ĐÂY: nút "Submit Service Review" ở CustomerView.vue gọi route này (lỗi 404)
 
 // 2. ROUTE PHÒNG ĐIỀU PHỐI (OMS)
 router.get('/oms', omsController.getOmsOrders);
