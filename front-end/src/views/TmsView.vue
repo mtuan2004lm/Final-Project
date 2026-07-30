@@ -55,9 +55,9 @@
                            <td>
                               <div style="display: flex; gap: 6px; align-items: center;">
                                  <select :id="'select-route-' + order.id" class="form-select-custom" style="width: 140px;">
-                                     <option value="Trục Bắc Nam - Quốc Lộ 1A">QL1A Route (North-South)</option>
-                                     <option value="Nội Thành Express - Giao Nhanh">Inner City (Express)</option>
-                                     <option value="Tuyến Cao Tốc TPHCM - Đà Nẵng">HCMC - Da Nang Expressway</option>
+                                     <option value="QL1A Route (North-South)">QL1A Route (North-South)</option>
+                                     <option value="Inner City (Express)">Inner City (Express)</option>
+                                     <option value="HCMC - Da Nang Expressway">HCMC - Da Nang Expressway</option>
                                  </select>
                                  <!--
                                    ĐÃ SỬA: value giờ là license_plate THUẦN (khớp cột trucks.license_plate)
