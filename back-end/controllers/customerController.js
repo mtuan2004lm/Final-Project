@@ -59,7 +59,10 @@ exports.getCustomerOrders = async (req, res) => {
 // 2. KHỞI TẠO ĐƠN HÀNG MỚI (TỜ KHAI KÝ GỬI HÀNG HÓA CHUYỂN OMS)
 // =========================================================================
 exports.createOrder = async (req, res) => {
-    const { username, customer_name, product_name, cargo_type, quantity, total_price } = req.body;
+    // ĐÃ BỔ SUNG: nhận thêm delivery_route do khách hàng tự chọn ngay lúc khai báo
+    // (trước đây cột này luôn rỗng cho tới khi phòng TMS tự gán tuyến). Mục đích:
+    // để phòng TMS biết được lộ trình mong muốn của khách hàng ngay khi đơn về tới TMS.
+    const { username, customer_name, product_name, cargo_type, quantity, total_price, delivery_route } = req.body;
     const productImagePath = req.file ? `/uploads/${req.file.filename}` : '';
 
     try {
@@ -69,9 +72,9 @@ exports.createOrder = async (req, res) => {
         const queryText = `
             INSERT INTO orders (
                 username, customer_name, product_name, cargo_type,
-                quantity, total_price, total_cost, product_image, status, current_dept
+                quantity, total_price, total_cost, product_image, delivery_route, status, current_dept
             )
-            VALUES ($1, $2, $3, $4, $5, $6, $7, $8, 'NEW', 'OMS')
+            VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, 'NEW', 'OMS')
             RETURNING *
         `;
 
@@ -81,9 +84,10 @@ exports.createOrder = async (req, res) => {
             product_name,
             cargo_type || 'Normal goods',
             parseInt(quantity) || 1,
-            safePrice,          // $6: total_price
-            safePrice,          // $7: total_cost
-            productImagePath    // $8
+            safePrice,              // $6: total_price
+            safePrice,              // $7: total_cost
+            productImagePath,       // $8
+            delivery_route || ''    // $9: tuyến đường khách hàng mong muốn (để TMS biết)
         ];
 
         const result = await pool.query(queryText, values);

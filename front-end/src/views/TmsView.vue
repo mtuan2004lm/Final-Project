@@ -54,10 +54,14 @@
                            </td>
                            <td>
                               <div style="display: flex; gap: 6px; align-items: center;">
+                                 <!-- ĐÃ SỬA: mặc định chọn sẵn đúng tuyến mà khách hàng đã đăng ký lúc
+                                      khai báo (order.delivery_route), để phòng TMS biết ngay khách muốn
+                                      đi tuyến nào, thay vì luôn mặc định về option đầu tiên trong danh
+                                      sách. TMS vẫn có thể đổi tuyến khác trước khi bấm "Dispatch" nếu cần. -->
                                  <select :id="'select-route-' + order.id" class="form-select-custom" style="width: 140px;">
-                                     <option value="QL1A Route (North-South)">QL1A Route (North-South)</option>
-                                     <option value="Inner City (Express)">Inner City (Express)</option>
-                                     <option value="HCMC - Da Nang Expressway">HCMC - Da Nang Expressway</option>
+                                     <option value="QL1A Route (North-South)" :selected="order.delivery_route === 'QL1A Route (North-South)'">QL1A Route (North-South)</option>
+                                     <option value="Inner City (Express)" :selected="order.delivery_route === 'Inner City (Express)'">Inner City (Express)</option>
+                                     <option value="HCMC - Da Nang Expressway" :selected="order.delivery_route === 'HCMC - Da Nang Expressway'">HCMC - Da Nang Expressway</option>
                                  </select>
                                  <!--
                                    ĐÃ SỬA: value giờ là license_plate THUẦN (khớp cột trucks.license_plate)

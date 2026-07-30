@@ -109,6 +109,19 @@
                 <input type="number" v-model.number="newOrder.quantity" min="1" required @input="calculateEstimatedPrice" />
               </div>
 
+              <!-- MỚI: Khách hàng tự chọn tuyến đường mong muốn ngay lúc khai báo,
+                   thay vì phải đợi phòng TMS tự gán tuyến. Danh sách tuyến khớp
+                   chính xác với các option mà TmsView.vue đang dùng để điều phối,
+                   để khi đơn tới TMS, phòng TMS biết ngay lộ trình khách muốn đi. -->
+              <div class="form-group full-width">
+                <label>Preferred Delivery Route:</label>
+                <select v-model="newOrder.delivery_route">
+                  <option value="QL1A Route (North-South)">🛣️ QL1A Route (North-South)</option>
+                  <option value="Inner City (Express)">🏙️ Inner City (Express)</option>
+                  <option value="HCMC - Da Nang Expressway">🛣️ HCMC - Da Nang Expressway</option>
+                </select>
+              </div>
+
               <div class="form-group full-width">
                 <label>Actual Cargo Image:</label>
                 <!-- Chữ trên nút <input type="file"> gốc ("Chọn tệp" / "Không có tệp nào được chọn")
@@ -361,7 +374,8 @@ const newOrder = ref({
   customer_name: '',
   product_name: '',
   cargo_type: 'Hàng hóa thông thường',
-  quantity: 1
+  quantity: 1,
+  delivery_route: 'QL1A Route (North-South)'
 });
 
 // Chuyển đổi toàn bộ bảng giá dịch vụ logistics sang USD ($)
@@ -444,6 +458,7 @@ const createOrder = async () => {
   formData.append('product_name', newOrder.value.product_name);
   formData.append('cargo_type', newOrder.value.cargo_type);
   formData.append('quantity', newOrder.value.quantity);
+  formData.append('delivery_route', newOrder.value.delivery_route); // MỚI: gửi tuyến khách chọn để TMS biết
 
   const rate = priceRates[newOrder.value.cargo_type] || 100;
   formData.append('total_price', rate * newOrder.value.quantity);
@@ -455,7 +470,7 @@ const createOrder = async () => {
     });
     alert("🚀 Consignment request created successfully!");
 
-    newOrder.value = { customer_name: '', product_name: '', cargo_type: 'Hàng hóa thông thường', quantity: 1 };
+    newOrder.value = { customer_name: '', product_name: '', cargo_type: 'Hàng hóa thông thường', quantity: 1, delivery_route: 'QL1A Route (North-South)' };
     productImageFile.value = null;
     // ĐÃ SỬA: dùng ref thay cho document.querySelector('.file-input-styled') vì input
     // đã được ẩn và đổi cách khai báo (class cũ không còn tồn tại trên input nữa).
