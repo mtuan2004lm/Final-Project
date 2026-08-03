@@ -97,10 +97,10 @@
               <div class="form-group">
                 <label>Cargo Category:</label>
                 <select v-model="newOrder.cargo_type" @change="calculateEstimatedPrice">
-                  <option value="Hàng hóa thông thường">📦 Regular Goods</option>
-                  <option value="Hàng hóa điện tử">⚡ Electronics</option>
-                  <option value="Hàng hóa nguy hiểm">☣️ Hazardous Goods</option>
-                  <option value="Hàng hóa nhanh">🚀 Express Goods</option>
+                  <option value="Regular Goods">📦 Regular Goods</option>
+                  <option value="Electronics">⚡ Electronics</option>
+                  <option value="Hazardous Goods">☣️ Hazardous Goods</option>
+                  <option value="Express Goods">🚀 Express Goods</option>
                 </select>
               </div>
 
