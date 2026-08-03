@@ -111,11 +111,6 @@ exports.createOrder = async (req, res) => {
 
 // =========================================================================
 // 3. MỚI: KHÁCH HÀNG XÁC NHẬN ĐÃ CHUYỂN KHOẢN (Cổng thanh toán -> chờ Kế toán duyệt)
-//    Route này trước đây bị THIẾU HOÀN TOÀN ở backend (PUT /api/orders/:id/pay),
-//    khiến nút "Tôi đã hoàn tất chuyển khoản" trên CustomerView.vue luôn báo lỗi.
-//    Không đánh dấu PAID ngay - chỉ chuyển hồ sơ sang phòng Kế toán (ACC) để họ
-//    đối soát và tự bấm duyệt (đúng như accController.approvePayment đang chờ
-//    status = 'PENDING' + current_dept = 'ACC').
 // =========================================================================
 exports.confirmPaymentSubmitted = async (req, res) => {
     const { id } = req.params;
@@ -148,10 +143,6 @@ exports.confirmPaymentSubmitted = async (req, res) => {
 
 // =========================================================================
 // 4. MỚI: KHÁCH HÀNG ĐÁNH GIÁ DỊCH VỤ SAU KHI NHẬN HÀNG
-//    Route này trước đây bị THIẾU HOÀN TOÀN ở backend (POST /api/orders/:id/feedback),
-//    khiến nút "Submit Service Review" trên CustomerView.vue luôn báo lỗi 404 Not Found.
-//    Hai cột rating (integer) và feedback (text) đã có sẵn trong bảng orders nên
-//    chỉ cần UPDATE, không phải sửa schema.
 // =========================================================================
 exports.submitFeedback = async (req, res) => {
     const { id } = req.params;
