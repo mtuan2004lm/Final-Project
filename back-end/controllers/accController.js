@@ -5,10 +5,6 @@ const pool = require('../config/db');
 // =========================================================================
 exports.getAccOrders = async (req, res) => {
     try {
-        // Lấy tất cả đơn hàng để hiển thị sổ cái chứng từ
-        // ĐÃ SỬA LỖI 500: cargo_image là cột kiểu text (đường dẫn ảnh do WMS upload),
-        // COALESCE(cargo_image, false) trộn text với boolean khiến Postgres báo lỗi
-        // "COALESCE types text and boolean cannot be matched" -> sập toàn bộ API.
         const ordersResult = await pool.query(
             `SELECT id, customer_name, product_name, quantity, status, current_dept, payment_status, total_cost,
                     COALESCE(warehouse_location, 'Not assigned') as warehouse_location,
