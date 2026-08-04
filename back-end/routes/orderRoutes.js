@@ -46,13 +46,11 @@ router.put('/wms/:id/release', wmsController.releaseToTms);
 router.put('/wms/:id/scan-barcode', wmsController.scanBarcode);
 
 // 4. ROUTE PHÒNG VẬN TẢI ĐỘI XE (TMS)
-// -- Lưu ý thứ tự: các route tĩnh /tms/fleet/... và /tms/driver/... phải đặt
-//    TRƯỚC route động /tms/:id/... để Express không match nhầm "fleet"/"driver" thành :id
 router.get('/tms/fleet', tmsController.getTruckFleet);
 router.post('/tms/fleet', tmsController.createTruck);
-router.put('/tms/fleet/gps', tmsController.updateTruckGps);          // App tài xế bắn GPS định kỳ
-router.put('/tms/fleet/:id', tmsController.updateTruck);             // Sửa thông tin xe
-router.put('/tms/fleet/:id/status', tmsController.updateTruckStatus); // Kiểm tra / cập nhật tình trạng xe
+router.put('/tms/fleet/gps', tmsController.updateTruckGps);         
+router.put('/tms/fleet/:id', tmsController.updateTruck);            
+router.put('/tms/fleet/:id/status', tmsController.updateTruckStatus); 
 router.delete('/tms/fleet/:id', tmsController.deleteTruck);
 
 router.get('/tms/driver/:license_plate', tmsController.getDriverTrips); // App tài xế lấy chuyến đang chạy
