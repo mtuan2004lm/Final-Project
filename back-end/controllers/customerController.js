@@ -59,9 +59,6 @@ exports.getCustomerOrders = async (req, res) => {
 // 2. KHỞI TẠO ĐƠN HÀNG MỚI (TỜ KHAI KÝ GỬI HÀNG HÓA CHUYỂN OMS)
 // =========================================================================
 exports.createOrder = async (req, res) => {
-    // ĐÃ BỔ SUNG: nhận thêm delivery_route do khách hàng tự chọn ngay lúc khai báo
-    // (trước đây cột này luôn rỗng cho tới khi phòng TMS tự gán tuyến). Mục đích:
-    // để phòng TMS biết được lộ trình mong muốn của khách hàng ngay khi đơn về tới TMS.
     const { username, customer_name, product_name, cargo_type, quantity, total_price, delivery_route } = req.body;
     const productImagePath = req.file ? `/uploads/${req.file.filename}` : '';
 
