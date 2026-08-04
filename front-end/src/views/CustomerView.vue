@@ -124,13 +124,7 @@
 
               <div class="form-group full-width">
                 <label>Actual Cargo Image:</label>
-                <!-- Chữ trên nút <input type="file"> gốc ("Chọn tệp" / "Không có tệp nào được chọn")
-                     do chính trình duyệt vẽ ra theo ngôn ngữ hệ điều hành, không thể đổi bằng
-                     HTML/Vue. Vì vậy input thật được ẩn đi, thay bằng nút tiếng Anh tự tạo +
-                     nhãn hiển thị tên file, bấm vào sẽ kích hoạt input ẩn qua .click().
-                     LƯU Ý: đã bỏ thuộc tính "required" vì input bị ẩn không thể focus được,
-                     trình duyệt sẽ chặn submit kèm lỗi "not focusable". Việc bắt buộc chọn ảnh
-                     đã được kiểm tra bằng JS trong hàm createOrder() bên dưới. -->
+            
                 <input
                   type="file"
                   accept="image/*"
