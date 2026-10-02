@@ -1,0 +1,427 @@
+// !$*UTF8*$!
+{
+	archiveVersion = 1;
+	classes = {
+	};
+	objectVersion = 110;
+	objects = {
+
+/* Begin PBXBuildFile section */
+		CBF92CFD306F91A70023EE83 /* DriverTripDetailView.swift in Sources */ = {isa = PBXBuildFile; fileRef = CBCC38DA306F557A003F6C50 /* DriverTripDetailView.swift */; };
+		CBF92CFE306F91A70023EE83 /* DriverView.swift in Sources */ = {isa = PBXBuildFile; fileRef = CBCC38D9306F556C003F6C50 /* DriverView.swift */; };
+		CBF92CFF306F91A70023EE83 /* WmsLogView.swift in Sources */ = {isa = PBXBuildFile; fileRef = CBCC38D8306F555B003F6C50 /* WmsLogView.swift */; };
+		CBF92D00306F91A70023EE83 /* OrderDetailView.swift in Sources */ = {isa = PBXBuildFile; fileRef = CBCC38D7306F554A003F6C50 /* OrderDetailView.swift */; };
+		CBF92D01306F91A70023EE83 /* WarehouseView.swift in Sources */ = {isa = PBXBuildFile; fileRef = CBCC38D6306F553B003F6C50 /* WarehouseView.swift */; };
+		CBF92D02306F91A70023EE83 /* MainMenuView.swift in Sources */ = {isa = PBXBuildFile; fileRef = CBCC38D5306F552D003F6C50 /* MainMenuView.swift */; };
+		CBF92D03306F91A70023EE83 /* LoginView.swift in Sources */ = {isa = PBXBuildFile; fileRef = CBCC38D4306F5520003F6C50 /* LoginView.swift */; };
+		CBF92D04306F91A70023EE83 /* LocationManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = CBCC38D3306F5503003F6C50 /* LocationManager.swift */; };
+		CBF92D05306F91A70023EE83 /* SessionStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = CBCC38D2306F54DE003F6C50 /* SessionStore.swift */; };
+		CBF92D06306F91A70023EE83 /* ApiService.swift in Sources */ = {isa = PBXBuildFile; fileRef = CBCC38D1306F54A2003F6C50 /* ApiService.swift */; };
+		CBF92D07306F91A70023EE83 /* ApiConfig.swift in Sources */ = {isa = PBXBuildFile; fileRef = CBCC38D0306F5492003F6C50 /* ApiConfig.swift */; };
+		CBF92D08306F91A70023EE83 /* Models.swift in Sources */ = {isa = PBXBuildFile; fileRef = CBCC38CF306F5475003F6C50 /* Models.swift */; };
+		CBF92D0B306F91A70023EE83 /* LogisticAppIOSApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = CBCC38C6306F52C8003F6C50 /* LogisticAppIOSApp.swift */; };
+/* End PBXBuildFile section */
+
+/* Begin PBXFileReference section */
+		CBCC38B6306F4EA9003F6C50 /* LogisticAppIOS.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = LogisticAppIOS.app; sourceTree = BUILT_PRODUCTS_DIR; };
+		CBCC38C5306F52C8003F6C50 /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
+		CBCC38C6306F52C8003F6C50 /* LogisticAppIOSApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LogisticAppIOSApp.swift; sourceTree = "<group>"; };
+		CBCC38CF306F5475003F6C50 /* Models.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Models.swift; sourceTree = "<group>"; };
+		CBCC38D0306F5492003F6C50 /* ApiConfig.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ApiConfig.swift; sourceTree = "<group>"; };
+		CBCC38D1306F54A2003F6C50 /* ApiService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ApiService.swift; sourceTree = "<group>"; };
+		CBCC38D2306F54DE003F6C50 /* SessionStore.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SessionStore.swift; sourceTree = "<group>"; };
+		CBCC38D3306F5503003F6C50 /* LocationManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LocationManager.swift; sourceTree = "<group>"; };
+		CBCC38D4306F5520003F6C50 /* LoginView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LoginView.swift; sourceTree = "<group>"; };
+		CBCC38D5306F552D003F6C50 /* MainMenuView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MainMenuView.swift; sourceTree = "<group>"; };
+		CBCC38D6306F553B003F6C50 /* WarehouseView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WarehouseView.swift; sourceTree = "<group>"; };
+		CBCC38D7306F554A003F6C50 /* OrderDetailView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OrderDetailView.swift; sourceTree = "<group>"; };
+		CBCC38D8306F555B003F6C50 /* WmsLogView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WmsLogView.swift; sourceTree = "<group>"; };
+		CBCC38D9306F556C003F6C50 /* DriverView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DriverView.swift; sourceTree = "<group>"; };
+		CBCC38DA306F557A003F6C50 /* DriverTripDetailView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DriverTripDetailView.swift; sourceTree = "<group>"; };
+		CBCC38DB306F57A5003F6C50 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist; path = Info.plist; sourceTree = "<group>"; };
+/* End PBXFileReference section */
+
+/* Begin PBXFrameworksBuildPhase section */
+		CBCC38B3306F4EA9003F6C50 /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			files = (
+			);
+		};
+/* End PBXFrameworksBuildPhase section */
+
+/* Begin PBXGroup section */
+		CBCC38AD306F4EA9003F6C50 = {
+			isa = PBXGroup;
+			children = (
+				CBCC38CE306F5374003F6C50 /* Views */,
+				CBCC38CD306F5367003F6C50 /* Location */,
+				CBCC38CA306F533F003F6C50 /* Storage */,
+				CBCC38C9306F532D003F6C50 /* Networking */,
+				CBCC38C8306F52F2003F6C50 /* Models */,
+				CBCC38C7306F52C8003F6C50 /* LogisticAppIOS */,
+				CBCC38B7306F4EA9003F6C50 /* Products */,
+			);
+			sourceTree = "<group>";
+		};
+		CBCC38B7306F4EA9003F6C50 /* Products */ = {
+			isa = PBXGroup;
+			children = (
+				CBCC38B6306F4EA9003F6C50 /* LogisticAppIOS.app */,
+			);
+			name = Products;
+			sourceTree = "<group>";
+		};
+		CBCC38C7306F52C8003F6C50 /* LogisticAppIOS */ = {
+			isa = PBXGroup;
+			children = (
+				CBCC38DB306F57A5003F6C50 /* Info.plist */,
+				CBCC38C5306F52C8003F6C50 /* Assets.xcassets */,
+				CBCC38C6306F52C8003F6C50 /* LogisticAppIOSApp.swift */,
+			);
+			path = LogisticAppIOS;
+			sourceTree = "<group>";
+		};
+		CBCC38C8306F52F2003F6C50 /* Models */ = {
+			isa = PBXGroup;
+			children = (
+				CBCC38CF306F5475003F6C50 /* Models.swift */,
+			);
+			path = Models;
+			sourceTree = "<group>";
+		};
+		CBCC38C9306F532D003F6C50 /* Networking */ = {
+			isa = PBXGroup;
+			children = (
+				CBCC38D1306F54A2003F6C50 /* ApiService.swift */,
+				CBCC38D0306F5492003F6C50 /* ApiConfig.swift */,
+			);
+			path = Networking;
+			sourceTree = "<group>";
+		};
+		CBCC38CA306F533F003F6C50 /* Storage */ = {
+			isa = PBXGroup;
+			children = (
+				CBCC38D2306F54DE003F6C50 /* SessionStore.swift */,
+			);
+			path = Storage;
+			sourceTree = "<group>";
+		};
+		CBCC38CD306F5367003F6C50 /* Location */ = {
+			isa = PBXGroup;
+			children = (
+				CBCC38D3306F5503003F6C50 /* LocationManager.swift */,
+			);
+			path = Location;
+			sourceTree = "<group>";
+		};
+		CBCC38CE306F5374003F6C50 /* Views */ = {
+			isa = PBXGroup;
+			children = (
+				CBCC38DA306F557A003F6C50 /* DriverTripDetailView.swift */,
+				CBCC38D9306F556C003F6C50 /* DriverView.swift */,
+				CBCC38D8306F555B003F6C50 /* WmsLogView.swift */,
+				CBCC38D7306F554A003F6C50 /* OrderDetailView.swift */,
+				CBCC38D6306F553B003F6C50 /* WarehouseView.swift */,
+				CBCC38D5306F552D003F6C50 /* MainMenuView.swift */,
+				CBCC38D4306F5520003F6C50 /* LoginView.swift */,
+			);
+			path = Views;
+			sourceTree = "<group>";
+		};
+/* End PBXGroup section */
+
+/* Begin PBXNativeTarget section */
+		CBCC38B5306F4EA9003F6C50 /* LogisticAppIOS */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = CBCC38C1306F4EAA003F6C50 /* Build configuration list for PBXNativeTarget "LogisticAppIOS" */;
+			buildPhases = (
+				CBCC38B2306F4EA9003F6C50 /* Sources */,
+				CBCC38B3306F4EA9003F6C50 /* Frameworks */,
+				CBCC38B4306F4EA9003F6C50 /* Resources */,
+			);
+			buildRules = (
+			);
+			name = LogisticAppIOS;
+			productName = LogisticAppIOS;
+			productReference = CBCC38B6306F4EA9003F6C50 /* LogisticAppIOS.app */;
+			productType = "com.apple.product-type.application";
+		};
+/* End PBXNativeTarget section */
+
+/* Begin PBXProject section */
+		CBCC38AE306F4EA9003F6C50 /* Project object */ = {
+			isa = PBXProject;
+			attributes = {
+				BuildIndependentTargetsInParallel = 1;
+				LastSwiftUpdateCheck = 2700;
+				LastUpgradeCheck = 2720;
+				TargetAttributes = {
+					CBCC38B5306F4EA9003F6C50 = {
+						CreatedOnToolsVersion = 27.0;
+					};
+				};
+			};
+			buildConfigurationList = CBCC38B1306F4EA9003F6C50 /* Build configuration list for PBXProject "LogisticAppIOS" */;
+			developmentRegion = en;
+			hasScannedForEncodings = 0;
+			knownRegions = (
+				en,
+				Base,
+			);
+			mainGroup = CBCC38AD306F4EA9003F6C50;
+			minimizedProjectReferenceProxies = 1;
+			preferredProjectObjectVersion = 77;
+			productRefGroup = CBCC38B7306F4EA9003F6C50 /* Products */;
+			projectDirPath = "";
+			projectRoot = "";
+			targets = (
+				CBCC38B5306F4EA9003F6C50 /* LogisticAppIOS */,
+			);
+		};
+/* End PBXProject section */
+
+/* Begin PBXResourcesBuildPhase section */
+		CBCC38B4306F4EA9003F6C50 /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			files = (
+			);
+		};
+/* End PBXResourcesBuildPhase section */
+
+/* Begin PBXSourcesBuildPhase section */
+		CBCC38B2306F4EA9003F6C50 /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			files = (
+				CBF92CFD306F91A70023EE83 /* DriverTripDetailView.swift in Sources */,
+				CBF92CFE306F91A70023EE83 /* DriverView.swift in Sources */,
+				CBF92CFF306F91A70023EE83 /* WmsLogView.swift in Sources */,
+				CBF92D00306F91A70023EE83 /* OrderDetailView.swift in Sources */,
+				CBF92D01306F91A70023EE83 /* WarehouseView.swift in Sources */,
+				CBF92D02306F91A70023EE83 /* MainMenuView.swift in Sources */,
+				CBF92D03306F91A70023EE83 /* LoginView.swift in Sources */,
+				CBF92D04306F91A70023EE83 /* LocationManager.swift in Sources */,
+				CBF92D05306F91A70023EE83 /* SessionStore.swift in Sources */,
+				CBF92D06306F91A70023EE83 /* ApiService.swift in Sources */,
+				CBF92D07306F91A70023EE83 /* ApiConfig.swift in Sources */,
+				CBF92D08306F91A70023EE83 /* Models.swift in Sources */,
+				CBF92D0B306F91A70023EE83 /* LogisticAppIOSApp.swift in Sources */,
+			);
+		};
+/* End PBXSourcesBuildPhase section */
+
+/* Begin XCBuildConfiguration section */
+		CBCC38BF306F4EAA003F6C50 /* Debug configuration for PBXProject "LogisticAppIOS" */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = NO;
+				ASSETCATALOG_COMPILER_GENERATE_SWIFT_ASSET_SYMBOL_EXTENSIONS = YES;
+				CLANG_ANALYZER_NONNULL = YES;
+				CLANG_ANALYZER_NUMBER_OBJECT_CONVERSION = YES_AGGRESSIVE;
+				CLANG_CXX_LANGUAGE_STANDARD = "gnu++20";
+				CLANG_ENABLE_MODULES = YES;
+				CLANG_ENABLE_OBJC_ARC = YES;
+				CLANG_ENABLE_OBJC_WEAK = YES;
+				CLANG_WARN_BLOCK_CAPTURE_AUTORELEASING = YES;
+				CLANG_WARN_BOOL_CONVERSION = YES;
+				CLANG_WARN_COMMA = YES;
+				CLANG_WARN_CONSTANT_CONVERSION = YES;
+				CLANG_WARN_DEPRECATED_OBJC_IMPLEMENTATIONS = YES;
+				CLANG_WARN_DIRECT_OBJC_ISA_USAGE = YES_ERROR;
+				CLANG_WARN_DOCUMENTATION_COMMENTS = YES;
+				CLANG_WARN_EMPTY_BODY = YES;
+				CLANG_WARN_ENUM_CONVERSION = YES;
+				CLANG_WARN_INFINITE_RECURSION = YES;
+				CLANG_WARN_INT_CONVERSION = YES;
+				CLANG_WARN_NON_LITERAL_NULL_CONVERSION = YES;
+				CLANG_WARN_OBJC_IMPLICIT_RETAIN_SELF = YES;
+				CLANG_WARN_OBJC_LITERAL_CONVERSION = YES;
+				CLANG_WARN_OBJC_ROOT_CLASS = YES_ERROR;
+				CLANG_WARN_QUOTED_INCLUDE_IN_FRAMEWORK_HEADER = YES;
+				CLANG_WARN_RANGE_LOOP_ANALYSIS = YES;
+				CLANG_WARN_STRICT_PROTOTYPES = YES;
+				CLANG_WARN_SUSPICIOUS_MOVE = YES;
+				CLANG_WARN_UNGUARDED_AVAILABILITY = YES_AGGRESSIVE;
+				CLANG_WARN_UNREACHABLE_CODE = YES;
+				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
+				COPY_PHASE_STRIP = NO;
+				DEBUG_INFORMATION_FORMAT = dwarf;
+				DEVELOPMENT_TEAM = XJV6B4PX32;
+				ENABLE_STRICT_OBJC_MSGSEND = YES;
+				ENABLE_TESTABILITY = YES;
+				ENABLE_USER_SCRIPT_SANDBOXING = YES;
+				GCC_C_LANGUAGE_STANDARD = gnu17;
+				GCC_DYNAMIC_NO_PIC = NO;
+				GCC_NO_COMMON_BLOCKS = YES;
+				GCC_OPTIMIZATION_LEVEL = 0;
+				GCC_PREPROCESSOR_DEFINITIONS = (
+					"DEBUG=1",
+					"$(inherited)",
+				);
+				GCC_WARN_64_TO_32_BIT_CONVERSION = YES;
+				GCC_WARN_ABOUT_RETURN_TYPE = YES_ERROR;
+				GCC_WARN_UNDECLARED_SELECTOR = YES;
+				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
+				GCC_WARN_UNUSED_FUNCTION = YES;
+				GCC_WARN_UNUSED_VARIABLE = YES;
+				IPHONEOS_DEPLOYMENT_TARGET = 27.0;
+				LOCALIZATION_PREFERS_STRING_CATALOGS = YES;
+				MTL_ENABLE_DEBUG_INFO = INCLUDE_SOURCE;
+				MTL_FAST_MATH = YES;
+				ONLY_ACTIVE_ARCH = YES;
+				SDKROOT = iphoneos;
+				STRING_CATALOG_GENERATE_SYMBOLS = YES;
+				SWIFT_ACTIVE_COMPILATION_CONDITIONS = "DEBUG $(inherited)";
+				SWIFT_OPTIMIZATION_LEVEL = "-Onone";
+			};
+			name = Debug;
+		};
+		CBCC38C0306F4EAA003F6C50 /* Release configuration for PBXProject "LogisticAppIOS" */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = NO;
+				ASSETCATALOG_COMPILER_GENERATE_SWIFT_ASSET_SYMBOL_EXTENSIONS = YES;
+				CLANG_ANALYZER_NONNULL = YES;
+				CLANG_ANALYZER_NUMBER_OBJECT_CONVERSION = YES_AGGRESSIVE;
+				CLANG_CXX_LANGUAGE_STANDARD = "gnu++20";
+				CLANG_ENABLE_MODULES = YES;
+				CLANG_ENABLE_OBJC_ARC = YES;
+				CLANG_ENABLE_OBJC_WEAK = YES;
+				CLANG_WARN_BLOCK_CAPTURE_AUTORELEASING = YES;
+				CLANG_WARN_BOOL_CONVERSION = YES;
+				CLANG_WARN_COMMA = YES;
+				CLANG_WARN_CONSTANT_CONVERSION = YES;
+				CLANG_WARN_DEPRECATED_OBJC_IMPLEMENTATIONS = YES;
+				CLANG_WARN_DIRECT_OBJC_ISA_USAGE = YES_ERROR;
+				CLANG_WARN_DOCUMENTATION_COMMENTS = YES;
+				CLANG_WARN_EMPTY_BODY = YES;
+				CLANG_WARN_ENUM_CONVERSION = YES;
+				CLANG_WARN_INFINITE_RECURSION = YES;
+				CLANG_WARN_INT_CONVERSION = YES;
+				CLANG_WARN_NON_LITERAL_NULL_CONVERSION = YES;
+				CLANG_WARN_OBJC_IMPLICIT_RETAIN_SELF = YES;
+				CLANG_WARN_OBJC_LITERAL_CONVERSION = YES;
+				CLANG_WARN_OBJC_ROOT_CLASS = YES_ERROR;
+				CLANG_WARN_QUOTED_INCLUDE_IN_FRAMEWORK_HEADER = YES;
+				CLANG_WARN_RANGE_LOOP_ANALYSIS = YES;
+				CLANG_WARN_STRICT_PROTOTYPES = YES;
+				CLANG_WARN_SUSPICIOUS_MOVE = YES;
+				CLANG_WARN_UNGUARDED_AVAILABILITY = YES_AGGRESSIVE;
+				CLANG_WARN_UNREACHABLE_CODE = YES;
+				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
+				COPY_PHASE_STRIP = NO;
+				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
+				DEVELOPMENT_TEAM = XJV6B4PX32;
+				ENABLE_NS_ASSERTIONS = NO;
+				ENABLE_STRICT_OBJC_MSGSEND = YES;
+				ENABLE_USER_SCRIPT_SANDBOXING = YES;
+				GCC_C_LANGUAGE_STANDARD = gnu17;
+				GCC_NO_COMMON_BLOCKS = YES;
+				GCC_WARN_64_TO_32_BIT_CONVERSION = YES;
+				GCC_WARN_ABOUT_RETURN_TYPE = YES_ERROR;
+				GCC_WARN_UNDECLARED_SELECTOR = YES;
+				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
+				GCC_WARN_UNUSED_FUNCTION = YES;
+				GCC_WARN_UNUSED_VARIABLE = YES;
+				IPHONEOS_DEPLOYMENT_TARGET = 27.0;
+				LOCALIZATION_PREFERS_STRING_CATALOGS = YES;
+				MTL_ENABLE_DEBUG_INFO = NO;
+				MTL_FAST_MATH = YES;
+				SDKROOT = iphoneos;
+				STRING_CATALOG_GENERATE_SYMBOLS = YES;
+				SWIFT_COMPILATION_MODE = wholemodule;
+				VALIDATE_PRODUCT = YES;
+			};
+			name = Release;
+		};
+		CBCC38C2306F4EAA003F6C50 /* Debug configuration for PBXNativeTarget "LogisticAppIOS" */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				ENABLE_PREVIEWS = YES;
+				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_FILE = LogisticAppIOS/Info.plist;
+				INFOPLIST_KEY_NSLocationAlwaysAndWhenInUseUsageDescription = "Ứng dụng cần vị trí liên tục để cập nhật hành trình xe cho phòng vận tải";
+				INFOPLIST_KEY_NSLocationWhenInUseUsageDescription = "Ứng dụng cần vị trí để theo dõi hành trình giao hàng";
+				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
+				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;
+				INFOPLIST_KEY_UILaunchScreen_Generation = YES;
+				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPad = "UIInterfaceOrientationPortrait UIInterfaceOrientationPortraitUpsideDown UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
+				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPhone = "UIInterfaceOrientationPortrait UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+				);
+				MARKETING_VERSION = 1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = com.minhtuan.LogisticAppIOS;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				STRING_CATALOG_GENERATE_SYMBOLS = YES;
+				SWIFT_APPROACHABLE_CONCURRENCY = YES;
+				SWIFT_DEFAULT_ACTOR_ISOLATION = MainActor;
+				SWIFT_EMIT_LOC_STRINGS = YES;
+				SWIFT_UPCOMING_FEATURE_MEMBER_IMPORT_VISIBILITY = YES;
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = "1,2";
+			};
+			name = Debug;
+		};
+		CBCC38C3306F4EAA003F6C50 /* Release configuration for PBXNativeTarget "LogisticAppIOS" */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				ENABLE_PREVIEWS = YES;
+				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_FILE = LogisticAppIOS/Info.plist;
+				INFOPLIST_KEY_NSLocationAlwaysAndWhenInUseUsageDescription = "Ứng dụng cần vị trí liên tục để cập nhật hành trình xe cho phòng vận tải";
+				INFOPLIST_KEY_NSLocationWhenInUseUsageDescription = "Ứng dụng cần vị trí để theo dõi hành trình giao hàng";
+				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
+				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;
+				INFOPLIST_KEY_UILaunchScreen_Generation = YES;
+				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPad = "UIInterfaceOrientationPortrait UIInterfaceOrientationPortraitUpsideDown UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
+				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPhone = "UIInterfaceOrientationPortrait UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+				);
+				MARKETING_VERSION = 1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = com.minhtuan.LogisticAppIOS;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				STRING_CATALOG_GENERATE_SYMBOLS = YES;
+				SWIFT_APPROACHABLE_CONCURRENCY = YES;
+				SWIFT_DEFAULT_ACTOR_ISOLATION = MainActor;
+				SWIFT_EMIT_LOC_STRINGS = YES;
+				SWIFT_UPCOMING_FEATURE_MEMBER_IMPORT_VISIBILITY = YES;
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = "1,2";
+			};
+			name = Release;
+		};
+/* End XCBuildConfiguration section */
+
+/* Begin XCConfigurationList section */
+		CBCC38B1306F4EA9003F6C50 /* Build configuration list for PBXProject "LogisticAppIOS" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				CBCC38BF306F4EAA003F6C50 /* Debug configuration for PBXProject "LogisticAppIOS" */,
+				CBCC38C0306F4EAA003F6C50 /* Release configuration for PBXProject "LogisticAppIOS" */,
+			);
+			defaultConfigurationName = Release;
+		};
+		CBCC38C1306F4EAA003F6C50 /* Build configuration list for PBXNativeTarget "LogisticAppIOS" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				CBCC38C2306F4EAA003F6C50 /* Debug configuration for PBXNativeTarget "LogisticAppIOS" */,
+				CBCC38C3306F4EAA003F6C50 /* Release configuration for PBXNativeTarget "LogisticAppIOS" */,
+			);
+			defaultConfigurationName = Release;
+		};
+/* End XCConfigurationList section */
+	};
+	rootObject = CBCC38AE306F4EA9003F6C50 /* Project object */;
+	validationLevel = 1;
+}
