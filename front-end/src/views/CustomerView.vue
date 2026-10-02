@@ -97,10 +97,10 @@
               <div class="form-group">
                 <label>Cargo Category:</label>
                 <select v-model="newOrder.cargo_type" @change="calculateEstimatedPrice">
-                  <option value="Regular Goods">📦 Regular Goods</option>
-                  <option value="Electronics">⚡ Electronics</option>
-                  <option value="Hazardous Goods">☣️ Hazardous Goods</option>
-                  <option value="Express Goods">🚀 Express Goods</option>
+                  <option value="Hàng hóa thông thường">📦 Regular Goods</option>
+                  <option value="Hàng hóa điện tử">⚡ Electronics</option>
+                  <option value="Hàng hóa nguy hiểm">☣️ Hazardous Goods</option>
+                  <option value="Hàng hóa nhanh">🚀 Express Goods</option>
                 </select>
               </div>
 
@@ -109,33 +109,9 @@
                 <input type="number" v-model.number="newOrder.quantity" min="1" required @input="calculateEstimatedPrice" />
               </div>
 
-              <!-- MỚI: Khách hàng tự chọn tuyến đường mong muốn ngay lúc khai báo,
-                   thay vì phải đợi phòng TMS tự gán tuyến. Danh sách tuyến khớp
-                   chính xác với các option mà TmsView.vue đang dùng để điều phối,
-                   để khi đơn tới TMS, phòng TMS biết ngay lộ trình khách muốn đi. -->
-              <div class="form-group full-width">
-                <label>Preferred Delivery Route:</label>
-                <select v-model="newOrder.delivery_route">
-                  <option value="QL1A Route (North-South)">🛣️ QL1A Route (North-South)</option>
-                  <option value="Inner City (Express)">🏙️ Inner City (Express)</option>
-                  <option value="HCMC - Da Nang Expressway">🛣️ HCMC - Da Nang Expressway</option>
-                </select>
-              </div>
-
               <div class="form-group full-width">
                 <label>Actual Cargo Image:</label>
-            
-                <input
-                  type="file"
-                  accept="image/*"
-                  ref="fileInputRef"
-                  @change="onProductImageChange"
-                  style="display: none;"
-                />
-                <div class="file-upload-row">
-                  <button type="button" class="btn-choose-file" @click="fileInputRef?.click()">📎 Choose File</button>
-                  <span class="file-name-txt">{{ productImageFile?.name || 'No file chosen' }}</span>
-                </div>
+                <input type="file" accept="image/*" required @change="onProductImageChange" class="file-input-styled" />
               </div>
 
               <div class="price-estimate-box full-width">
@@ -183,20 +159,25 @@
                     {{ translateStatus(order.status) }}
                   </span>
                 </td>
-                <!-- Vị trí xe: cố định theo toạ độ demo (Greenwich Việt Nam), không dùng GPS thật -->
+                <!-- MỚI: Vị trí xe lấy từ GPS thật (truck_lat/truck_lng), được app tài xế
+                     (Android/iOS) bắn định kỳ lên server qua PUT /api/orders/tms/fleet/gps,
+                     backend JOIN sẵn vào bảng trucks (xem customerController.getCustomerOrders) -->
                 <td>
-                  <div v-if="order.status === 'SHIPPING'" class="live-map-cell">
+                  <div v-if="order.status === 'SHIPPING' && order.truck_lat && order.truck_lng" class="live-map-cell">
                     <iframe
-                      :src="getMapEmbedUrl(DEMO_LAT, DEMO_LNG)"
+                      :src="getMapEmbedUrl(order.truck_lat, order.truck_lng)"
                       class="mini-map-frame"
                       loading="lazy"
                       referrerpolicy="no-referrer-when-downgrade">
                     </iframe>
-                    <a :href="getGoogleMapsUrl(DEMO_LAT, DEMO_LNG)" target="_blank" class="map-link-full">
+                    <a :href="getGoogleMapsUrl(order.truck_lat, order.truck_lng)" target="_blank" class="map-link-full">
                       🔗 Open Full Map
                     </a>
-                    <small class="gps-updated-txt">📍 Greenwich Vietnam</small>
+                    <small class="gps-updated-txt">📍 Updated: {{ formatDateTime(order.truck_gps_updated_at) }}</small>
                   </div>
+                  <span v-else-if="order.status === 'SHIPPING'" style="color: #95a5a6; font-style: italic; font-size: 12px;">
+                    ⏳ Waiting for GPS signal from the vehicle...
+                  </span>
                   <span v-else style="color: #95a5a6; font-style: italic; font-size: 12px;">
                     Not yet shipped
                   </span>
@@ -343,17 +324,10 @@ const router = useRouter();
 const username = ref(localStorage.getItem('username') || 'Customer');
 const currentTab = ref('create');
 
-// MỚI: toạ độ GPS cố định hiển thị cho khách hàng (theo yêu cầu), thay vì lấy
-// vị trí thật của xe (truck_lat/truck_lng) - dùng cho mục đích demo/thuyết trình.
-// Toạ độ: Greenwich Việt Nam (https://maps.app.goo.gl/1mG1ag771B56wEsv8)
-const DEMO_LAT = 10.8034069;
-const DEMO_LNG = 106.6524529;
-
 const orders = ref([]);
 const estimatedPrice = ref(100);
 const selectedOrderForPay = ref(null);
 const productImageFile = ref(null);
-const fileInputRef = ref(null); // tham chiếu tới <input type="file"> đang bị ẩn
 
 const showReviewModal = ref(false);
 const activeReviewOrder = ref(null);
@@ -368,8 +342,7 @@ const newOrder = ref({
   customer_name: '',
   product_name: '',
   cargo_type: 'Hàng hóa thông thường',
-  quantity: 1,
-  delivery_route: 'QL1A Route (North-South)'
+  quantity: 1
 });
 
 // Chuyển đổi toàn bộ bảng giá dịch vụ logistics sang USD ($)
@@ -452,7 +425,6 @@ const createOrder = async () => {
   formData.append('product_name', newOrder.value.product_name);
   formData.append('cargo_type', newOrder.value.cargo_type);
   formData.append('quantity', newOrder.value.quantity);
-  formData.append('delivery_route', newOrder.value.delivery_route); // MỚI: gửi tuyến khách chọn để TMS biết
 
   const rate = priceRates[newOrder.value.cargo_type] || 100;
   formData.append('total_price', rate * newOrder.value.quantity);
@@ -464,11 +436,10 @@ const createOrder = async () => {
     });
     alert("🚀 Consignment request created successfully!");
 
-    newOrder.value = { customer_name: '', product_name: '', cargo_type: 'Hàng hóa thông thường', quantity: 1, delivery_route: 'QL1A Route (North-South)' };
+    newOrder.value = { customer_name: '', product_name: '', cargo_type: 'Hàng hóa thông thường', quantity: 1 };
     productImageFile.value = null;
-    // ĐÃ SỬA: dùng ref thay cho document.querySelector('.file-input-styled') vì input
-    // đã được ẩn và đổi cách khai báo (class cũ không còn tồn tại trên input nữa).
-    if (fileInputRef.value) fileInputRef.value.value = '';
+    const fileInput = document.querySelector('.file-input-styled');
+    if (fileInput) fileInput.value = '';
 
     calculateEstimatedPrice();
     fetchOrders();
@@ -626,10 +597,6 @@ header h1 { font-size: 24px; font-weight: 800; color: #2c3e50; margin-bottom: 25
 .form-group label { font-size: 13px; font-weight: 600; color: #4a5568; }
 .form-group input, .form-group select { padding: 10px; border: 1px solid #cbd5e1; border-radius: 4px; font-size: 14px; background: #fff; }
 .file-input-styled { background: #f8fafc; padding: 8px; border: 1px dashed #cbd5e1; cursor: pointer; }
-.file-upload-row { display: flex; align-items: center; gap: 10px; background: #f8fafc; padding: 8px; border: 1px dashed #cbd5e1; border-radius: 4px; }
-.btn-choose-file { background: #ecf0f1; color: #34495e; border: 1px solid #cbd5e1; padding: 8px 14px; font-size: 13px; font-weight: bold; border-radius: 4px; cursor: pointer; white-space: nowrap; }
-.btn-choose-file:hover { background: #dfe6e9; }
-.file-name-txt { font-size: 13px; color: #7f8c8d; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .full-width { grid-column: span 2; }
 .price-estimate-box { background: #fff9db; padding: 12px; border-radius: 4px; border: 1px solid #ffe3e3; font-weight: bold; text-align: right; }
 .btn-submit { background: #27ae60; color: white; border: none; padding: 12px; font-weight: bold; border-radius: 4px; cursor: pointer; }
