@@ -19,14 +19,14 @@ exports.register = async (req, res) => {
         }
 
         const result = await pool.query(
-            `INSERT INTO users (username, password_hash, full_name, role) 
+            `INSERT INTO users (username, password_hash, full_name, role)
              VALUES ($1, $2, $3, 'CUSTOMER') RETURNING *`,
             [username, password, fullName]
         );
 
-        res.json({ 
-            message: "Registration successful!", 
-            user: result.rows[0] 
+        res.json({
+            message: "Registration successful!",
+            user: result.rows[0]
         });
 
     } catch (err) {
@@ -42,7 +42,7 @@ exports.login = async (req, res) => {
     const { username, password } = req.body;
     try {
         const result = await pool.query('SELECT * FROM users WHERE username = $1', [username]);
-        
+
         if (result.rows.length === 0) {
             return res.status(401).json({ message: "The account does not exist" });
         }
@@ -54,15 +54,15 @@ exports.login = async (req, res) => {
         }
 
         const token = jwt.sign(
-            { id: user.id, role: user.role, name: user.full_name }, 
-            process.env.JWT_SECRET || 'default_secret', 
+            { id: user.id, role: user.role, name: user.full_name },
+            process.env.JWT_SECRET || 'default_secret',
             { expiresIn: '2h' }
         );
 
-        res.json({ 
+        res.json({
             message: "Login successful",
-            token, 
-            user: { username: user.username, role: user.role } 
+            token,
+            user: { username: user.username, role: user.role }
         });
 
     } catch (err) {
@@ -72,14 +72,14 @@ exports.login = async (req, res) => {
 };
 
 // =========================================================================
-// 3. XỬ LÝ ĐĂNG NHẬP & PHÂN QUYỀN RIÊNG CHO MOBILE APP (WMS & TMS)
+// 3. XỬ LÝ ĐĂNG NHẬP & PHÂN QUYỀN RIÊNG CHO MOBILE APP (WMS & TMS & ADMIN)
 // =========================================================================
 exports.mobileLogin = async (req, res) => {
     const { username, password } = req.body;
 
     try {
         const result = await pool.query('SELECT * FROM users WHERE username = $1', [username]);
-        
+
         if (result.rows.length === 0) {
             return res.json({ success: false, message: "The account does not exist on the system!" });
         }
@@ -92,7 +92,9 @@ exports.mobileLogin = async (req, res) => {
 
         const userRole = user.role ? user.role.toLowerCase().trim() : '';
 
-        if (userRole === 'wms' || userRole === 'tms') {
+        // MỚI: cho phép thêm role "admin" đăng nhập app mobile (dùng cho màn
+        // Admin mới thêm ở app iOS - tổng quan hệ thống, doanh thu, báo cáo).
+        if (userRole === 'wms' || userRole === 'tms' || userRole === 'admin') {
             return res.json({
                 success: true,
                 message: "Login application successful!",

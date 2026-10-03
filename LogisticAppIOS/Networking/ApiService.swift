@@ -116,6 +116,64 @@ final class ApiService {
         try await request("api/orders/wms/logs")
     }
 
+    // MỚI: báo cáo hiện trạng hàng hóa lúc nhận hàng tại kho (giống nút "Báo cáo tình
+    // trạng" bên web gọi PUT /api/orders/wms/:id/condition, multer field "cargo_image").
+    // Khớp đúng wmsController.updateCargoCondition: body.cargo_condition (text) +
+    // file field "cargo_image" (ảnh, không bắt buộc - có thể chỉ ghi chú chữ).
+    func updateCargoCondition(
+        orderId: Int,
+        condition: String,
+        imageData: Data?,
+        imageFileName: String = "cargo.jpg",
+        imageMimeType: String = "image/jpeg"
+    ) async throws -> ScanResponse {
+        guard let url = URL(string: ApiConfig.baseURL + "api/orders/wms/\(orderId)/condition") else {
+            throw ApiError.invalidURL
+        }
+
+        let boundary = "Boundary-\(UUID().uuidString)"
+        var req = URLRequest(url: url)
+        req.httpMethod = "PUT"
+        req.setValue("multipart/form-data; boundary=\(boundary)", forHTTPHeaderField: "Content-Type")
+
+        var body = Data()
+
+        func appendField(_ name: String, _ value: String) {
+            body.append("--\(boundary)\r\n".data(using: .utf8)!)
+            body.append("Content-Disposition: form-data; name=\"\(name)\"\r\n\r\n".data(using: .utf8)!)
+            body.append("\(value)\r\n".data(using: .utf8)!)
+        }
+
+        appendField("cargo_condition", condition)
+
+        if let imageData = imageData {
+            body.append("--\(boundary)\r\n".data(using: .utf8)!)
+            body.append("Content-Disposition: form-data; name=\"cargo_image\"; filename=\"\(imageFileName)\"\r\n".data(using: .utf8)!)
+            body.append("Content-Type: \(imageMimeType)\r\n\r\n".data(using: .utf8)!)
+            body.append(imageData)
+            body.append("\r\n".data(using: .utf8)!)
+        }
+
+        body.append("--\(boundary)--\r\n".data(using: .utf8)!)
+        req.httpBody = body
+
+        let (data, response): (Data, URLResponse)
+        do {
+            (data, response) = try await URLSession.shared.data(for: req)
+        } catch {
+            throw ApiError.network(error)
+        }
+        guard let http = response as? HTTPURLResponse else { throw ApiError.network(URLError(.badServerResponse)) }
+        guard (200...299).contains(http.statusCode) else {
+            throw ApiError.server(http.statusCode, String(data: data, encoding: .utf8) ?? "")
+        }
+        do {
+            return try decoder.decode(ScanResponse.self, from: data)
+        } catch {
+            throw ApiError.decoding(error)
+        }
+    }
+
     // --- TMS (giống TmsApiService.kt) ---
 
     func getDriverTrips(licensePlate: String) async throws -> [TripOrder] {
@@ -129,6 +187,133 @@ final class ApiService {
 
     func updateTruckGps(body: TruckGpsRequest) async throws {
         try await requestVoid("api/orders/tms/fleet/gps", method: "PUT", body: body)
+    }
+
+    // --- Admin (giống AdminView.vue) ---
+
+    func getAdminOverview() async throws -> AdminOverview {
+        try await request("api/orders/admin/overview")
+    }
+
+    func getRevenue() async throws -> RevenueSummary {
+        try await request("api/orders/oms/analytics/revenue")
+    }
+
+    func getAccSummary() async throws -> AccSummary {
+        let res: AccOrdersResponse = try await request("api/orders/acc/orders")
+        return res.summary
+    }
+
+    func getOrderHistory(id: Int) async throws -> [OrderLogEntry] {
+        try await request("api/orders/history/\(id)")
+    }
+
+    func getAdminReports() async throws -> [AdminReport] {
+        try await request("api/orders/admin/reports")
+    }
+
+    func getAdminReportDetail(id: Int) async throws -> AdminReportDetail {
+        try await request("api/orders/admin/reports/\(id)")
+    }
+
+    // --- Customer (giống CustomerView.vue + customerController.js) ---
+
+    // ĐÃ SỬA: khách hàng dùng đúng route gốc /api/auth/register và /api/auth/login
+    // của web (KHÔNG dùng /api/auth/mobile-login vì route đó chặn role customer).
+    func customerRegister(username: String, password: String, fullName: String) async throws -> WebAuthResponse {
+        try await request("api/auth/register", method: "POST",
+                           body: RegisterRequest(username: username, password: password, fullName: fullName))
+    }
+
+    func customerLogin(username: String, password: String) async throws -> WebAuthResponse {
+        try await request("api/auth/login", method: "POST",
+                           body: LoginRequest(username: username, password: password))
+    }
+
+    func getCustomerOrders(username: String) async throws -> [CustomerOrder] {
+        let encoded = username.addingPercentEncoding(withAllowedCharacters: .urlQueryAllowed) ?? username
+        return try await request("api/orders/customer?username=\(encoded)")
+    }
+
+    func confirmPaymentSubmitted(orderId: Int) async throws {
+        try await requestVoid("api/orders/\(orderId)/pay", method: "PUT")
+    }
+
+    func submitFeedback(orderId: Int, body: FeedbackRequest) async throws {
+        try await requestVoid("api/orders/\(orderId)/feedback", method: "POST", body: body)
+    }
+
+    // ĐÃ SỬA: tạo đơn hàng mới của khách hàng CẦN multipart/form-data (có kèm file
+    // ảnh hàng hóa), khác hẳn mọi API JSON thuần ở trên -> phải tự dựng request
+    // thủ công thay vì dùng hàm request()/requestVoid() chung (chỉ hỗ trợ JSON).
+    // MỚI: đổi kiểu trả về từ "không trả gì" (requestVoid) sang parse luôn JSON response
+    // ({ message, order }) để lấy ĐÚNG id đơn vừa tạo từ server - cần id này để tạo
+    // QR code mã kiện hàng (PKG-xxxxx) hiện ngay cho khách sau khi tạo đơn thành công.
+    struct CreateOrderResponse: Decodable {
+        let message: String?
+        let order: CustomerOrder?
+    }
+
+    @discardableResult
+    func createCustomerOrder(
+        username: String,
+        customerName: String,
+        productName: String,
+        cargoType: String,
+        quantity: Int,
+        totalPrice: Double,
+        imageData: Data,
+        imageFileName: String = "product.jpg",
+        imageMimeType: String = "image/jpeg"
+    ) async throws -> CreateOrderResponse {
+        guard let url = URL(string: ApiConfig.baseURL + "api/orders") else { throw ApiError.invalidURL }
+
+        let boundary = "Boundary-\(UUID().uuidString)"
+        var req = URLRequest(url: url)
+        req.httpMethod = "POST"
+        req.setValue("multipart/form-data; boundary=\(boundary)", forHTTPHeaderField: "Content-Type")
+
+        var body = Data()
+
+        func appendField(_ name: String, _ value: String) {
+            body.append("--\(boundary)\r\n".data(using: .utf8)!)
+            body.append("Content-Disposition: form-data; name=\"\(name)\"\r\n\r\n".data(using: .utf8)!)
+            body.append("\(value)\r\n".data(using: .utf8)!)
+        }
+
+        appendField("username", username)
+        appendField("customer_name", customerName)
+        appendField("product_name", productName)
+        appendField("cargo_type", cargoType)
+        appendField("quantity", String(quantity))
+        appendField("total_price", String(totalPrice))
+
+        // Field file "product_image" - đúng tên multer đang nhận ở route POST /api/orders
+        // (upload.single('product_image')), xem orderRoutes.js.
+        body.append("--\(boundary)\r\n".data(using: .utf8)!)
+        body.append("Content-Disposition: form-data; name=\"product_image\"; filename=\"\(imageFileName)\"\r\n".data(using: .utf8)!)
+        body.append("Content-Type: \(imageMimeType)\r\n\r\n".data(using: .utf8)!)
+        body.append(imageData)
+        body.append("\r\n".data(using: .utf8)!)
+
+        body.append("--\(boundary)--\r\n".data(using: .utf8)!)
+        req.httpBody = body
+
+        let (data, response): (Data, URLResponse)
+        do {
+            (data, response) = try await URLSession.shared.data(for: req)
+        } catch {
+            throw ApiError.network(error)
+        }
+        guard let http = response as? HTTPURLResponse else { throw ApiError.network(URLError(.badServerResponse)) }
+        guard (200...299).contains(http.statusCode) else {
+            throw ApiError.server(http.statusCode, String(data: data, encoding: .utf8) ?? "")
+        }
+        do {
+            return try decoder.decode(CreateOrderResponse.self, from: data)
+        } catch {
+            throw ApiError.decoding(error)
+        }
     }
 }
 

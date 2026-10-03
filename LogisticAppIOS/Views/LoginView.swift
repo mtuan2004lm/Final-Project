@@ -9,6 +9,11 @@ struct LoginView: View {
     @State private var isLoading = false
     @State private var alertMessage: String?
 
+    // MỚI: điều hướng sang màn đăng nhập/đăng ký riêng của khách hàng
+    // (CustomerLoginView) - tài khoản khách hàng KHÔNG dùng được form này vì
+    // /api/auth/mobile-login chặn role customer, xem CustomerLoginView.swift.
+    @State private var showCustomerLogin = false
+
     var body: some View {
         VStack(spacing: 16) {
             Spacer()
@@ -42,9 +47,26 @@ struct LoginView: View {
             }
             .padding(.top, 24)
 
+            Divider().padding(.vertical, 8)
+
+            VStack(spacing: 8) {
+                Text("Are you a customer?")
+                    .font(.footnote)
+                    .foregroundStyle(.secondary)
+                Button("Customer Login / Register") {
+                    showCustomerLogin = true
+                }
+                .font(.subheadline).bold()
+            }
+
             Spacer()
         }
         .padding()
+        .sheet(isPresented: $showCustomerLogin) {
+            NavigationStack {
+                CustomerLoginView()
+            }
+        }
         .alert("Notification", isPresented: Binding(
             get: { alertMessage != nil },
             set: { if !$0 { alertMessage = nil } }
@@ -85,6 +107,10 @@ struct LoginView: View {
                     session.route = .driver
                 case "wms":
                     session.route = .warehouse
+                case "admin":
+                    // MỚI: tài khoản quản trị -> mở màn Admin (tổng quan toàn hệ thống,
+                    // giống AdminView.vue bên web).
+                    session.route = .admin
                 default:
                     alertMessage = "This account does not have access to the Mobile app!"
                 }

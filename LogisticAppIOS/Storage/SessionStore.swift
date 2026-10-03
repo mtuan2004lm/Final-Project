@@ -10,6 +10,8 @@ enum AppRoute {
                     // (xem AndroidManifest.xml: launcher thật là LoginActivity), giữ lại cho đối chiếu.
     case warehouse
     case driver
+    case admin   // MỚI: dành cho tài khoản role "admin" - xem AdminView.swift
+    case customer   // MỚI: dành cho khách hàng - xem CustomerMainView.swift
 }
 
 // Tương đương SharedPreferences("driver_prefs", MODE_PRIVATE) trong DriverActivity.kt
@@ -36,12 +38,22 @@ final class SessionStore: ObservableObject {
         defaults.removeObject(forKey: keyTruckPlate)
     }
 
+    // MỚI: lưu username khách hàng đang đăng nhập, tương đương
+    // localStorage.getItem('username') bên CustomerView.vue.
+    private let keyCustomerUsername = "customer_username"
+
+    var customerUsername: String {
+        get { defaults.string(forKey: keyCustomerUsername) ?? "" }
+        set { defaults.set(newValue, forKey: keyCustomerUsername) }
+    }
+
     // Giống performLogout() trong DriverActivity.kt / btnLogout trong WarehouseActivity.kt:
     // tắt GPS đang chạy ngầm (nếu có), xóa prefs, rồi quay về Login (tương đương
     // FLAG_ACTIVITY_NEW_TASK | FLAG_ACTIVITY_CLEAR_TASK - xóa sạch back stack).
     func logout() {
         LocationManager.shared.stopTracking()
         clearDriverPrefs()
+        defaults.removeObject(forKey: keyCustomerUsername)
         route = .login
     }
 }

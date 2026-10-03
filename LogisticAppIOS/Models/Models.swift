@@ -126,6 +126,365 @@ struct LoginRequest: Encodable {
     let password: String
 }
 
+// =============================================================================
+// CUSTOMER - tương đương CustomerView.vue + customerController.js bên web.
+// Khách hàng KHÔNG đăng nhập qua /api/auth/mobile-login (route đó chỉ cho phép
+// role wms/tms/admin) mà dùng đúng 2 route gốc của web: POST /api/auth/register
+// và POST /api/auth/login (xem authController.js: register() và login()).
+// =============================================================================
+
+// Body gửi lên POST /api/auth/register
+struct RegisterRequest: Encodable {
+    let username: String
+    let password: String
+    let fullName: String
+}
+
+// Response của cả register() và login() trong authController.js đều có dạng
+// { message, token?, user: { username, role } } - khác hẳn LoginResponse của
+// mobileLogin (success/message/token/role phẳng), nên tách struct riêng.
+struct WebAuthUser: Decodable {
+    let username: String?
+    let role: String?
+}
+
+struct WebAuthResponse: Decodable {
+    let message: String
+    let token: String?
+    let user: WebAuthUser?
+
+    init(from decoder: Decoder) throws {
+        let c = try decoder.container(keyedBy: CodingKeys.self)
+        message = try c.decodeIfPresent(String.self, forKey: .message) ?? ""
+        token = try c.decodeIfPresent(String.self, forKey: .token)
+        user = try c.decodeIfPresent(WebAuthUser.self, forKey: .user)
+    }
+
+    enum CodingKeys: String, CodingKey { case message, token, user }
+}
+
+// 1 đơn hàng của khách hàng - khớp customerController.getCustomerOrders().
+// Có kèm vị trí GPS xe (truck_lat/truck_lng) giống bản web đã thêm trước đó.
+struct CustomerOrder: Decodable, Identifiable {
+    var id: Int
+    var username: String?
+    var customer_name: String?
+    var product_name: String?
+    var quantity: Int
+    var status: String?
+    var current_dept: String?
+    var notes: String?
+    var driver_notes: String?
+    var cargo_type: String?
+    var total_price: Double?
+    var payment_status: String?
+    var product_image: String?
+    var assigned_truck: String?
+    var delivery_route: String?
+    var rating: Int?
+    var feedback: String?
+    var truck_lat: Double?
+    var truck_lng: Double?
+    var truck_gps_updated_at: String?
+
+    enum CodingKeys: String, CodingKey {
+        case id, username, customer_name, product_name, quantity, status, current_dept, notes,
+             driver_notes, cargo_type, total_price, payment_status, product_image, assigned_truck,
+             delivery_route, rating, feedback, truck_lat, truck_lng, truck_gps_updated_at
+    }
+
+    init(from decoder: Decoder) throws {
+        let c = try decoder.container(keyedBy: CodingKeys.self)
+        id = try c.decodeIfPresent(Int.self, forKey: .id) ?? 0
+        username = try c.decodeIfPresent(String.self, forKey: .username)
+        customer_name = try c.decodeIfPresent(String.self, forKey: .customer_name)
+        product_name = try c.decodeIfPresent(String.self, forKey: .product_name)
+        quantity = try c.decodeIfPresent(Int.self, forKey: .quantity) ?? 0
+        status = try c.decodeIfPresent(String.self, forKey: .status)
+        current_dept = try c.decodeIfPresent(String.self, forKey: .current_dept)
+        notes = try c.decodeIfPresent(String.self, forKey: .notes)
+        driver_notes = try c.decodeIfPresent(String.self, forKey: .driver_notes)
+        cargo_type = try c.decodeIfPresent(String.self, forKey: .cargo_type)
+        total_price = decodeFlexibleDouble(c, .total_price)
+        payment_status = try c.decodeIfPresent(String.self, forKey: .payment_status)
+        product_image = try c.decodeIfPresent(String.self, forKey: .product_image)
+        assigned_truck = try c.decodeIfPresent(String.self, forKey: .assigned_truck)
+        delivery_route = try c.decodeIfPresent(String.self, forKey: .delivery_route)
+        rating = try c.decodeIfPresent(Int.self, forKey: .rating)
+        feedback = try c.decodeIfPresent(String.self, forKey: .feedback)
+        truck_lat = decodeFlexibleDouble(c, .truck_lat)
+        truck_lng = decodeFlexibleDouble(c, .truck_lng)
+        truck_gps_updated_at = try c.decodeIfPresent(String.self, forKey: .truck_gps_updated_at)
+    }
+}
+
+// Body gửi lên POST /api/orders/:id/feedback
+struct FeedbackRequest: Encodable {
+    let rating: Int
+    let feedback: String
+}
+
+// =============================================================================
+// ADMIN - tương đương dữ liệu AdminView.vue dùng (adminController + accController
+// + oms analytics + order_logs). Web không có app Android tương ứng, đây là phần
+// mới hoàn toàn thêm riêng cho iOS.
+// =============================================================================
+
+// Helper: 1 số cột tiền (bot_fee, fuel_fee, total_cost...) ở PostgreSQL là kiểu
+// NUMERIC, driver `pg` của Node đôi khi trả JSON dạng chuỗi, đôi khi dạng số thuần
+// tùy cấu hình - hàm này thử cả 2 kiểu để không bao giờ bị lỗi decode.
+fileprivate func decodeFlexibleStringIfPresent<Key: CodingKey>(_ c: KeyedDecodingContainer<Key>, forKey key: Key) -> String? {
+    if let s = try? c.decode(String.self, forKey: key) { return s }
+    if let d = try? c.decode(Double.self, forKey: key) { return String(d) }
+    if let i = try? c.decode(Int.self, forKey: key) { return String(i) }
+    return nil
+}
+
+fileprivate func decodeFlexibleDouble<Key: CodingKey>(_ c: KeyedDecodingContainer<Key>, _ key: Key) -> Double? {
+    if let d = try? c.decode(Double.self, forKey: key) { return d }
+    if let s = try? c.decode(String.self, forKey: key) { return Double(s) }
+    return nil
+}
+
+// 1 đơn hàng trong GET /api/orders/admin/overview (adminController.getAllOrdersOverview)
+struct AdminOrder: Decodable, Identifiable, Hashable {
+    var id: Int
+    var customer_name: String?
+    var product_name: String?
+    var quantity: Int
+    var status: String?
+    var current_dept: String?
+    var created_at: String?
+    var warehouse_location: String?
+    var delivery_route: String?
+    var assigned_truck: String?
+    var bot_fee: String?
+    var fuel_fee: String?
+    var total_cost: String?
+    var payment_status: String?
+
+    enum CodingKeys: String, CodingKey {
+        case id, customer_name, product_name, quantity, status, current_dept, created_at
+        case warehouse_location, delivery_route, assigned_truck, bot_fee, fuel_fee, total_cost, payment_status
+    }
+
+    init(from decoder: Decoder) throws {
+        let c = try decoder.container(keyedBy: CodingKeys.self)
+        id = try c.decodeIfPresent(Int.self, forKey: .id) ?? 0
+        customer_name = try c.decodeIfPresent(String.self, forKey: .customer_name)
+        product_name = try c.decodeIfPresent(String.self, forKey: .product_name)
+        quantity = try c.decodeIfPresent(Int.self, forKey: .quantity) ?? 0
+        status = try c.decodeIfPresent(String.self, forKey: .status)
+        current_dept = try c.decodeIfPresent(String.self, forKey: .current_dept)
+        created_at = try c.decodeIfPresent(String.self, forKey: .created_at)
+        warehouse_location = try c.decodeIfPresent(String.self, forKey: .warehouse_location)
+        delivery_route = try c.decodeIfPresent(String.self, forKey: .delivery_route)
+        assigned_truck = try c.decodeIfPresent(String.self, forKey: .assigned_truck)
+        bot_fee = decodeFlexibleStringIfPresent(c, forKey: .bot_fee)
+        fuel_fee = decodeFlexibleStringIfPresent(c, forKey: .fuel_fee)
+        total_cost = decodeFlexibleStringIfPresent(c, forKey: .total_cost)
+        payment_status = try c.decodeIfPresent(String.self, forKey: .payment_status)
+    }
+}
+
+// Toàn bộ response của GET /api/orders/admin/overview
+struct AdminOverview: Decodable {
+    var orders: [AdminOrder]
+    var totalOrders: Int
+    var deptCounts: [String: Int]
+    var statusCounts: [String: Int]
+
+    static let empty = AdminOverview(orders: [], totalOrders: 0, deptCounts: [:], statusCounts: [:])
+
+    init(orders: [AdminOrder], totalOrders: Int, deptCounts: [String: Int], statusCounts: [String: Int]) {
+        self.orders = orders
+        self.totalOrders = totalOrders
+        self.deptCounts = deptCounts
+        self.statusCounts = statusCounts
+    }
+
+    enum CodingKeys: String, CodingKey { case orders, totalOrders, deptCounts, statusCounts }
+
+    init(from decoder: Decoder) throws {
+        let c = try decoder.container(keyedBy: CodingKeys.self)
+        orders = try c.decodeIfPresent([AdminOrder].self, forKey: .orders) ?? []
+        totalOrders = try c.decodeIfPresent(Int.self, forKey: .totalOrders) ?? 0
+        deptCounts = try c.decodeIfPresent([String: Int].self, forKey: .deptCounts) ?? [:]
+        statusCounts = try c.decodeIfPresent([String: Int].self, forKey: .statusCounts) ?? [:]
+    }
+}
+
+// GET /api/orders/oms/analytics/revenue (dùng lại ở AdminView.vue tab Revenue)
+struct RevenueSummary: Decodable {
+    var today: Double
+    var month: Double
+
+    static let empty = RevenueSummary(today: 0, month: 0)
+
+    init(today: Double, month: Double) {
+        self.today = today
+        self.month = month
+    }
+
+    enum CodingKeys: String, CodingKey { case today, month }
+
+    init(from decoder: Decoder) throws {
+        let c = try decoder.container(keyedBy: CodingKeys.self)
+        today = decodeFlexibleDouble(c, .today) ?? 0
+        month = decodeFlexibleDouble(c, .month) ?? 0
+    }
+}
+
+// Phần "summary" bên trong GET /api/orders/acc/orders (accController.getAccOrders)
+struct AccSummary: Decodable {
+    var totalCustomerRevenue: Double
+    var collectedCustomerRevenue: Double
+    var totalEpodCost: Double
+    var totalBotFee: Double
+    var totalFuelFee: Double
+    var netProfit: Double
+
+    static let empty = AccSummary(
+        totalCustomerRevenue: 0, collectedCustomerRevenue: 0,
+        totalEpodCost: 0, totalBotFee: 0, totalFuelFee: 0, netProfit: 0
+    )
+
+    init(totalCustomerRevenue: Double, collectedCustomerRevenue: Double, totalEpodCost: Double,
+         totalBotFee: Double, totalFuelFee: Double, netProfit: Double) {
+        self.totalCustomerRevenue = totalCustomerRevenue
+        self.collectedCustomerRevenue = collectedCustomerRevenue
+        self.totalEpodCost = totalEpodCost
+        self.totalBotFee = totalBotFee
+        self.totalFuelFee = totalFuelFee
+        self.netProfit = netProfit
+    }
+
+    enum CodingKeys: String, CodingKey {
+        case totalCustomerRevenue, collectedCustomerRevenue, totalEpodCost, totalBotFee, totalFuelFee, netProfit
+    }
+
+    init(from decoder: Decoder) throws {
+        let c = try decoder.container(keyedBy: CodingKeys.self)
+        totalCustomerRevenue = decodeFlexibleDouble(c, .totalCustomerRevenue) ?? 0
+        collectedCustomerRevenue = decodeFlexibleDouble(c, .collectedCustomerRevenue) ?? 0
+        totalEpodCost = decodeFlexibleDouble(c, .totalEpodCost) ?? 0
+        totalBotFee = decodeFlexibleDouble(c, .totalBotFee) ?? 0
+        totalFuelFee = decodeFlexibleDouble(c, .totalFuelFee) ?? 0
+        netProfit = decodeFlexibleDouble(c, .netProfit) ?? 0
+    }
+}
+
+// Response đầy đủ của GET /api/orders/acc/orders - chỉ cần field "summary"
+struct AccOrdersResponse: Decodable {
+    var summary: AccSummary
+
+    enum CodingKeys: String, CodingKey { case summary }
+
+    init(from decoder: Decoder) throws {
+        let c = try decoder.container(keyedBy: CodingKeys.self)
+        summary = try c.decodeIfPresent(AccSummary.self, forKey: .summary) ?? AccSummary.empty
+    }
+}
+
+// GET /api/orders/history/:id - nhật ký hành trình 1 đơn (order_logs)
+struct OrderLogEntry: Decodable, Identifiable {
+    var id: Int
+    var old_status: String?
+    var new_status: String?
+    var notes: String?
+    var changed_at: String?
+
+    enum CodingKeys: String, CodingKey { case id, old_status, new_status, notes, changed_at }
+
+    init(from decoder: Decoder) throws {
+        let c = try decoder.container(keyedBy: CodingKeys.self)
+        id = try c.decodeIfPresent(Int.self, forKey: .id) ?? 0
+        old_status = try c.decodeIfPresent(String.self, forKey: .old_status)
+        new_status = try c.decodeIfPresent(String.self, forKey: .new_status)
+        notes = try c.decodeIfPresent(String.self, forKey: .notes)
+        changed_at = try c.decodeIfPresent(String.self, forKey: .changed_at)
+    }
+}
+
+// GET /api/orders/admin/reports - danh sách báo cáo Docs đã gửi lên Admin
+struct AdminReport: Decodable, Identifiable {
+    var id: Int
+    var title: String?
+    var created_by: String?
+    var created_at: String?
+
+    enum CodingKeys: String, CodingKey { case id, title, created_by, created_at }
+
+    init(from decoder: Decoder) throws {
+        let c = try decoder.container(keyedBy: CodingKeys.self)
+        id = try c.decodeIfPresent(Int.self, forKey: .id) ?? 0
+        title = try c.decodeIfPresent(String.self, forKey: .title)
+        created_by = try c.decodeIfPresent(String.self, forKey: .created_by)
+        created_at = try c.decodeIfPresent(String.self, forKey: .created_at)
+    }
+}
+
+// 1 dòng đơn hàng bên trong report chi tiết
+struct AdminReportRow: Decodable, Identifiable {
+    var id: Int
+    var customer_name: String?
+    var product_name: String?
+    var quantity: Int
+    var status: String?
+    var current_dept: String?
+    var total_cost: String?
+    var bot_fee: String?
+    var fuel_fee: String?
+    // MỚI: các trường chi tiết hơn, giống bản web đã bổ sung (có thể rỗng nếu
+    // Docs tạo báo cáo không snapshot đủ các trường này).
+    var warehouse_location: String?
+    var delivery_route: String?
+    var assigned_truck: String?
+    var created_at: String?
+
+    enum CodingKeys: String, CodingKey {
+        case id, customer_name, product_name, quantity, status, current_dept, total_cost, bot_fee, fuel_fee,
+             warehouse_location, delivery_route, assigned_truck, created_at
+    }
+
+    init(from decoder: Decoder) throws {
+        let c = try decoder.container(keyedBy: CodingKeys.self)
+        id = try c.decodeIfPresent(Int.self, forKey: .id) ?? 0
+        customer_name = try c.decodeIfPresent(String.self, forKey: .customer_name)
+        product_name = try c.decodeIfPresent(String.self, forKey: .product_name)
+        quantity = try c.decodeIfPresent(Int.self, forKey: .quantity) ?? 0
+        status = try c.decodeIfPresent(String.self, forKey: .status)
+        current_dept = try c.decodeIfPresent(String.self, forKey: .current_dept)
+        total_cost = decodeFlexibleStringIfPresent(c, forKey: .total_cost)
+        bot_fee = decodeFlexibleStringIfPresent(c, forKey: .bot_fee)
+        fuel_fee = decodeFlexibleStringIfPresent(c, forKey: .fuel_fee)
+        warehouse_location = try c.decodeIfPresent(String.self, forKey: .warehouse_location)
+        delivery_route = try c.decodeIfPresent(String.self, forKey: .delivery_route)
+        assigned_truck = try c.decodeIfPresent(String.self, forKey: .assigned_truck)
+        created_at = try c.decodeIfPresent(String.self, forKey: .created_at)
+    }
+}
+
+// GET /api/orders/admin/reports/:id - chi tiết 1 báo cáo (readOnlyDeptController.submitOrderReportToAdmin tạo ra)
+struct AdminReportDetail: Decodable {
+    var id: Int
+    var title: String?
+    var created_by: String?
+    var created_at: String?
+    var data: [AdminReportRow]
+
+    enum CodingKeys: String, CodingKey { case id, title, created_by, created_at, data }
+
+    init(from decoder: Decoder) throws {
+        let c = try decoder.container(keyedBy: CodingKeys.self)
+        id = try c.decodeIfPresent(Int.self, forKey: .id) ?? 0
+        title = try c.decodeIfPresent(String.self, forKey: .title)
+        created_by = try c.decodeIfPresent(String.self, forKey: .created_by)
+        created_at = try c.decodeIfPresent(String.self, forKey: .created_at)
+        data = try c.decodeIfPresent([AdminReportRow].self, forKey: .data) ?? []
+    }
+}
+
 // Giống LoginResponse.kt - thêm role để phân biệt "wms" / "tms" từ PostgreSQL
 struct LoginResponse: Decodable {
     let success: Bool

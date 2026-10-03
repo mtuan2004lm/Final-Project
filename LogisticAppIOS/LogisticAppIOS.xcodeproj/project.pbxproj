@@ -7,6 +7,21 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		CBF3F1373070941D00C394C2 /* AdminView.swift in Sources */ = {isa = PBXBuildFile; fileRef = CBF3F1363070941500C394C2 /* AdminView.swift */; };
+		CBF3F1393070943900C394C2 /* AdminOrderTimelineView.swift in Sources */ = {isa = PBXBuildFile; fileRef = CBF3F1383070942200C394C2 /* AdminOrderTimelineView.swift */; };
+		CBF3F13B3070947300C394C2 /* AdminReportDetailView.swift in Sources */ = {isa = PBXBuildFile; fileRef = CBF3F13A3070945C00C394C2 /* AdminReportDetailView.swift */; };
+		CBF3F141307094AA00C394C2 /* ShareSheet.swift in Sources */ = {isa = PBXBuildFile; fileRef = CBF3F140307094A600C394C2 /* ShareSheet.swift */; };
+		CBF3F1433070AA8C00C394C2 /* CustomerLoginView.swift in Sources */ = {isa = PBXBuildFile; fileRef = CBF3F1423070AA8200C394C2 /* CustomerLoginView.swift */; };
+		CBF3F1453070AAA100C394C2 /* CustomerMainView.swift in Sources */ = {isa = PBXBuildFile; fileRef = CBF3F1443070AA9900C394C2 /* CustomerMainView.swift */; };
+		CBF3F1473070AAB700C394C2 /* CustomerCreateOrderView.swift in Sources */ = {isa = PBXBuildFile; fileRef = CBF3F1463070AAA900C394C2 /* CustomerCreateOrderView.swift */; };
+		CBF3F14B3070AAE700C394C2 /* CustomerOrdersListView.swift in Sources */ = {isa = PBXBuildFile; fileRef = CBF3F14A3070AADB00C394C2 /* CustomerOrdersListView.swift */; };
+		CBF3F14D3070AAFC00C394C2 /* CustomerHistoryView.swift in Sources */ = {isa = PBXBuildFile; fileRef = CBF3F14C3070AAEE00C394C2 /* CustomerHistoryView.swift */; };
+		CBF3F14F3070AB0D00C394C2 /* CustomerPaymentView.swift in Sources */ = {isa = PBXBuildFile; fileRef = CBF3F14E3070AB0200C394C2 /* CustomerPaymentView.swift */; };
+		CBF3F1513070AB1700C394C2 /* CameraPicker.swift in Sources */ = {isa = PBXBuildFile; fileRef = CBF3F1503070AB1100C394C2 /* CameraPicker.swift */; };
+		CBF3F1533070AB6800C394C2 /* CustomerStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = CBF3F1523070AB5C00C394C2 /* CustomerStore.swift */; };
+		CBF3F1553070B95C00C394C2 /* QRCodeGenerator.swift in Sources */ = {isa = PBXBuildFile; fileRef = CBF3F1543070B94A00C394C2 /* QRCodeGenerator.swift */; };
+		CBF3F1573070B97200C394C2 /* OrderQRCodeView.swift in Sources */ = {isa = PBXBuildFile; fileRef = CBF3F1563070B96600C394C2 /* OrderQRCodeView.swift */; };
+		CBF3F1593070B98100C394C2 /* QRScannerView.swift in Sources */ = {isa = PBXBuildFile; fileRef = CBF3F1583070B97800C394C2 /* QRScannerView.swift */; };
 		CBF92CFD306F91A70023EE83 /* DriverTripDetailView.swift in Sources */ = {isa = PBXBuildFile; fileRef = CBCC38DA306F557A003F6C50 /* DriverTripDetailView.swift */; };
 		CBF92CFE306F91A70023EE83 /* DriverView.swift in Sources */ = {isa = PBXBuildFile; fileRef = CBCC38D9306F556C003F6C50 /* DriverView.swift */; };
 		CBF92CFF306F91A70023EE83 /* WmsLogView.swift in Sources */ = {isa = PBXBuildFile; fileRef = CBCC38D8306F555B003F6C50 /* WmsLogView.swift */; };
@@ -39,6 +54,21 @@
 		CBCC38D9306F556C003F6C50 /* DriverView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DriverView.swift; sourceTree = "<group>"; };
 		CBCC38DA306F557A003F6C50 /* DriverTripDetailView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DriverTripDetailView.swift; sourceTree = "<group>"; };
 		CBCC38DB306F57A5003F6C50 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist; path = Info.plist; sourceTree = "<group>"; };
+		CBF3F1363070941500C394C2 /* AdminView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AdminView.swift; sourceTree = "<group>"; };
+		CBF3F1383070942200C394C2 /* AdminOrderTimelineView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AdminOrderTimelineView.swift; sourceTree = "<group>"; };
+		CBF3F13A3070945C00C394C2 /* AdminReportDetailView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AdminReportDetailView.swift; sourceTree = "<group>"; };
+		CBF3F140307094A600C394C2 /* ShareSheet.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ShareSheet.swift; sourceTree = "<group>"; };
+		CBF3F1423070AA8200C394C2 /* CustomerLoginView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CustomerLoginView.swift; sourceTree = "<group>"; };
+		CBF3F1443070AA9900C394C2 /* CustomerMainView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CustomerMainView.swift; sourceTree = "<group>"; };
+		CBF3F1463070AAA900C394C2 /* CustomerCreateOrderView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CustomerCreateOrderView.swift; sourceTree = "<group>"; };
+		CBF3F14A3070AADB00C394C2 /* CustomerOrdersListView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CustomerOrdersListView.swift; sourceTree = "<group>"; };
+		CBF3F14C3070AAEE00C394C2 /* CustomerHistoryView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CustomerHistoryView.swift; sourceTree = "<group>"; };
+		CBF3F14E3070AB0200C394C2 /* CustomerPaymentView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CustomerPaymentView.swift; sourceTree = "<group>"; };
+		CBF3F1503070AB1100C394C2 /* CameraPicker.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CameraPicker.swift; sourceTree = "<group>"; };
+		CBF3F1523070AB5C00C394C2 /* CustomerStore.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CustomerStore.swift; sourceTree = "<group>"; };
+		CBF3F1543070B94A00C394C2 /* QRCodeGenerator.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = QRCodeGenerator.swift; sourceTree = "<group>"; };
+		CBF3F1563070B96600C394C2 /* OrderQRCodeView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OrderQRCodeView.swift; sourceTree = "<group>"; };
+		CBF3F1583070B97800C394C2 /* QRScannerView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = QRScannerView.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -84,6 +114,7 @@
 		CBCC38C8306F52F2003F6C50 /* Models */ = {
 			isa = PBXGroup;
 			children = (
+				CBF3F1543070B94A00C394C2 /* QRCodeGenerator.swift */,
 				CBCC38CF306F5475003F6C50 /* Models.swift */,
 			);
 			path = Models;
@@ -117,6 +148,20 @@
 		CBCC38CE306F5374003F6C50 /* Views */ = {
 			isa = PBXGroup;
 			children = (
+				CBF3F1583070B97800C394C2 /* QRScannerView.swift */,
+				CBF3F1563070B96600C394C2 /* OrderQRCodeView.swift */,
+				CBF3F1523070AB5C00C394C2 /* CustomerStore.swift */,
+				CBF3F1503070AB1100C394C2 /* CameraPicker.swift */,
+				CBF3F14E3070AB0200C394C2 /* CustomerPaymentView.swift */,
+				CBF3F14C3070AAEE00C394C2 /* CustomerHistoryView.swift */,
+				CBF3F14A3070AADB00C394C2 /* CustomerOrdersListView.swift */,
+				CBF3F1463070AAA900C394C2 /* CustomerCreateOrderView.swift */,
+				CBF3F1443070AA9900C394C2 /* CustomerMainView.swift */,
+				CBF3F1423070AA8200C394C2 /* CustomerLoginView.swift */,
+				CBF3F140307094A600C394C2 /* ShareSheet.swift */,
+				CBF3F13A3070945C00C394C2 /* AdminReportDetailView.swift */,
+				CBF3F1383070942200C394C2 /* AdminOrderTimelineView.swift */,
+				CBF3F1363070941500C394C2 /* AdminView.swift */,
 				CBCC38DA306F557A003F6C50 /* DriverTripDetailView.swift */,
 				CBCC38D9306F556C003F6C50 /* DriverView.swift */,
 				CBCC38D8306F555B003F6C50 /* WmsLogView.swift */,
@@ -196,15 +241,30 @@
 				CBF92CFE306F91A70023EE83 /* DriverView.swift in Sources */,
 				CBF92CFF306F91A70023EE83 /* WmsLogView.swift in Sources */,
 				CBF92D00306F91A70023EE83 /* OrderDetailView.swift in Sources */,
+				CBF3F1513070AB1700C394C2 /* CameraPicker.swift in Sources */,
+				CBF3F141307094AA00C394C2 /* ShareSheet.swift in Sources */,
+				CBF3F14D3070AAFC00C394C2 /* CustomerHistoryView.swift in Sources */,
 				CBF92D01306F91A70023EE83 /* WarehouseView.swift in Sources */,
+				CBF3F1433070AA8C00C394C2 /* CustomerLoginView.swift in Sources */,
 				CBF92D02306F91A70023EE83 /* MainMenuView.swift in Sources */,
 				CBF92D03306F91A70023EE83 /* LoginView.swift in Sources */,
+				CBF3F1553070B95C00C394C2 /* QRCodeGenerator.swift in Sources */,
+				CBF3F1393070943900C394C2 /* AdminOrderTimelineView.swift in Sources */,
 				CBF92D04306F91A70023EE83 /* LocationManager.swift in Sources */,
+				CBF3F13B3070947300C394C2 /* AdminReportDetailView.swift in Sources */,
+				CBF3F1373070941D00C394C2 /* AdminView.swift in Sources */,
+				CBF3F1473070AAB700C394C2 /* CustomerCreateOrderView.swift in Sources */,
 				CBF92D05306F91A70023EE83 /* SessionStore.swift in Sources */,
+				CBF3F1593070B98100C394C2 /* QRScannerView.swift in Sources */,
+				CBF3F14B3070AAE700C394C2 /* CustomerOrdersListView.swift in Sources */,
+				CBF3F1453070AAA100C394C2 /* CustomerMainView.swift in Sources */,
+				CBF3F14F3070AB0D00C394C2 /* CustomerPaymentView.swift in Sources */,
 				CBF92D06306F91A70023EE83 /* ApiService.swift in Sources */,
 				CBF92D07306F91A70023EE83 /* ApiConfig.swift in Sources */,
 				CBF92D08306F91A70023EE83 /* Models.swift in Sources */,
+				CBF3F1573070B97200C394C2 /* OrderQRCodeView.swift in Sources */,
 				CBF92D0B306F91A70023EE83 /* LogisticAppIOSApp.swift in Sources */,
+				CBF3F1533070AB6800C394C2 /* CustomerStore.swift in Sources */,
 			);
 		};
 /* End PBXSourcesBuildPhase section */

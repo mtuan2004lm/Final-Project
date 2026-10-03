@@ -33,6 +33,16 @@ struct RootView: View {
             NavigationStack {
                 DriverView()
             }
+        case .admin:
+            NavigationStack {
+                AdminView()
+            }
+        case .customer:
+            // MỚI: khách hàng - giống CustomerView.vue, có TabView riêng 4 tab
+            // (Create Order / Current Orders / History / Payment) bên trong.
+            NavigationStack {
+                CustomerMainView()
+            }
         }
     }
 }

@@ -21,7 +21,7 @@
          <h1>🗄️ TRANSPORT DOCUMENT & RECORD ARCHIVE MANAGEMENT CENTER (DOCS DEPT)</h1>
          <button @click="exportDataExcel" class="btn-export-secondary">📥 Download All (CSV)</button>
        </header>
-       <p class="hint-text-header">📤 Want to send a report to Admin? Click the "Send to Admin" button on each order you want to send (it does not send everything at once).</p>
+       <p class="hint-text-header">📤 Want to send a report to Admin? Tick the orders you want (or use "Send to Admin" on a single row), then click "Send Selected to Admin" to send them together as one report.</p>
 
        <div class="kpi-grid">
           <div class="kpi-card total">
@@ -48,10 +48,30 @@
        </div>
 
        <div class="card list-card" style="margin-top: 25px;">
-          <h3>📋 Online Document Management List</h3>
+          <div class="list-header-row">
+             <h3>📋 Online Document Management List</h3>
+
+             <!-- MỚI: thanh công cụ chọn nhiều đơn + gửi gộp 1 báo cáo cho Admin -->
+             <div class="bulk-toolbar">
+                <label class="select-all-label">
+                   <input type="checkbox" :checked="allSelected" @change="toggleSelectAll" />
+                   Select all
+                </label>
+                <span class="selected-count" v-if="selectedIds.length > 0">{{ selectedIds.length }} selected</span>
+                <button
+                   class="btn-action send-btn"
+                   :disabled="selectedIds.length === 0 || sendingBulk"
+                   @click="sendSelectedToAdmin"
+                >
+                   {{ sendingBulk ? '⏳ Sending...' : `📤 Send Selected to Admin (${selectedIds.length})` }}
+                </button>
+             </div>
+          </div>
+
           <table class="data-table">
              <thead>
                 <tr>
+                   <th style="width: 36px;"></th>
                    <th>Order Code</th>
                    <th>Customer</th>
                    <th>Cargo</th>
@@ -63,6 +83,9 @@
              </thead>
              <tbody>
                 <tr v-for="doc in docs" :key="doc.id">
+                   <td>
+                      <input type="checkbox" :value="doc.id" v-model="selectedIds" />
+                   </td>
                    <td><span class="id-tag">#{{ doc.id }}</span></td>
                    <td><span class="customer-txt">{{ doc.customer_name }}</span></td>
                    <td>
@@ -87,7 +110,7 @@
                    </td>
                 </tr>
                 <tr v-if="docs.length === 0">
-                   <td colspan="7" style="text-align: center; color: #7f8c8d; padding: 30px;">
+                   <td colspan="8" style="text-align: center; color: #7f8c8d; padding: 30px;">
                       No records have been routed to this module yet.
                    </td>
                 </tr>
@@ -165,8 +188,17 @@
        },
        showModal: false,
        selectedDoc: null,
-       sendingReportId: null // lưu id đơn hàng đang gửi báo cáo (để chỉ disable đúng nút đó)
+       sendingReportId: null, // lưu id đơn hàng đang gửi báo cáo (để chỉ disable đúng nút đó)
+       // MỚI: danh sách id các đơn đang được tick chọn để gửi gộp báo cáo
+       selectedIds: [],
+       sendingBulk: false
      };
+   },
+   computed: {
+     // MỚI: checkbox "Select all" - tự bật khi mọi đơn đang hiển thị đều đã được chọn
+     allSelected() {
+       return this.docs.length > 0 && this.selectedIds.length === this.docs.length;
+     }
    },
    mounted() {
      this.fetchDocsData();
@@ -178,6 +210,9 @@
          // ĐÃ SỬA LỖI Ở DÒNG NÀY: Đổi 'response.data.orders' thành 'response.data.archives' cho khớp Backend
          this.docs = response.data.archives || [];
          this.kpi = response.data.kpi || { totalArchives: 0, closedArchives: 0, hasPodProof: 0 };
+         // Dọn các id chọn sẵn không còn tồn tại trong danh sách mới (ví dụ đơn đã bị khóa/chuyển đi)
+         const validIds = new Set(this.docs.map(d => d.id));
+         this.selectedIds = this.selectedIds.filter(id => validIds.has(id));
        } catch (error) {
          console.error('🔴 Error loading Docs department data:', error);
          alert('Unable to connect to the Backend server!');
@@ -186,6 +221,14 @@
      openDetails(doc) {
        this.selectedDoc = doc;
        this.showModal = true;
+     },
+     // MỚI: tick/bỏ tick toàn bộ đơn đang hiển thị trong bảng
+     toggleSelectAll(event) {
+       if (event.target.checked) {
+         this.selectedIds = this.docs.map(d => d.id);
+       } else {
+         this.selectedIds = [];
+       }
      },
      // ĐÃ SỬA: Gửi báo cáo cho Admin - giờ chỉ gửi ĐÚNG 1 đơn hàng được bấm (doc),
      // không gửi toàn bộ danh sách. Lưu snapshot vào DB (bảng "reports"), Admin mở
@@ -208,6 +251,37 @@
          alert('Failed to send report, please try again!');
        } finally {
          this.sendingReportId = null;
+       }
+     },
+     // MỚI: Gửi GỘP nhiều đơn đã tick chọn thành CHUNG 1 báo cáo cho Admin.
+     // Chỉ cần nhập tên báo cáo 1 lần duy nhất cho cả lô, thay vì bấm + nhập tên
+     // từng đơn một như trước. Dùng chung endpoint /docs/reports nhưng gửi lên
+     // "order_ids" (mảng) thay vì "order_id" (1 số) - backend đã được cập nhật
+     // để nhận cả hai kiểu.
+     async sendSelectedToAdmin() {
+       if (this.selectedIds.length === 0) return;
+
+       const defaultTitle = this.selectedIds.length === 1
+         ? `Order Report #${this.selectedIds[0]} - ${new Date().toLocaleDateString('vi-VN')}`
+         : `Order Report (${this.selectedIds.length} orders) - ${new Date().toLocaleDateString('vi-VN')}`;
+
+       const title = prompt(`Name the report to send to Admin (${this.selectedIds.length} orders selected):`, defaultTitle);
+       if (title === null) return; // Bấm Hủy
+
+       this.sendingBulk = true;
+       try {
+         const response = await axios.post('http://localhost:3000/api/orders/docs/reports', {
+           order_ids: this.selectedIds,
+           title: title.trim(),
+           created_by: 'Documentation Department (DOCS)'
+         });
+         alert(response.data.message || `📤 Successfully sent a report with ${this.selectedIds.length} orders to Admin!`);
+         this.selectedIds = []; // bỏ chọn sau khi gửi thành công
+       } catch (error) {
+         console.error('🔴 Error sending bulk report to Admin:', error);
+         alert('Failed to send the report, please try again!');
+       } finally {
+         this.sendingBulk = false;
        }
      },
      async lockArchive(id) {
@@ -329,7 +403,8 @@
 
  /* DATA TABLES */
  .card { background: white; border-radius: 8px; padding: 24px; box-shadow: 0 2px 12px rgba(0,0,0,0.05); }
- .list-card h3 { margin: 0 0 20px 0; font-size: 15px; color: #2c3e50; font-weight: 700; }
+ .list-card h3 { margin: 0; font-size: 15px; color: #2c3e50; font-weight: 700; }
+ .list-header-row { display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 12px; margin-bottom: 20px; }
  .data-table { width: 100%; border-collapse: collapse; }
  .data-table th, .data-table td { padding: 14px 16px; border-bottom: 1px solid #ecf0f1; text-align: left; font-size: 13.5px; vertical-align: middle; }
  .data-table th { background: #f8f9fa; color: #7f8c8d; font-size: 12px; font-weight: bold; text-transform: uppercase; letter-spacing: 0.5px; }
@@ -340,6 +415,11 @@
  .sub-txt { display: block; font-size: 11.5px; color: #7f8c8d; margin-top: 3px; }
  .cost-txt { font-weight: bold; color: #27ae60; }
  .driver-note { display: block; font-size: 11.5px; color: #7f8c8d; font-style: italic; margin-top: 2px; line-height: 1.4; }
+
+ /* MỚI: thanh công cụ chọn nhiều đơn + gửi gộp báo cáo */
+ .bulk-toolbar { display: flex; align-items: center; gap: 14px; flex-wrap: wrap; }
+ .select-all-label { display: flex; align-items: center; gap: 6px; font-size: 13px; color: #34495e; font-weight: 600; cursor: pointer; }
+ .selected-count { font-size: 12.5px; color: #8e44ad; font-weight: bold; background: #f4ecf7; padding: 4px 10px; border-radius: 12px; }
 
  /* BADGES */
  .badge { display: inline-block; padding: 4px 8px; border-radius: 4px; font-size: 11px; font-weight: bold; text-transform: uppercase; }

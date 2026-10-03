@@ -9,7 +9,7 @@
              <small style="color: #2ecc71;">Full oversight</small>
           </div>
         </div>
- 
+
         <div class="navigation-menu">
            <button @click="activeTab = 'pipeline'" :class="{ active: activeTab === 'pipeline' }" class="menu-btn">
               🔄 Order Process
@@ -20,25 +20,22 @@
            <button @click="activeTab = 'ops'" :class="{ active: activeTab === 'ops' }" class="menu-btn">
               📦 Operations Overview
            </button>
-           <!-- ĐÃ ẨN theo yêu cầu: nút sidebar dẫn tới tab "Report from Docs".
-                Code vẫn giữ nguyên bên dưới, chỉ comment lại - bỏ comment ở đây và khối
-                tương ứng phía dưới là dùng lại được ngay. -->
-           <!--
+
            <button @click="activeTab = 'reports'" :class="{ active: activeTab === 'reports' }" class="menu-btn">
               📄 Report from Docs
            </button>
-           -->
+
         </div>
- 
+
         <button @click="logout" class="btn-logout">Log Out</button>
       </div>
- 
+
       <div class="main-content">
- 
+
          <!-- ============ TAB 1: QUY TRÌNH ĐƠN HÀNG (CHI TIẾT, KIỂU TIKTOK SHOP) ============ -->
          <div v-if="activeTab === 'pipeline'">
             <header><h1>🔄 MONITOR THE ENTIRE ORDER FLOW</h1></header>
- 
+
             <div class="card list-card">
                <h3>📋 All orders in the system ({{ overview.totalOrders }})</h3>
                <table class="data-table">
@@ -77,11 +74,11 @@
                </table>
             </div>
          </div>
- 
+
          <!-- ============ TAB 2: TỔNG QUAN DOANH THU ============ -->
          <div v-if="activeTab === 'revenue'">
             <header><h1>📊 COMPANY-WIDE REVENUE & PROFIT OVERVIEW</h1></header>
- 
+
             <div class="revenue-grid">
                <div class="box-rev today">
                   <p>TODAY'S REVENUE</p>
@@ -92,7 +89,7 @@
                   <h2>${{ revenue.month }}</h2>
                </div>
             </div>
- 
+
             <div class="summary-cards-grid">
                <div class="summary-card revenue">
                   <div class="card-icon">💰</div>
@@ -120,14 +117,14 @@
                </div>
             </div>
          </div>
- 
+
          <!-- ============ TAB 3: TỔNG QUAN VẬN HÀNH (CHỈ TÓM TẮT) ============ -->
          <div v-if="activeTab === 'ops'">
             <header class="header-flex">
                <h1>📦 SYSTEM-WIDE OPERATIONS OVERVIEW (BY DEPARTMENT)</h1>
                <button @click="exportOrdersReport" class="btn-export">📥 Export Order Report (CSV)</button>
             </header>
- 
+
             <div class="dept-count-grid">
                <div class="dept-count-card" v-for="(count, dept) in overview.deptCounts" :key="dept">
                   <div class="dept-count-number">{{ count }}</div>
@@ -137,7 +134,7 @@
                   No department data available yet.
                </div>
             </div>
- 
+
             <div class="card list-card" style="margin-top: 25px;">
                <h3>📦 Order list overview (no per-item detail)</h3>
                <p class="hint-text">For detailed shelf locations, item status, barcode scans, etc., please use the dedicated WMS/TMS module.</p>
@@ -168,16 +165,24 @@
                </table>
             </div>
          </div>
- 
-         <!-- ============ TAB 4: BÁO CÁO TỪ DOCS (ĐÃ ẨN THEO YÊU CẦU) ============ -->
-         <!-- Toàn bộ tab này đã bị ẩn khỏi giao diện (nút sidebar chuyển sang tab này ở trên
-              cũng đã bị comment, nên activeTab không bao giờ nhận giá trị 'reports' nữa). Code
-              vẫn được giữ nguyên - bỏ comment cả khối này lẫn nút sidebar là dùng lại được ngay.
+
+         <!-- ============ TAB 4: BÁO CÁO TỪ DOCS  ============ -->
          <div v-if="activeTab === 'reports'">
             <header><h1>📄 ORDER REPORT SENT BY THE DOCUMENTATION DEPARTMENT (DOCS)</h1></header>
- 
+
             <div class="card list-card">
-               <h3>📥 List of received reports ({{ reports.length }})</h3>
+               <div class="filter-bar">
+                  <input v-model="reportSearch" type="text" class="filter-input" placeholder="🔎 Search by report title..." />
+                  <select v-model="reportSenderFilter" class="filter-input">
+                     <option value="">All senders</option>
+                     <option v-for="sender in reportSenders" :key="sender" :value="sender">{{ sender }}</option>
+                  </select>
+                  <input v-model="reportDateFrom" type="date" class="filter-input" title="From date" />
+                  <input v-model="reportDateTo" type="date" class="filter-input" title="To date" />
+                  <button v-if="reportSearch || reportSenderFilter || reportDateFrom || reportDateTo" @click="clearReportFilters" class="btn-clear-filter">✕ Clear filters</button>
+               </div>
+
+               <h3>📥 List of received reports ({{ filteredReports.length }} / {{ reports.length }})</h3>
                <table class="data-table">
                   <thead>
                      <tr>
@@ -188,7 +193,7 @@
                      </tr>
                   </thead>
                   <tbody>
-                     <tr v-for="report in reports" :key="report.id">
+                     <tr v-for="report in filteredReports" :key="report.id">
                         <td><b>{{ report.title }}</b></td>
                         <td><span class="dept-badge">{{ report.created_by }}</span></td>
                         <td><small>{{ formatDateTime(report.created_at) }}</small></td>
@@ -196,19 +201,19 @@
                            <button @click="openReport(report.id)" class="btn-action btn-view">👁️ Open</button>
                         </td>
                      </tr>
-                     <tr v-if="reports.length === 0">
-                        <td colspan="4" style="text-align:center; color:#95a5a6; padding:25px;">No reports have been sent by Docs yet.</td>
+                     <tr v-if="filteredReports.length === 0">
+                        <td colspan="4" style="text-align:center; color:#95a5a6; padding:25px;">
+                           {{ reports.length === 0 ? 'No reports have been sent by Docs yet.' : 'No reports match the current filters.' }}
+                        </td>
                      </tr>
                   </tbody>
                </table>
             </div>
          </div>
-         -->
- 
+
       </div>
- 
-      <!-- ============ MODAL: XEM BÁO CÁO TỪ DOCS (ĐÃ ẨN CÙNG TAB 4 - không còn cách nào mở được) ============ -->
-      <!--
+
+      <!-- ============ MODAL: BÁO CÁO CHI TIẾT TỪ DOCS  ============ -->
       <div v-if="showReportModal" class="modal-overlay" @click.self="showReportModal = false">
          <div class="modal-content-box report-modal-box">
             <div class="modal-header">
@@ -217,6 +222,34 @@
             </div>
             <div class="modal-body">
                <p class="hint-text">Sent by: <b>{{ activeReport?.created_by }}</b> • At: {{ formatDateTime(activeReport?.created_at) }} • Total {{ activeReport?.data?.length || 0 }} orders</p>
+
+               <!-- Số liệu tổng hợp của báo cáo (tự tính lại theo kết quả đang được lọc/tìm kiếm) -->
+               <div class="report-stats-grid">
+                  <div class="report-stat-box">
+                     <small>ORDERS SHOWN</small>
+                     <h3>{{ reportStats.count }}</h3>
+                  </div>
+                  <div class="report-stat-box revenue-stat">
+                     <small>TOTAL SHIPPING FEE</small>
+                     <h3>{{ reportStats.totalRevenue }} USD</h3>
+                  </div>
+                  <div class="report-stat-box cost-stat">
+                     <small>TOTAL BOT FEE</small>
+                     <h3>{{ reportStats.totalBot }} USD</h3>
+                  </div>
+                  <div class="report-stat-box cost-stat">
+                     <small>TOTAL FUEL FEE</small>
+                     <h3>{{ reportStats.totalFuel }} USD</h3>
+                  </div>
+               </div>
+               <div class="report-status-breakdown" v-if="Object.keys(reportStats.statusCounts).length > 0">
+                  <span v-for="(count, status) in reportStats.statusCounts" :key="status" class="badge-simple status-chip">
+                     {{ status }}: {{ count }}
+                  </span>
+               </div>
+
+               <input v-model="reportDetailSearch" type="text" class="filter-input" style="margin: 15px 0;" placeholder="🔎 Search by order code or customer name within this report..." />
+
                <table class="data-table">
                   <thead>
                      <tr>
@@ -225,32 +258,42 @@
                         <th>Goods</th>
                         <th>Status</th>
                         <th>Department</th>
+                        <th>Warehouse</th>
+                        <th>Route</th>
+                        <th>Truck</th>
                         <th>Shipping Fee (USD)</th>
                         <th>BOT Fee (USD)</th>
                         <th>Fuel (USD)</th>
+                        <th>Created On</th>
                      </tr>
                   </thead>
                   <tbody>
-                     <tr v-for="row in (activeReport?.data || [])" :key="row.id">
+                     <tr v-for="row in filteredReportRows" :key="row.id">
                         <td><b class="order-id-tag">#{{ row.id }}</b></td>
                         <td>{{ row.customer_name }}</td>
                         <td>{{ row.product_name }} <small>(Qty: {{ row.quantity }})</small></td>
                         <td><span class="badge-simple">{{ row.status }}</span></td>
                         <td><span class="dept-badge">{{ row.current_dept }}</span></td>
+                        <td><small>{{ row.warehouse_location || '—' }}</small></td>
+                        <td><small>{{ row.delivery_route || '—' }}</small></td>
+                        <td><small>{{ row.assigned_truck || '—' }}</small></td>
                         <td>{{ row.total_cost }}</td>
                         <td>{{ row.bot_fee }}</td>
                         <td>{{ row.fuel_fee }}</td>
+                        <td><small>{{ formatDate(row.created_at) }}</small></td>
                      </tr>
-                     <tr v-if="!activeReport?.data || activeReport.data.length === 0">
-                        <td colspan="8" style="text-align:center; color:#95a5a6; padding:20px;">This report has no order data.</td>
+                     <tr v-if="filteredReportRows.length === 0">
+                        <td colspan="12" style="text-align:center; color:#95a5a6; padding:20px;">
+                           {{ (activeReport?.data || []).length === 0 ? 'This report has no order data.' : 'No orders in this report match your search.' }}
+                        </td>
                      </tr>
                   </tbody>
                </table>
             </div>
          </div>
       </div>
-      -->
- 
+
+
       <!-- ============ MODAL: HÀNH TRÌNH CHI TIẾT ĐƠN HÀNG (KIỂU TIKTOK SHOP) ============ -->
       <div v-if="showTimelineModal" class="modal-overlay" @click.self="showTimelineModal = false">
          <div class="modal-content-box">
@@ -258,7 +301,7 @@
                <h2>📜 Order Timeline #{{ selectedOrder?.id }}</h2>
                <button class="close-btn" @click="showTimelineModal = false">×</button>
             </div>
- 
+
             <div class="modal-body">
                <!-- Thanh tiến trình trực quan, kiểu tracking TikTok Shop -->
                <div v-if="selectedOrder?.status !== 'RETURNED'" class="stepper-row">
@@ -271,7 +314,7 @@
                   </div>
                </div>
                <div v-else class="returned-banner">⚠️ This order was returned to the customer; it did not continue the standard process.</div>
- 
+
                <h4 style="margin-top: 25px;">📌 Detailed log for each handoff</h4>
                <div class="timeline-wrapper">
                   <div v-for="log in activeOrderHistory" :key="log.id" class="timeline-item">
@@ -291,37 +334,113 @@
             </div>
          </div>
       </div>
- 
+
     </div>
   </template>
- 
+
   <script setup>
-  import { ref, onMounted, onUnmounted } from 'vue';
+  import { ref, computed, onMounted, onUnmounted } from 'vue';
   import axios from 'axios';
   import { useRouter } from 'vue-router';
- 
+
   const router = useRouter();
   const activeTab = ref('pipeline');
- 
+
   const overview = ref({ orders: [], totalOrders: 0, deptCounts: {}, statusCounts: {} });
   const revenue = ref({ today: 0, month: 0 });
   const accSummary = ref({
      totalCustomerRevenue: 0, collectedCustomerRevenue: 0,
      totalEpodCost: 0, totalBotFee: 0, totalFuelFee: 0, netProfit: 0
   });
- 
+
   const showTimelineModal = ref(false);
   const selectedOrder = ref(null);
   const activeOrderHistory = ref([]);
- 
-  // Giữ nguyên (không xoá) để có thể bật lại tính năng "Report from Docs" nhanh chóng,
-  // dù khối template tương ứng (tab + modal + nút sidebar) hiện đã bị ẩn.
+
   const reports = ref([]);
   const showReportModal = ref(false);
   const activeReport = ref(null);
- 
+
+  // MỚI: Bộ lọc & tìm kiếm cho danh sách báo cáo (tab "Report from Docs")
+  const reportSearch = ref('');
+  const reportSenderFilter = ref('');
+  const reportDateFrom = ref('');
+  const reportDateTo = ref('');
+
+  // Danh sách người gửi (Docs) duy nhất, lấy từ chính danh sách báo cáo đã tải về
+  const reportSenders = computed(() => {
+     const set = new Set(reports.value.map(r => r.created_by).filter(Boolean));
+     return Array.from(set).sort();
+  });
+
+  const filteredReports = computed(() => {
+     return reports.value.filter(r => {
+        if (reportSearch.value && !(r.title || '').toLowerCase().includes(reportSearch.value.toLowerCase())) {
+           return false;
+        }
+        if (reportSenderFilter.value && r.created_by !== reportSenderFilter.value) {
+           return false;
+        }
+        if (reportDateFrom.value && new Date(r.created_at) < new Date(reportDateFrom.value)) {
+           return false;
+        }
+        if (reportDateTo.value) {
+           // Lấy đến hết ngày "to" (23:59:59) để không bị loại nhầm báo cáo gửi trong ngày đó
+           const toDate = new Date(reportDateTo.value);
+           toDate.setHours(23, 59, 59, 999);
+           if (new Date(r.created_at) > toDate) return false;
+        }
+        return true;
+     });
+  });
+
+  const clearReportFilters = () => {
+     reportSearch.value = '';
+     reportSenderFilter.value = '';
+     reportDateFrom.value = '';
+     reportDateTo.value = '';
+  };
+
+  // MỚI: Tìm kiếm + số liệu tổng hợp NGAY TRONG 1 báo cáo đang mở xem chi tiết
+  const reportDetailSearch = ref('');
+
+  const filteredReportRows = computed(() => {
+     const rows = activeReport.value?.data || [];
+     if (!reportDetailSearch.value) return rows;
+     const keyword = reportDetailSearch.value.toLowerCase();
+     return rows.filter(row =>
+        String(row.id).includes(keyword) ||
+        (row.customer_name || '').toLowerCase().includes(keyword)
+     );
+  });
+
+  // Số liệu tổng hợp tự tính lại theo đúng những dòng đang hiển thị (có áp dụng tìm kiếm ở trên)
+  const reportStats = computed(() => {
+     const rows = filteredReportRows.value;
+     const toNum = (v) => Number(v) || 0;
+     const stats = {
+        count: rows.length,
+        totalRevenue: 0,
+        totalBot: 0,
+        totalFuel: 0,
+        statusCounts: {}
+     };
+     rows.forEach(row => {
+        stats.totalRevenue += toNum(row.total_cost);
+        stats.totalBot += toNum(row.bot_fee);
+        stats.totalFuel += toNum(row.fuel_fee);
+        const status = row.status || 'OTHER';
+        stats.statusCounts[status] = (stats.statusCounts[status] || 0) + 1;
+     });
+     // Làm tròn 2 chữ số thập phân cho dễ đọc
+     stats.totalRevenue = Math.round(stats.totalRevenue * 100) / 100;
+     stats.totalBot = Math.round(stats.totalBot * 100) / 100;
+     stats.totalFuel = Math.round(stats.totalFuel * 100) / 100;
+     return stats;
+  });
+
   const stepLabels = ['Order Placed', 'Approved (OMS)', 'Warehouse Processing (WMS)', 'Shipping (TMS)', 'Delivered', 'Completed'];
- 
+
   // Suy luận đơn hàng đang ở bước thứ mấy trong 6 bước chuẩn, dựa trên status + current_dept.
   // Đây là ước lượng trực quan cho phần tổng quan của Admin, không thay thế nghiệp vụ chi tiết của từng phòng ban.
   const getStepIndex = (order) => {
@@ -335,9 +454,9 @@
      if (status === 'APPROVED') return 2;
      return 1;
   };
- 
+
   const getStepLabel = (order) => stepLabels[getStepIndex(order) - 1] || '';
- 
+
   const fetchOverview = async () => {
      try {
         const res = await axios.get('http://localhost:3000/api/orders/admin/overview');
@@ -346,7 +465,7 @@
         console.error('Error loading order overview:', err);
      }
   };
- 
+
   // Xuất báo cáo CSV (mở trực tiếp bằng Excel) từ toàn bộ đơn hàng đang có trong overview.orders
   const exportOrdersReport = () => {
      const list = overview.value.orders || [];
@@ -354,19 +473,19 @@
         alert('⚠️ There are no orders to export a report for!');
         return;
      }
- 
+
      const headers = [
         'Order Code', 'Customer', 'Goods', 'Quantity', 'Status', 'Current Department',
         'Warehouse Location', 'Delivery Route', 'Assigned Truck', 'BOT Fee (USD)', 'Fuel Fee (USD)',
         'Shipping Fee (USD)', 'Payment Status', 'Created On'
      ];
- 
+
      const rows = list.map(o => [
         o.id, o.customer_name, o.product_name, o.quantity, o.status, o.current_dept,
         o.warehouse_location, o.delivery_route, o.assigned_truck, o.bot_fee, o.fuel_fee,
         o.total_cost, o.payment_status, o.created_at ? new Date(o.created_at).toLocaleDateString('en-US') : ''
      ]);
- 
+
      const escapeCsv = (val) => {
         const str = String(val ?? '');
         if (str.includes(',') || str.includes('"') || str.includes('\n')) {
@@ -374,11 +493,11 @@
         }
         return str;
      };
- 
+
      const csvContent = [headers, ...rows].map(row => row.map(escapeCsv).join(',')).join('\r\n');
      const blob = new Blob(['﻿' + csvContent], { type: 'text/csv;charset=utf-8;' });
      const url = URL.createObjectURL(blob);
- 
+
      const now = new Date();
      const stamp = `${now.getFullYear()}${String(now.getMonth() + 1).padStart(2, '0')}${String(now.getDate()).padStart(2, '0')}`;
      const link = document.createElement('a');
@@ -389,7 +508,7 @@
      document.body.removeChild(link);
      URL.revokeObjectURL(url);
   };
- 
+
   const fetchRevenue = async () => {
      try {
         const res = await axios.get('http://localhost:3000/api/orders/oms/analytics/revenue');
@@ -398,7 +517,7 @@
         console.error('Error loading daily/monthly revenue:', err);
      }
   };
- 
+
   const fetchAccSummary = async () => {
      try {
         const res = await axios.get('http://localhost:3000/api/orders/acc/orders');
@@ -407,7 +526,7 @@
         console.error('Error loading accounting summary:', err);
      }
   };
- 
+
   // ĐÃ SỬA: dùng đúng route "/history/:id" đã đăng ký trong orderRoutes.js
   // (khác với OmsView.vue đang gọi nhầm "/:id/history" - route đó không tồn tại nên bị lỗi).
   const openTimeline = async (order) => {
@@ -420,9 +539,8 @@
         alert('Unable to load this order\'s history!');
      }
   };
- 
+
   // Danh sách báo cáo Docs đã gửi + mở xem chi tiết 1 báo cáo trực tiếp trong app
-  // (hàm vẫn giữ lại, chỉ không còn được gọi trong refreshAllData() nữa vì tab đã bị ẩn)
   const fetchReports = async () => {
      try {
         const res = await axios.get('http://localhost:3000/api/orders/admin/reports');
@@ -431,28 +549,29 @@
         console.error('Error loading report list:', err);
      }
   };
- 
+
   const openReport = async (reportId) => {
      try {
         const res = await axios.get(`http://localhost:3000/api/orders/admin/reports/${reportId}`);
         activeReport.value = res.data;
+        reportDetailSearch.value = ''; // reset tìm kiếm mỗi khi mở báo cáo mới
         showReportModal.value = true;
      } catch (err) {
         alert('This report could not be opened!');
      }
   };
- 
+
   const formatDate = (d) => d ? new Date(d).toLocaleDateString('en-US') : '—';
   const formatDateTime = (d) => d ? new Date(d).toLocaleString('en-US') : '—';
- 
+
   let adminInterval = null;
   const refreshAllData = () => {
      fetchOverview();
      fetchRevenue();
      fetchAccSummary();
-     // fetchReports(); // ĐÃ ẨN cùng tab "Report from Docs" - bỏ comment dòng này khi bật lại tab
+     fetchReports();
   };
- 
+
   onMounted(() => {
      if (!localStorage.getItem('role')) {
         router.push('/');
@@ -461,12 +580,12 @@
         adminInterval = setInterval(refreshAllData, 8000);
      }
   });
- 
+
   onUnmounted(() => { if (adminInterval) clearInterval(adminInterval); });
- 
+
   const logout = () => { localStorage.clear(); router.push('/'); };
   </script>
- 
+
   <style scoped>
   .dashboard-container { display: flex; height: 100vh; font-family: 'Segoe UI', sans-serif; background: #f0f2f5;}
   .sidebar { width: 250px; background: #2c3e50; color: white; padding: 20px; display: flex; flex-direction: column; box-sizing: border-box;}
@@ -484,7 +603,7 @@
   .header-flex h1 { margin: 0; }
   .btn-export { background: #27ae60; color: white; border: none; padding: 10px 16px; border-radius: 4px; font-weight: bold; cursor: pointer; font-size: 13px; transition: 0.2s; white-space: nowrap; }
   .btn-export:hover { background: #219653; }
- 
+
   .data-table { width: 100%; border-collapse: collapse; margin-top: 15px; }
   .data-table th, .data-table td { padding: 12px 15px; border-bottom: 1px solid #ecf0f1; text-align: left; font-size: 13px; vertical-align: middle;}
   .data-table th { background: #f8f9fa; color: #7f8c8d; font-size: 12px; font-weight: bold; text-transform: uppercase;}
@@ -494,18 +613,35 @@
   .badge-returned { font-size: 11px; font-weight: bold; background: #ffebee; color: #c62828; padding: 4px 8px; border-radius: 4px;}
   .mini-step-badge { font-size: 12px; font-weight: bold; background: #e3f2fd; color: #1565c0; padding: 4px 8px; border-radius: 4px; display: inline-block;}
   .hint-text { font-size: 12px; color: #7f8c8d; font-style: italic; margin: -10px 0 5px 0; }
- 
+
   .btn-action { padding: 6px 12px; border: none; border-radius: 4px; cursor: pointer; font-weight: bold; font-size: 12px;}
   .btn-view { background: #2980b9; color: white; }
   .btn-view:hover { background: #2471a3; }
- 
+
+  /* MỚI: Bộ lọc / tìm kiếm cho tab Report from Docs */
+  .filter-bar { display: flex; gap: 10px; flex-wrap: wrap; margin-bottom: 15px; }
+  .filter-input { padding: 8px 12px; border: 1px solid #dcdde1; border-radius: 6px; font-size: 13px; flex: 1; min-width: 160px; }
+  .filter-input:focus { outline: none; border-color: #2980b9; }
+  .btn-clear-filter { background: #ecf0f1; color: #636e72; border: none; padding: 8px 14px; border-radius: 6px; font-size: 12px; font-weight: bold; cursor: pointer; white-space: nowrap; }
+  .btn-clear-filter:hover { background: #dcdde1; }
+
+  /* MỚI: Số liệu tổng hợp trong modal chi tiết báo cáo */
+  .report-stats-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px; margin: 15px 0; }
+  .report-stat-box { background: #f8f9fa; border: 1px solid #eef2f5; border-radius: 6px; padding: 12px 15px; }
+  .report-stat-box small { font-size: 10.5px; color: #7f8c8d; font-weight: bold; text-transform: uppercase; }
+  .report-stat-box h3 { font-size: 18px; margin: 4px 0 0 0; color: #2c3e50; font-weight: 800; }
+  .report-stat-box.revenue-stat h3 { color: #2e7d32; }
+  .report-stat-box.cost-stat h3 { color: #c62828; }
+  .report-status-breakdown { display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 5px; }
+  .status-chip { background: #eef2f7 !important; }
+
   .revenue-grid { display: flex; gap: 20px; margin-bottom: 25px; }
   .box-rev { flex: 1; padding: 25px; border-radius: 8px; color: white; box-shadow: 0 6px 18px rgba(0,0,0,0.06); }
   .box-rev.today { background: linear-gradient(135deg, #1dd1a1, #10ac84); }
   .box-rev.month { background: linear-gradient(135deg, #2e86de, #54a0ff); }
   .box-rev p { margin: 0; font-size: 12px; font-weight: bold; text-transform: uppercase; opacity: 0.9;}
   .box-rev h2 { font-size: 32px; margin: 8px 0 0 0; font-weight: 800; }
- 
+
   .summary-cards-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 20px; }
   .summary-card { background: white; padding: 20px; border-radius: 8px; display: flex; align-items: center; gap: 20px; box-shadow: 0 4px 12px rgba(0,0,0,0.05); border: 1px solid #eef2f5; }
   .card-icon { font-size: 32px; width: 55px; height: 55px; border-radius: 50%; display: flex; justify-content: center; align-items: center; }
@@ -521,13 +657,13 @@
   .profit.positive .card-value { color: #1565c0; }
   .profit.negative .card-value { color: #d84315; }
   .card-info small { font-size: 11px; color: #95a5a6; display: block; }
- 
+
   .dept-count-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(120px, 1fr)); gap: 15px; }
   .dept-count-card { background: white; border: 1px solid #eef2f5; border-radius: 8px; padding: 18px; text-align: center; box-shadow: 0 4px 12px rgba(0,0,0,0.04); }
   .dept-count-number { font-size: 28px; font-weight: 800; color: #2c3e50; }
   .dept-count-label { font-size: 12px; font-weight: bold; color: #7f8c8d; text-transform: uppercase; margin-top: 4px; }
   .text-muted-empty { color: #95a5a6; font-style: italic; padding: 10px; }
- 
+
   .modal-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); display: flex; justify-content: center; align-items: center; z-index: 9999; }
   .modal-content-box { background: white; width: 680px; max-height: 82vh; border-radius: 6px; display: flex; flex-direction: column; overflow: hidden; box-shadow: 0 8px 30px rgba(0,0,0,0.15); }
   .report-modal-box { width: 920px; max-width: 92vw; }
@@ -535,9 +671,9 @@
   .modal-header h2 { font-size: 16px; margin: 0; font-weight: 700; }
   .close-btn { background: none; border: none; color: white; font-size: 26px; cursor: pointer; line-height: 1; }
   .modal-body { padding: 25px; overflow-y: auto; background: #fdfefe; }
- 
+
   .returned-banner { background: #ffebee; color: #c62828; padding: 14px; border-radius: 6px; font-weight: bold; text-align: center; border: 1px dashed #ef5350; }
- 
+
   /* THANH THEO DÕI TIẾN TRÌNH, KIỂU TIKTOK SHOP */
   .stepper-row { display: flex; align-items: flex-start; }
   .stepper-step { flex: 1; display: flex; flex-direction: column; align-items: center; position: relative; }
@@ -547,7 +683,7 @@
   .stepper-label { font-size: 10.5px; text-align: center; margin-top: 6px; color: #57606f; font-weight: 600; max-width: 80px; }
   .stepper-line { position: absolute; top: 15px; left: 50%; width: 100%; height: 3px; background: #dcdde1; z-index: 1; }
   .stepper-line.done { background: #27ae60; }
- 
+
   .timeline-wrapper { position: relative; border-left: 2px solid #34495e; margin-left: 15px; padding-left: 25px; display: flex; flex-direction: column; gap: 20px; }
   .timeline-item { position: relative; }
   .timeline-badge-circle { position: absolute; left: -34px; top: 5px; width: 12px; height: 12px; background: #e67e22; border: 3px solid white; border-radius: 50%; box-shadow: 0 0 0 2px #34495e; }

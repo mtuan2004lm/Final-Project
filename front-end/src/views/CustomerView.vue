@@ -140,6 +140,7 @@
                 <th>Quantity</th>
                 <th>Total Amount</th>
                 <th>Status</th>
+                <th>Package QR</th>
                 <th>Vehicle Location (Real-Time)</th>
               </tr>
             </thead>
@@ -158,6 +159,11 @@
                   <span :class="'status-badge ' + (order.status ? order.status.toLowerCase() : 'new')">
                     {{ translateStatus(order.status) }}
                   </span>
+                </td>
+                <!-- MỚI: mã QR của kiện hàng (PKG-xxxxx), WMS sẽ quét mã này bằng camera
+                     để xác nhận nhận hàng - xem thêm openQrModal() bên dưới. -->
+                <td>
+                  <button @click="openQrModal(order.id)" class="btn-qr-view">🔳 View QR</button>
                 </td>
                 <!-- MỚI: Vị trí xe lấy từ GPS thật (truck_lat/truck_lng), được app tài xế
                      (Android/iOS) bắn định kỳ lên server qua PUT /api/orders/tms/fleet/gps,
@@ -184,7 +190,7 @@
                 </td>
               </tr>
               <tr v-if="activeOrders.length === 0">
-                <td colspan="8" style="text-align: center; color: #7f8c8d; padding: 20px;">There are no orders currently being processed.</td>
+                <td colspan="9" style="text-align: center; color: #7f8c8d; padding: 20px;">There are no orders currently being processed.</td>
               </tr>
             </tbody>
           </table>
@@ -312,6 +318,29 @@
       </div>
     </div>
 
+    <!-- MỚI: Popup hiện mã QR kiện hàng - dùng chung cho 2 trường hợp:
+         1. Tự động mở ngay sau khi tạo đơn thành công (xem createOrder()).
+         2. Mở thủ công bằng nút "View QR" ở tab Current Orders (xem openQrModal()).
+         WMS sẽ quét đúng chuỗi text PKG-xxxxx này bằng camera (app WMS iOS/Android)
+         để xác nhận nhận hàng - không cần gọi thêm API nào vì mã được tính trực tiếp
+         từ order id (giống hệt công thức "PKG-" + (60000 + id) đã dùng trong app WMS). -->
+    <div v-if="showQrModal" class="qr-modal-backdrop" @click.self="showQrModal = false">
+      <div class="qr-modal-box">
+        <div class="modal-header-review">
+          <h3>🔳 Package QR Code</h3>
+          <button @click="showQrModal = false" class="close-review-btn">&times;</button>
+        </div>
+        <div class="qr-modal-body">
+          <p v-if="qrOrderId === lastCreatedOrderId" class="qr-success-text">
+            🚀 Order created successfully! Print or screenshot this QR code and attach it to your package.
+          </p>
+          <img :src="getQrImageUrl(qrOrderId)" alt="Package QR Code" class="qr-image" />
+          <p class="qr-code-text">{{ getPackageCode(qrOrderId) }}</p>
+          <p class="qr-hint-text">The warehouse (WMS) will scan this code on arrival to confirm receipt.</p>
+        </div>
+      </div>
+    </div>
+
   </div>
 </template>
 
@@ -333,6 +362,11 @@ const showReviewModal = ref(false);
 const activeReviewOrder = ref(null);
 const feedbackRating = ref(5);
 const feedbackText = ref('');
+
+// MỚI: state cho popup mã QR kiện hàng
+const showQrModal = ref(false);
+const qrOrderId = ref(null);
+const lastCreatedOrderId = ref(null); // phân biệt "vừa tạo xong" với "xem lại QR cũ" để đổi câu chữ trong popup
 
 let customerInterval = null;
 const returnedOrderNotice = ref(null);
@@ -413,6 +447,23 @@ const fetchOrders = async () => {
   }
 };
 
+// MỚI: mã kiện hàng (PKG-xxxxx) - CÙNG CÔNG THỨC với app WMS (iOS/Android) đang
+// dùng để đối chiếu khi quét/nhập tay xác nhận nhận hàng. Không cần backend sinh
+// hay lưu gì thêm, vì công thức này là 1-1 suy ra được từ order id.
+const getPackageCode = (orderId) => `PKG-${60000 + Number(orderId)}`;
+
+// MỚI: ảnh QR code sinh bằng dịch vụ miễn phí api.qrserver.com (không cần cài thêm
+// thư viện JS nào, giống cách VietQR đang được dùng ở cổng thanh toán bên dưới).
+const getQrImageUrl = (orderId) => {
+  const code = getPackageCode(orderId);
+  return `https://api.qrserver.com/v1/create-qr-code/?size=220x220&data=${encodeURIComponent(code)}`;
+};
+
+const openQrModal = (orderId) => {
+  qrOrderId.value = orderId;
+  showQrModal.value = true;
+};
+
 const createOrder = async () => {
   if (!productImageFile.value) {
     alert("⚠️ Please upload an actual image of the cargo to create the yard declaration!");
@@ -431,10 +482,9 @@ const createOrder = async () => {
   formData.append('product_image', productImageFile.value);
 
   try {
-    await axios.post('http://localhost:3000/api/orders', formData, {
+    const res = await axios.post('http://localhost:3000/api/orders', formData, {
       headers: { 'Content-Type': 'multipart/form-data' }
     });
-    alert("🚀 Consignment request created successfully!");
 
     newOrder.value = { customer_name: '', product_name: '', cargo_type: 'Hàng hóa thông thường', quantity: 1 };
     productImageFile.value = null;
@@ -444,6 +494,16 @@ const createOrder = async () => {
     calculateEstimatedPrice();
     fetchOrders();
     currentTab.value = 'list';
+
+    // MỚI: mở popup QR ngay nếu lấy được id đơn vừa tạo; nếu vì lý do gì đó server
+    // không trả về order.id, fallback về alert cũ để không chặn luồng tạo đơn.
+    const newId = res.data && res.data.order ? res.data.order.id : null;
+    if (newId) {
+      lastCreatedOrderId.value = newId;
+      openQrModal(newId);
+    } else {
+      alert("🚀 Consignment request created successfully!");
+    }
   } catch (err) {
     console.error("Error sending multipart data:", err);
     alert("Error submitting the order to the system!");
@@ -613,6 +673,10 @@ header h1 { font-size: 24px; font-weight: 800; color: #2c3e50; margin-bottom: 25
 .status-badge.returned { background: #fee2e2; color: #dc2626; border: 1px dashed #ef4444; }
 .status-badge.done { background: #dcfce7; color: #15803d; }
 
+/* MỚI: nút xem QR kiện hàng trong bảng Current Orders */
+.btn-qr-view { background: #0ea5e9; color: white; border: none; padding: 6px 10px; border-radius: 4px; font-size: 12px; font-weight: bold; cursor: pointer; }
+.btn-qr-view:hover { background: #0284c7; }
+
 .live-map-cell { display: flex; flex-direction: column; gap: 4px; width: 190px; }
 .mini-map-frame { width: 100%; height: 120px; border: 1px solid #e2e8f0; border-radius: 4px; }
 .map-link-full { font-size: 11px; color: #2980b9; text-decoration: none; font-weight: bold; }
@@ -648,6 +712,14 @@ header h1 { font-size: 24px; font-weight: 800; color: #2c3e50; margin-bottom: 25
 .review-textarea { width: 100%; padding: 10px; border: 1px solid #cbd5e1; border-radius: 4px; font-size: 13px; resize: none; box-sizing: border-box; }
 .btn-send-review { background: #27ae60; color: white; border: none; padding: 12px; font-weight: bold; border-radius: 4px; cursor: pointer; transition: 0.2s; font-size: 14px; }
 .btn-send-review:hover { background: #219653; }
+
+/* MỚI: popup QR code kiện hàng */
+.qr-modal-backdrop { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); display: flex; justify-content: center; align-items: center; z-index: 9999; }
+.qr-modal-box { background: white; width: 360px; border-radius: 8px; box-shadow: 0 10px 25px rgba(0,0,0,0.2); overflow: hidden; animation: fadeIn 0.2s ease-out; }
+.qr-modal-body { padding: 25px; display: flex; flex-direction: column; align-items: center; gap: 10px; text-align: center; }
+.qr-success-text { font-size: 13px; color: #27ae60; font-weight: bold; margin: 0 0 5px 0; }
+.qr-code-text { font-size: 18px; font-weight: 800; font-family: monospace; color: #2c3e50; margin: 5px 0; }
+.qr-hint-text { font-size: 12px; color: #7f8c8d; margin: 0; }
 
 @keyframes fadeIn { from { opacity: 0; transform: translateY(-10px); } to { opacity: 1; transform: translateY(0); } }
 </style>

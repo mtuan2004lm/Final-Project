@@ -1,4 +1,5 @@
 import SwiftUI
+import PhotosUI
 
 // Tương đương OrderDetailActivity.kt + activity_order_detail.xml
 struct OrderDetailView: View {
@@ -8,6 +9,19 @@ struct OrderDetailView: View {
     @State private var barcodeInput = ""
     @State private var alertMessage: String?
     @State private var isSubmitting = false
+
+    // MỚI: báo cáo hiện trạng hàng hóa lúc nhận hàng tại kho (chụp ảnh + ghi chú),
+    // giống nút "Báo cáo tình trạng" bên web (wmsController.updateCargoCondition).
+    @State private var conditionText = ""
+    @State private var conditionImage: UIImage?
+    @State private var photosPickerItem: PhotosPickerItem?
+    @State private var showCamera = false
+    @State private var showImageSourceSheet = false
+    @State private var showPhotoPickerTrigger = false
+    @State private var isSubmittingCondition = false
+
+    // MỚI: quét mã QR kiện hàng bằng camera thay vì phải gõ tay
+    @State private var showQRScanner = false
 
     private var expectedCode: String { "PKG-\(60000 + order.id)" }
 
@@ -38,6 +52,20 @@ struct OrderDetailView: View {
                     .textFieldStyle(.roundedBorder)
                     .autocorrectionDisabled()
 
+                // MỚI: quét mã QR bằng camera - vẫn giữ ô nhập tay ở trên để phòng khi
+                // camera lỗi hoặc tem QR bị rách/mờ, giống yêu cầu "bổ sung, không thay thế".
+                Button {
+                    if #available(iOS 16.0, *), QRScannerView.isSupported {
+                        showQRScanner = true
+                    } else {
+                        alertMessage = "QR scanning is not supported on this device (e.g. Simulator). Please enter the code manually."
+                    }
+                } label: {
+                    Label("Scan QR Code", systemImage: "qrcode.viewfinder")
+                        .frame(maxWidth: .infinity)
+                }
+                .buttonStyle(.bordered)
+
                 Button {
                     confirmScan()
                 } label: {
@@ -49,6 +77,51 @@ struct OrderDetailView: View {
                 }
                 .buttonStyle(.borderedProminent)
                 .disabled(isSubmitting)
+
+                Divider()
+
+                // ====== MỚI: BÁO CÁO HIỆN TRẠNG HÀNG HÓA LÚC NHẬN HÀNG ======
+                VStack(alignment: .leading, spacing: 10) {
+                    Text("📸 Report Cargo Condition on Receipt").font(.headline)
+                    Text("Take a photo of the goods right when they arrive at the warehouse, and note any damage if present.")
+                        .font(.caption).foregroundStyle(.secondary)
+
+                    TextEditor(text: $conditionText)
+                        .frame(height: 90)
+                        .overlay(RoundedRectangle(cornerRadius: 8).stroke(Color.gray.opacity(0.3)))
+
+                    if let image = conditionImage {
+                        Image(uiImage: image)
+                            .resizable()
+                            .scaledToFit()
+                            .frame(maxHeight: 180)
+                            .clipShape(RoundedRectangle(cornerRadius: 8))
+                    }
+
+                    Button {
+                        showImageSourceSheet = true
+                    } label: {
+                        Label(conditionImage == nil ? "Add Cargo Photo" : "Change Photo", systemImage: "camera")
+                            .frame(maxWidth: .infinity)
+                    }
+                    .buttonStyle(.bordered)
+
+                    Button {
+                        submitCargoCondition()
+                    } label: {
+                        if isSubmittingCondition {
+                            ProgressView().frame(maxWidth: .infinity)
+                        } else {
+                            Text("⚠️ Submit Condition Report").bold().frame(maxWidth: .infinity)
+                        }
+                    }
+                    .buttonStyle(.borderedProminent)
+                    .tint(.orange)
+                    .disabled(isSubmittingCondition)
+                }
+                .padding()
+                .background(Color(.secondarySystemBackground))
+                .clipShape(RoundedRectangle(cornerRadius: 10))
             }
             .padding()
         }
@@ -60,6 +133,40 @@ struct OrderDetailView: View {
                 Button("Back") { dismiss() }
             }
         }
+        .confirmationDialog("Add Cargo Photo", isPresented: $showImageSourceSheet, titleVisibility: .visible) {
+            Button("Take Photo") {
+                if UIImagePickerController.isSourceTypeAvailable(.camera) {
+                    showCamera = true
+                } else {
+                    alertMessage = "This device/simulator has no camera available. Please use \"Choose from Library\" instead, or test on a real iPhone."
+                }
+            }
+            Button("Choose from Library") { showPhotoPickerTrigger = true }
+            Button("Cancel", role: .cancel) {}
+        }
+        .photosPicker(isPresented: $showPhotoPickerTrigger, selection: $photosPickerItem, matching: .images)
+        .onChange(of: photosPickerItem) { newItem in
+            Task {
+                if let data = try? await newItem?.loadTransferable(type: Data.self),
+                   let uiImage = UIImage(data: data) {
+                    conditionImage = uiImage
+                }
+            }
+        }
+        .fullScreenCover(isPresented: $showCamera) {
+            CameraPicker { image in
+                conditionImage = image
+            }
+            .ignoresSafeArea()
+        }
+        .fullScreenCover(isPresented: $showQRScanner) {
+            if #available(iOS 16.0, *) {
+                QRScannerView { scannedText in
+                    barcodeInput = scannedText
+                }
+                .ignoresSafeArea()
+            }
+        }
         .alert("Notification", isPresented: Binding(
             get: { alertMessage != nil },
             set: { if !$0 { alertMessage = nil } }
@@ -67,6 +174,35 @@ struct OrderDetailView: View {
             Button("OK") { alertMessage = nil }
         } message: {
             Text(alertMessage ?? "")
+        }
+    }
+
+    // Tương đương wmsController.updateCargoCondition: cho phép gửi chỉ ghi chú (không
+    // bắt buộc phải có ảnh, giống backend chấp nhận damageImagePath rỗng).
+    private func submitCargoCondition() {
+        let text = conditionText.trimmingCharacters(in: .whitespacesAndNewlines)
+        guard !text.isEmpty || conditionImage != nil else {
+            alertMessage = "Please enter a condition note or add a photo before submitting!"
+            return
+        }
+
+        isSubmittingCondition = true
+        Task {
+            do {
+                let imageData = conditionImage?.jpegData(compressionQuality: 0.8)
+                let res = try await ApiService.shared.updateCargoCondition(
+                    orderId: order.id,
+                    condition: text,
+                    imageData: imageData
+                )
+                isSubmittingCondition = false
+                alertMessage = res.message ?? "⚠️ The damage report has been recorded!"
+                conditionText = ""
+                conditionImage = nil
+            } catch {
+                isSubmittingCondition = false
+                alertMessage = "Unable to submit the condition report: \(error.localizedDescription)"
+            }
         }
     }
 

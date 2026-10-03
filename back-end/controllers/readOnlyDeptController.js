@@ -119,8 +119,13 @@ exports.lockArchiveFile = async (req, res) => {
 };
 
 // =========================================================================
-// PHÒNG DOCS GỬI BÁO CÁO 1 ĐƠN HÀNG CỤ THỂ CHO ADMIN
-// Đã đổi từ gửi TOÀN BỘ đơn hàng -> chỉ gửi đúng đơn hàng được bấm (order_id).
+// PHÒNG DOCS GỬI BÁO CÁO CHO ADMIN
+// ĐÃ SỬA (MỚI): giờ nhận một MẢNG order_ids để gửi gộp nhiều đơn vào CHUNG
+// một báo cáo (thay vì chỉ gửi được đúng 1 đơn/lần như trước) - phục vụ nút
+// "Send Selected to Admin" mới ở DocsView.vue, nơi người dùng tick chọn nhiều
+// đơn rồi gửi 1 lần. Vẫn giữ tương thích ngược: nếu client cũ gửi lên
+// "order_id" (số đơn) thay vì "order_ids" (mảng), code tự quy về mảng 1 phần tử
+// để không làm hỏng các chỗ gọi cũ.
 // Không xuất file tải về - lưu snapshot vào bảng "reports" để Admin mở xem
 // trực tiếp ngay trong giao diện (tab "Báo Cáo" bên AdminView.vue).
 // Luôn truy vấn lại DB mới nhất (không tin dữ liệu từ client gửi lên) để
@@ -128,25 +133,32 @@ exports.lockArchiveFile = async (req, res) => {
 // =========================================================================
 exports.submitOrderReportToAdmin = async (req, res) => {
     try {
-        const { order_id } = req.body;
-        if (!order_id) {
-            return res.status(400).json({ error: "Missing order_id: must select a specific order to send a report" });
+        // Chuẩn hóa đầu vào: ưu tiên order_ids (mảng, dùng cho tính năng chọn nhiều),
+        // nếu không có thì fallback về order_id (số lẻ, giữ tương thích ngược).
+        let orderIds = Array.isArray(req.body.order_ids) ? req.body.order_ids : null;
+        if (!orderIds && req.body.order_id) {
+            orderIds = [req.body.order_id];
+        }
+        orderIds = (orderIds || []).filter(id => id !== null && id !== undefined && id !== '');
+
+        if (orderIds.length === 0) {
+            return res.status(400).json({ error: "Missing order_id(s): must select at least one order to send a report" });
         }
 
         const orderResult = await pool.query(
             `SELECT o.*, t.driver_name as truck_driver_name
              FROM orders o
              LEFT JOIN trucks t ON o.assigned_truck = t.license_plate
-             WHERE o.id = $1`,
-            [order_id]
+             WHERE o.id = ANY($1::int[])
+             ORDER BY o.id ASC`,
+            [orderIds]
         );
 
         if (orderResult.rows.length === 0) {
-            return res.status(404).json({ error: "The order to be sent a report could not be found" });
+            return res.status(404).json({ error: "None of the selected orders could be found" });
         }
 
-        const order = orderResult.rows[0];
-        const snapshot = [{
+        const snapshot = orderResult.rows.map(order => ({
             id: order.id,
             customer_name: order.customer_name,
             product_name: order.product_name,
@@ -163,11 +175,14 @@ exports.submitOrderReportToAdmin = async (req, res) => {
             total_cost: Number(order.total_cost) || 0,
             driver_notes: order.driver_notes || '',
             created_at: order.created_at
-        }];
+        }));
 
-        const title = (req.body.title && req.body.title.trim())
-            ? req.body.title.trim()
-            : `Order report #${order.id} - ${new Date().toLocaleDateString('vi-VN')}`;
+        // Tiêu đề mặc định tự thích ứng: 1 đơn thì ghi rõ mã đơn, nhiều đơn thì ghi số lượng
+        const defaultTitle = snapshot.length === 1
+            ? `Order report #${snapshot[0].id} - ${new Date().toLocaleDateString('vi-VN')}`
+            : `Order report (${snapshot.length} orders) - ${new Date().toLocaleDateString('vi-VN')}`;
+
+        const title = (req.body.title && req.body.title.trim()) ? req.body.title.trim() : defaultTitle;
         const createdBy = req.body.created_by || 'DOCS Department';
 
         const result = await pool.query(
@@ -177,8 +192,9 @@ exports.submitOrderReportToAdmin = async (req, res) => {
             [title, createdBy, JSON.stringify(snapshot)]
         );
 
+        const orderIdList = snapshot.map(o => `#${o.id}`).join(', ');
         res.json({
-            message: `📤 The order report #${order.id} has been sent to the Admin successfully!`,
+            message: `📤 The order report (${orderIdList}) has been sent to the Admin successfully!`,
             report: result.rows[0]
         });
     } catch (err) {
