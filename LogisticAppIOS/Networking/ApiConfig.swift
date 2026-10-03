@@ -14,5 +14,5 @@ import Foundation
 //   IP LAN thật của máy đang chạy backend (ví dụ "http://192.168.1.5:3000/"),
 //   và lúc đó CẦN thêm NSAppTransportSecurity exception cho domain đó (xem README).
 struct ApiConfig {
-    static let baseURL = "http://172.16.11.230:3000/"
+    static let baseURL = "http://192.168.2.34:3000/"
 }
