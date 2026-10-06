@@ -46,7 +46,7 @@ import { ref, computed, onMounted } from 'vue'
 import axios from 'axios'
 
 const EXT = 'http://localhost:3000/api/ext'
-const me = localStorage.getItem('username') || ''
+const me = localStorage.getItem('username') || ''  // đọc lúc mở trang; nhiều tài khoản chung 1 trình duyệt sẽ dùng chung giá trị này
 const roles = ['CUSTOMER', 'OMS', 'WMS', 'TMS', 'ACC', 'DOCS', 'ADMIN']
 const users = ref([])
 const filter = ref('')
@@ -57,7 +57,7 @@ const shown = computed(() => {
   const q = filter.value.trim().toLowerCase()
   return users.value.filter(u => !q || `${u.username} ${u.full_name} ${u.role}`.toLowerCase().includes(q))
 })
-const flash = (m) => { message.value = m; setTimeout(() => { if (message.value === m) message.value = '' }, 4500) }
+const flash = (m) => { if (/Only an active Admin|Admin account required/.test(m)) m = 'You are signed in as "' + (localStorage.getItem('username') || '?') + '", not an Admin. Log out and sign in with the admin account (use a separate browser profile or incognito window for each role).'; alert(m); message.value = m; setTimeout(() => { if (message.value === m) message.value = '' }, 4500) }
 const loadError = ref('')
 const load = async () => {
   try { users.value = (await axios.get(`${EXT}/admin/users`)).data; loadError.value = '' }
