@@ -169,15 +169,19 @@
               </div>
            </div>
         </div>
+     <!-- ĐỢT 5: tìm kiếm nâng cao, tệp đính kèm, lịch sử niêm phong, mẫu chứng từ -->
+     <DocsTools />
      </div>
    </div>
  </template>
 
  <script>
  import axios from 'axios';
+ import DocsTools from '../components/DocsTools.vue';
 
  export default {
    name: 'DocsView',
+   components: { DocsTools },
    data() {
      return {
        docs: [],
@@ -287,7 +291,7 @@
      async lockArchive(id) {
        if (!confirm(`Are you sure you want to SEAL record #${id}? Once locked, the data will be moved to permanent digital archive storage and cannot be edited across departments.`)) return;
        try {
-         await axios.put(`http://localhost:3000/api/orders/docs/${id}/lock`);
+         await axios.put(`http://localhost:3000/api/orders/docs/${id}/lock`, { username: localStorage.getItem('username') });
          alert('🔒 Record successfully sealed into the archive!');
          if (this.showModal && this.selectedDoc && this.selectedDoc.id === id) {
             this.showModal = false;

@@ -9,6 +9,9 @@
             <small style="color: #2ecc71;">Cash flow control</small>
          </div>
        </div>
+       <div class="navigation-menu">
+          <button v-for="t in tabs" :key="t.id" @click="activeTab = t.id" :class="{ active: activeTab === t.id }" class="menu-btn">{{ t.label }}</button>
+       </div>
        <div class="mission-box">
           <p>📌 Reconciliation Role:</p>
           <small>Check the cash flow from the customer, approve the release of goods and reconcile the payment of road toll, fuel costs from the driver sent back.</small>
@@ -17,6 +20,7 @@
      </div>
 
      <div class="main-content">
+        <div v-if="activeTab === 'overview'">
         <header>
            <h1>💵 CENTER FOR REVENUE & EXPENSE APPROVAL (ACCOUNTING)</h1>
         </header>
@@ -144,8 +148,13 @@
            </table>
         </div>
 
+        </div>
+
+        <!-- ĐỢT 5: công nợ, hóa đơn VAT, đối soát ngân hàng, xuất CSV (chọn từ menu bên trái) -->
+        <AccTools v-if="['recv', 'inv', 'rec', 'exp'].includes(activeTab)" :tab="activeTab" />
+
         <!-- ĐỢT 4: chi trả bồi thường -->
-        <AccClaims />
+        <AccClaims v-if="activeTab === 'claims'" />
      </div>
    </div>
 </template>
@@ -153,12 +162,22 @@
 <script>
 import axios from 'axios';
 import AccClaims from '../components/AccClaims.vue';
+import AccTools from '../components/AccTools.vue';
 
 export default {
    name: 'AccView',
-   components: { AccClaims },
+   components: { AccClaims, AccTools },
    data() {
       return {
+         activeTab: 'overview',
+         tabs: [
+            { id: 'overview', label: '📊 Overview & Approvals' },
+            { id: 'recv', label: '💳 Receivables' },
+            { id: 'inv', label: '🧾 VAT Invoices' },
+            { id: 'rec', label: '🏦 Bank reconciliation' },
+            { id: 'claims', label: '🛡️ Claim Payouts' },
+            { id: 'exp', label: '⬇️ Export' }
+         ],
          orders: [],
          refunds: [],
          summary: {
@@ -238,6 +257,9 @@ export default {
   .mission-box { background: #34495e; padding: 15px; border-radius: 6px; font-size: 13px; line-height: 1.5; color: #ecf0f1; margin-top: 10px; border-left: 4px solid #f1c40f; }
   .btn-logout { margin-top: auto; padding: 12px; background: #e74c3c; color: white; border: none; border-radius: 4px; cursor: pointer; font-weight: bold; transition: 0.3s; }
   .btn-logout:hover { background: #c0392b; }
+  .navigation-menu { display: flex; flex-direction: column; gap: 8px; margin: 6px 0 14px; }
+  .menu-btn { padding: 12px 15px; background: none; border: none; color: #b2bec3; text-align: left; font-size: 14px; font-weight: bold; cursor: pointer; border-radius: 4px; transition: all 0.2s; }
+  .menu-btn:hover, .menu-btn.active { background: #34495e; color: #fff; }
 
   .main-content { flex: 1; padding: 30px 40px; overflow-y: auto; }
   header h1 { font-size: 24px; font-weight: 700; color: #2c3e50; margin: 0 0 25px 0; }

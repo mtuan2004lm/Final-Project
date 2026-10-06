@@ -4,6 +4,7 @@
 const express = require('express');
 const pool = require('../config/db');
 const { optimizeStops, haversineKm } = require('../routeOptimizer');
+const { getRates } = require('../settings');
 
 const router = express.Router();
 
@@ -74,12 +75,13 @@ router.post('/orders/bulk', async (req, res) => {
     });
     if (rowErrors.length) return res.status(400).json({ error: 'Some rows are invalid. Nothing was imported.', rowErrors });
 
+    const RATES = await getRates();   // ĐỢT 5: bảng giá do Admin cấu hình
     const client = await pool.connect();
     try {
         await client.query('BEGIN');
         const created = [];
         for (const o of clean) {
-            const price = PRICE[o.cargo_type] * o.quantity;
+            const price = (RATES[o.cargo_type] ?? PRICE[o.cargo_type]) * o.quantity;
             const r = await client.query(
                 `INSERT INTO orders (username, customer_name, product_name, cargo_type, quantity, total_price, total_cost,
                                      product_image, status, current_dept, delivery_address, receiver_name, receiver_phone)

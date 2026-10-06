@@ -65,12 +65,12 @@ exports.getRevenueReport = async (req, res) => {
     try {
         // Doanh thu ngày hôm nay (tính từ 00:00:00 hôm nay)
         const todayResult = await pool.query(
-            "SELECT COALESCE(SUM(total_cost), 0) as total FROM orders WHERE created_at >= CURRENT_DATE"
+            "SELECT COALESCE(SUM(total_cost), 0) as total FROM orders WHERE created_at >= CURRENT_DATE AND UPPER(COALESCE(status,'')) NOT IN ('CANCELLED','RETURNED') AND UPPER(COALESCE(refund_status,'')) <> 'REFUNDED'"
         );
 
         // Doanh thu tháng này (tính từ ngày đầu tiên của tháng hiện tại)
         const monthResult = await pool.query(
-            "SELECT COALESCE(SUM(total_cost), 0) as total FROM orders WHERE created_at >= DATE_TRUNC('month', CURRENT_DATE)"
+            "SELECT COALESCE(SUM(total_cost), 0) as total FROM orders WHERE created_at >= DATE_TRUNC('month', CURRENT_DATE) AND UPPER(COALESCE(status,'')) NOT IN ('CANCELLED','RETURNED') AND UPPER(COALESCE(refund_status,'')) <> 'REFUNDED'"
         );
 
         res.json({
@@ -93,6 +93,7 @@ exports.getCustomerAnalytics = async (req, res) => {
                 COALESCE(SUM(total_cost), 0)::float as total_spent,
                 MAX(created_at) as last_purchase
             FROM orders
+            WHERE UPPER(COALESCE(status,'')) NOT IN ('CANCELLED','RETURNED') AND UPPER(COALESCE(refund_status,'')) <> 'REFUNDED'
             GROUP BY customer_name
             ORDER BY total_spent DESC
         `;

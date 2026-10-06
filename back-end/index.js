@@ -22,7 +22,9 @@ const orderRoutes = require('./routes/orderRoutes'); // Route xử lý phân h�
 const phase1Routes = require('./routes/phase1Routes'); // ĐỢT 1: địa chỉ, hủy/trả/hoàn tiền, POD, lịch lấy hàng
 const phase2Routes = require('./routes/phase2Routes'); // ĐỢT 2: thông báo, chat hỗ trợ, dashboard khách, vận đơn/hóa đơn
 const phase3Routes = require('./routes/phase3Routes');
-const phase4Routes = require('./routes/phase4Routes'); // ĐỢT 4: bảo hiểm/bồi thường, OTP quên mật khẩu, audit log // ĐỢT 3: CSV hàng loạt, quét QR hàng loạt, gom tuyến + gán xe, tối ưu lộ trình, đội xe
+const phase4Routes = require('./routes/phase4Routes');
+const phase5AdminRoutes = require('./routes/phase5AdminRoutes'); // ĐỢT 5: Admin (người dùng, bảng giá, cảnh báo, hiệu suất)
+const phase5AccDocsRoutes = require('./routes/phase5AccDocsRoutes'); // ĐỢT 5: Kế toán + Docs // ĐỢT 4: bảo hiểm/bồi thường, OTP quên mật khẩu, audit log // ĐỢT 3: CSV hàng loạt, quét QR hàng loạt, gom tuyến + gán xe, tối ưu lộ trình, đội xe
 
 // =================================================================
 // 2. KÍCH HOẠT MIDDLEWARE ĐƯỜNG DẪN API (ĐỒNG BỘ FRONTEND)
@@ -45,6 +47,10 @@ app.use('/api/ext', phase3Routes);
 
 // ĐỢT 4: bảo hiểm, bồi thường, quên mật khẩu, audit log
 app.use('/api/ext', phase4Routes);
+
+// ĐỢT 5: Admin, Kế toán, Docs
+app.use('/api/ext', phase5AdminRoutes);
+app.use('/api/ext', phase5AccDocsRoutes);
 
 // =================================================================
 

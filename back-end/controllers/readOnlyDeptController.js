@@ -111,6 +111,11 @@ exports.lockArchiveFile = async (req, res) => {
             [id]
         );
 
+        // ĐỢT 5: ghi lịch sử niêm phong (ai, lúc nào). Bỏ qua nếu bảng chưa tạo.
+        try {
+            await pool.query(`INSERT INTO archive_events (order_id, action, actor) VALUES ($1, 'SEALED', $2)`, [id, (req.body && req.body.username) || null]);
+        } catch (e) { /* chưa chạy phase5_migration.sql */ }
+
         res.json({ message: "🔒 The document has been sealed into the electronic archive successfully!", order: result.rows[0] });
     } catch (err) {
         console.error("🔴 ERROR AT READ_ONLY_DEPT_CONTROLLER (lockArchiveFile):", err.message);

@@ -4,6 +4,7 @@ const express = require('express');
 const crypto = require('crypto');
 const pool = require('../config/db');
 const { writeAudit } = require('../audit');
+const { getSettings } = require('../settings');
 
 const router = express.Router();
 
@@ -12,7 +13,7 @@ const INSURANCE_MIN_FEE = 1;       // phí tối thiểu
 const MAX_DECLARED = 100000;
 const sha = (s) => crypto.createHash('sha256').update(String(s)).digest('hex');
 const money = (n) => Math.round(Number(n) * 100) / 100;
-const feeFor = (value) => money(Math.max(INSURANCE_MIN_FEE, value * INSURANCE_RATE));
+const feeFor = (value, cfg) => money(Math.max(cfg ? cfg.insurance_min_fee : INSURANCE_MIN_FEE, value * (cfg ? cfg.insurance_rate : INSURANCE_RATE)));
 const TERMINAL = ['CANCELLED', 'RETURNED'];
 
 async function notify(username, orderId, title, message) {
@@ -23,10 +24,11 @@ async function notify(username, orderId, title, message) {
 // =====================================================================
 // 1. BẢO HIỂM HÀNG HÓA
 // =====================================================================
-router.get('/insurance/quote', (req, res) => {
+router.get('/insurance/quote', async (req, res) => {
     const v = Number(req.query.value);
     if (!(v > 0)) return res.status(400).json({ error: 'value must be greater than 0' });
-    res.json({ declared_value: v, fee: feeFor(v), rate: INSURANCE_RATE, min_fee: INSURANCE_MIN_FEE });
+    const cfg = await getSettings();
+    res.json({ declared_value: v, fee: feeFor(v, cfg), rate: cfg.insurance_rate, min_fee: cfg.insurance_min_fee });
 });
 
 router.post('/orders/:id/insurance', async (req, res) => {
@@ -41,7 +43,7 @@ router.post('/orders/:id/insurance', async (req, res) => {
         if (o.insured) return res.status(400).json({ error: 'This order is already insured' });
         const st = String(o.status || '').toUpperCase();
         if (['DELIVERED', 'DONE', ...TERMINAL].includes(st)) return res.status(400).json({ error: 'Insurance can only be bought before delivery' });
-        const fee = feeFor(value);
+        const fee = feeFor(value, await getSettings());
         await pool.query('UPDATE orders SET insured = TRUE, insured_value = $1, insurance_fee = $2 WHERE id = $3', [value, fee, o.id]);
         await writeAudit({ actor: username, action: 'INSURANCE_BOUGHT', entity: 'orders', entityId: o.id, detail: `value=${value} fee=${fee}` });
         res.json({ message: 'Insurance added', insured_value: value, insurance_fee: fee });

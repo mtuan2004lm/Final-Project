@@ -2,6 +2,14 @@
   <div>
     <header><h1>🗂️ {{ $t('admin.audit_title') }}</h1></header>
 
+    <div class="reopen">
+      <b>🔓 Reopen a sealed record</b>
+      <input v-model.number="reopenId" type="number" min="1" placeholder="Order ID" />
+      <input v-model="reopenReason" placeholder="Reason (required)" style="min-width: 260px;" />
+      <button @click="reopen">Reopen</button>
+      <span v-if="reopenMsg" class="rmsg">{{ reopenMsg }}</span>
+    </div>
+
     <div class="filters">
       <input v-model="actor" :placeholder="$t('admin.filter_actor')" @keyup.enter="load" />
       <input v-model="q" :placeholder="$t('admin.filter_text')" style="min-width: 260px;" @keyup.enter="load" />
@@ -36,6 +44,16 @@ const q = ref('')
 const from = ref('')
 const to = ref('')
 
+const reopenId = ref(null)
+const reopenReason = ref('')
+const reopenMsg = ref('')
+const reopen = async () => {
+  try {
+    await axios.post(`http://localhost:3000/api/ext/admin/archive/${reopenId.value}/reopen`, { actor: localStorage.getItem('username'), reason: reopenReason.value })
+    reopenMsg.value = '✓ Record reopened.'; reopenId.value = null; reopenReason.value = ''; load()
+  } catch (e) { reopenMsg.value = e.response?.data?.error || 'Unable to reopen.' }
+  setTimeout(() => { reopenMsg.value = '' }, 5000)
+}
 const fmt = (d) => d ? new Date(d).toLocaleString() : ''
 const load = async () => {
   try {
@@ -48,6 +66,8 @@ onMounted(load)
 </script>
 
 <style scoped>
+.reopen { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; background: #fff8e6; border: 1px solid #f5cf87; border-radius: 8px; padding: 10px 14px; margin: 12px 0; }
+.rmsg { font-size: 13px; }
 .filters { display: flex; flex-wrap: wrap; gap: 10px; align-items: center; margin: 14px 0; }
 input { padding: 7px; border: 1px solid #d5d8dc; border-radius: 6px; }
 button { padding: 7px 14px; border: none; border-radius: 6px; background: #2c3e50; color: white; cursor: pointer; font-weight: 600; }

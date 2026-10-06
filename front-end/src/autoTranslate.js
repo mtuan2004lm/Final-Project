@@ -7,9 +7,10 @@ import { i18nState } from './i18n'
 import vi1 from './locales/domVi1'
 import vi2 from './locales/domVi2'
 import vi3 from './locales/domVi3'
+import vi4 from './locales/domVi4'
 
 const norm = (s) => s.replace(/\s+/g, ' ').trim()
-const dict = { ...vi1, ...vi2, ...vi3 }
+const dict = { ...vi1, ...vi2, ...vi3, ...vi4 }
 
 const exact = new Map()
 const patterns = []

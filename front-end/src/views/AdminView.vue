@@ -21,6 +21,18 @@
               📦 Operations Overview
            </button>
 
+           <button @click="activeTab = 'users'" :class="{ active: activeTab === 'users' }" class="menu-btn">
+              👥 User Management
+           </button>
+           <button @click="activeTab = 'pricing'" :class="{ active: activeTab === 'pricing' }" class="menu-btn">
+              💲 Pricing & Settings
+           </button>
+           <button @click="activeTab = 'alerts'" :class="{ active: activeTab === 'alerts' }" class="menu-btn">
+              🚨 Alerts Dashboard
+           </button>
+           <button @click="activeTab = 'performance'" :class="{ active: activeTab === 'performance' }" class="menu-btn">
+              📈 Performance Report
+           </button>
            <button @click="activeTab = 'audit'" :class="{ active: activeTab === 'audit' }" class="menu-btn">
               🗂️ {{ $t('admin.audit') }}
            </button>
@@ -170,6 +182,11 @@
          </div>
 
          <!-- ============ TAB 4: BÁO CÁO TỪ DOCS  ============ -->
+         <div v-if="activeTab === 'users'"><AdminUsers /></div>
+         <div v-if="activeTab === 'pricing'"><AdminPricing /></div>
+         <div v-if="activeTab === 'alerts'"><AdminAlerts /></div>
+         <div v-if="activeTab === 'performance'"><AdminPerformance /></div>
+
          <div v-if="activeTab === 'audit'">
             <AdminAudit />
          </div>
@@ -350,6 +367,10 @@
   import axios from 'axios';
   import { useRouter } from 'vue-router';
   import AdminAudit from '../components/AdminAudit.vue';
+  import AdminUsers from '../components/AdminUsers.vue';
+  import AdminPricing from '../components/AdminPricing.vue';
+  import AdminAlerts from '../components/AdminAlerts.vue';
+  import AdminPerformance from '../components/AdminPerformance.vue';
 
   const router = useRouter();
   const activeTab = ref('pipeline');

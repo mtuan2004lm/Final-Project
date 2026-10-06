@@ -301,6 +301,11 @@ struct CustomerOrder: Decodable, Identifiable {
     }
 }
 
+// ĐỢT 5: bảng giá do Admin cấu hình
+struct PricingResponse: Decodable {
+    let rates: [String: Double]
+}
+
 // ĐỢT 4: bảo hiểm + bồi thường
 struct BuyInsuranceRequest: Encodable {
     let username: String

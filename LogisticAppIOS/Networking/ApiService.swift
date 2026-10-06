@@ -182,6 +182,11 @@ final class ApiService {
         return try await request("api/ext/tms/driver-trips/\(encoded)")
     }
 
+    // ĐỢT 5
+    func getPricing() async throws -> PricingResponse {
+        try await request("api/ext/pricing")
+    }
+
     // ĐỢT 4
     func buyInsurance(orderId: Int, username: String, declaredValue: Double) async throws {
         try await requestVoid("api/ext/orders/\(orderId)/insurance", method: "POST",

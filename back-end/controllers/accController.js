@@ -36,6 +36,8 @@ exports.getAccOrders = async (req, res) => {
                 SUM(COALESCE(bot_fee, 0)) as total_bot_fee,
                 SUM(COALESCE(fuel_fee, 0)) as total_fuel_fee
             FROM orders
+            -- ĐỢT 5: không tính đơn đã hủy / bị trả / đã hoàn tiền vào doanh thu
+            WHERE UPPER(COALESCE(status,'')) NOT IN ('CANCELLED','RETURNED') AND UPPER(COALESCE(refund_status,'')) <> 'REFUNDED'
         `);
 
         const summary = financialSummary.rows[0];

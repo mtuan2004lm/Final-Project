@@ -52,6 +52,9 @@ exports.login = async (req, res) => {
         if (password !== user.password_hash) {
             return res.status(401).json({ message: "Wrong password!" });
         }
+        if (user.active === false) {   // ĐỢT 5: Admin đã khóa tài khoản
+            return res.status(403).json({ message: "This account has been disabled. Please contact an administrator." });
+        }
 
         const token = jwt.sign(
             { id: user.id, role: user.role, name: user.full_name },
@@ -88,6 +91,9 @@ exports.mobileLogin = async (req, res) => {
 
         if (password !== user.password_hash) {
             return res.json({ success: false, message: "The password is incorrect!" });
+        }
+        if (user.active === false) {   // ĐỢT 5: Admin đã khóa tài khoản
+            return res.json({ success: false, message: "This account has been disabled. Please contact an administrator." });
         }
 
         const userRole = user.role ? user.role.toLowerCase().trim() : '';

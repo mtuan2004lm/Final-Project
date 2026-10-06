@@ -591,7 +591,7 @@
 </template>
 
 <script setup>
-import { ref, onMounted, onUnmounted, computed, nextTick } from 'vue';
+import { ref, reactive, onMounted, onUnmounted, computed, nextTick } from 'vue';
 import axios from 'axios';
 import { useRouter } from 'vue-router';
 import CustomerClaims from '../components/CustomerClaims.vue';
@@ -912,11 +912,18 @@ const requestReturn = async (order) => {
 };
 
 // Chuyển đổi toàn bộ bảng giá dịch vụ logistics sang USD ($)
-const priceRates = {
+// ĐỢT 5: giá mặc định, được thay bằng bảng giá Admin cấu hình khi tải trang (GET /api/ext/pricing)
+const priceRates = reactive({
   'Hàng hóa thông thường': 100,
   'Hàng hóa điện tử': 250,
   'Hàng hóa nguy hiểm': 180,
   'Hàng hóa nhanh': 400
+});
+const loadPricing = async () => {
+  try {
+    const r = await axios.get('http://localhost:3000/api/ext/pricing');
+    Object.assign(priceRates, r.data.rates);
+  } catch (e) { /* giữ giá mặc định */ }
 };
 
 // HÀM XỬ LÝ LỖI ĐƠN CŨ BỊ MẤT GIÁ TIỀN:
@@ -1159,6 +1166,7 @@ const logout = () => {
 };
 
 onMounted(() => {
+  loadPricing();   // ĐỢT 5: bảng giá do Admin cấu hình
   if (!localStorage.getItem('role')) {
     router.push('/');
   } else {

@@ -30,7 +30,7 @@ function middleware(req, res, next) {
         const url = (req.originalUrl || '').split('?')[0];
         if (!url.startsWith('/api/')) return;
         // Các endpoint đợt 4 đã tự ghi log với tên hành động riêng -> bỏ qua để khỏi trùng
-        if (/\/api\/ext\/(claims|oms\/claims|acc\/claims|auth\/|orders\/\d+\/insurance)/.test(url)) return;
+        if (/\/api\/ext\/(claims|oms\/claims|acc\/claims|auth\/|orders\/\d+\/insurance|admin\/(users|pricing|archive)|acc\/(invoices|reconcile|receivables)|docs\/(orders\/\d+\/files|files))/.test(url)) return;
         const body = req.body || {};
         // Đoán người thực hiện từ body/query; nếu không có thì để trống
         const actor = body.username || body.changed_by || body.actor || req.query.username || null;

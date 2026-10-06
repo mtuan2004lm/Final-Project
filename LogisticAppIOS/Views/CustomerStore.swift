@@ -19,8 +19,8 @@ final class CustomerStore: ObservableObject {
 
     private var timer: Timer?
 
-    // Giống hệt bảng giá priceRates trong CustomerView.vue
-    let priceRates: [String: Double] = [
+    // Giá mặc định; ĐỢT 5: được thay bằng bảng giá Admin cấu hình (GET /api/ext/pricing)
+    @Published var priceRates: [String: Double] = [
         "Hàng hóa thông thường": 100,
         "Hàng hóa điện tử": 250,
         "Hàng hóa nguy hiểm": 180,
@@ -71,6 +71,7 @@ final class CustomerStore: ObservableObject {
 
     // ĐỢT 2: tải thông báo + số tin chat chưa đọc; thông báo mới -> bắn banner cục bộ
     func fetchExtras(username: String) async {
+        if let p = try? await ApiService.shared.getPricing() { priceRates = p.rates }   // ĐỢT 5
         if let res = try? await ApiService.shared.getNotifications(username: username) {
             if let last = lastNotifiedId {
                 let fresh = res.notifications.filter { $0.id > last && !$0.is_read }.sorted { $0.id < $1.id }
