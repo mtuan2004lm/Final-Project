@@ -2,30 +2,30 @@
   <div class="login-wrapper">
     <div class="login-card">
       <div class="card-header">
-        <h1>CREATE ACCOUNT</h1>
-        <p>For new Customers</p>
+        <h1>{{ $t('register.title') }}</h1>
+        <p>{{ $t('register.subtitle') }}</p>
       </div>
 
       <div class="card-body">
         <div class="input-group">
-          <label>Full Name</label>
+          <label>{{ $t('register.full_name') }}</label>
           <input v-model="fullName" type="text" placeholder="E.g.: John Smith" />
         </div>
 
         <div class="input-group">
-          <label>Username</label>
+          <label>{{ $t('register.username') }}</label>
           <input v-model="username" type="text" placeholder="Choose a username..." />
         </div>
 
         <div class="input-group">
-          <label>Password</label>
+          <label>{{ $t('register.password') }}</label>
           <input v-model="password" type="password" placeholder="Enter your password..." />
         </div>
 
-        <button @click="handleRegister" class="btn-login">CREATE ACCOUNT</button>
+        <button @click="handleRegister" class="btn-login">{{ $t('register.button') }}</button>
 
         <div class="link-switch">
-            <p>Already have an account? <span @click="router.push('/')">Log in now</span></p>
+            <p>{{ $t('register.have_account') }} <span @click="router.push('/')">{{ $t('register.login_now') }}</span></p>
         </div>
 
         <div v-if="message" class="alert" :class="isSuccess ? 'alert-success' : 'alert-error'">

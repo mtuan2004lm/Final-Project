@@ -178,7 +178,42 @@ final class ApiService {
 
     func getDriverTrips(licensePlate: String) async throws -> [TripOrder] {
         let encoded = licensePlate.addingPercentEncoding(withAllowedCharacters: .urlPathAllowed) ?? licensePlate
-        return try await request("api/orders/tms/driver/\(encoded)")
+        // ĐỢT 3: endpoint mới trả thêm địa chỉ giao + thứ tự điểm dừng
+        return try await request("api/ext/tms/driver-trips/\(encoded)")
+    }
+
+    // ĐỢT 4
+    func buyInsurance(orderId: Int, username: String, declaredValue: Double) async throws {
+        try await requestVoid("api/ext/orders/\(orderId)/insurance", method: "POST",
+                              body: BuyInsuranceRequest(username: username, declared_value: declaredValue))
+    }
+    func getClaims(username: String) async throws -> [ClaimItem] {
+        try await request("api/ext/claims?username=\(enc(username))")
+    }
+    func createClaim(_ body: NewClaimRequest) async throws {
+        try await requestVoid("api/ext/claims", method: "POST", body: body)
+    }
+    func forgotPassword(username: String) async throws -> ForgotResponse {
+        try await request("api/ext/auth/forgot", method: "POST", body: ForgotRequest(username: username))
+    }
+    func verifyOtp(username: String, otp: String) async throws -> VerifyOtpResponse {
+        try await request("api/ext/auth/verify-otp", method: "POST", body: VerifyOtpRequest(username: username, otp: otp))
+    }
+    func resetPassword(username: String, token: String, newPassword: String) async throws {
+        try await requestVoid("api/ext/auth/reset", method: "POST",
+                              body: ResetPasswordRequest(username: username, reset_token: token, new_password: newPassword))
+    }
+    func getAuditLog(actor: String, query: String) async throws -> [AuditEntry] {
+        try await request("api/ext/admin/audit?limit=200&actor=\(enc(actor))&q=\(enc(query))")
+    }
+
+    // ĐỢT 3
+    func scanBatch(codes: [String], release: Bool) async throws -> BatchScanResponse {
+        try await request("api/ext/wms/scan-batch", method: "POST", body: BatchScanRequest(codes: codes, release: release))
+    }
+
+    func createBulkOrders(username: String, rows: [BulkOrderRow]) async throws -> BulkOrdersResponse {
+        try await request("api/ext/orders/bulk", method: "POST", body: BulkOrdersRequest(username: username, orders: rows))
     }
 
     func submitPod(orderId: Int, body: PodSubmitRequest) async throws {
@@ -241,6 +276,111 @@ final class ApiService {
 
     func submitFeedback(orderId: Int, body: FeedbackRequest) async throws {
         try await requestVoid("api/orders/\(orderId)/feedback", method: "POST", body: body)
+    }
+
+    // --- ĐỢT 1: địa chỉ giao hàng, hủy đơn, trả hàng (router /api/ext ở backend) ---
+
+    func getAddresses(username: String) async throws -> [CustomerAddress] {
+        let encoded = username.addingPercentEncoding(withAllowedCharacters: .urlQueryAllowed) ?? username
+        return try await request("api/ext/addresses?username=\(encoded)")
+    }
+
+    func addAddress(_ body: NewAddressRequest) async throws {
+        try await requestVoid("api/ext/addresses", method: "POST", body: body)
+    }
+
+    func deleteAddress(id: Int) async throws {
+        try await requestVoid("api/ext/addresses/\(id)", method: "DELETE")
+    }
+
+    func setDeliveryInfo(orderId: Int, body: DeliveryInfoRequest) async throws {
+        try await requestVoid("api/ext/orders/\(orderId)/delivery-info", method: "PUT", body: body)
+    }
+
+    func cancelOrder(orderId: Int, reason: String) async throws {
+        try await requestVoid("api/ext/orders/\(orderId)/cancel", method: "PUT", body: ReasonRequest(reason: reason))
+    }
+
+    func requestReturn(orderId: Int, reason: String) async throws {
+        try await requestVoid("api/ext/orders/\(orderId)/return-request", method: "POST", body: ReasonRequest(reason: reason))
+    }
+
+    // --- ĐỢT 2: thông báo, chat hỗ trợ, dashboard, chứng từ ---
+
+    private func enc(_ s: String) -> String {
+        s.addingPercentEncoding(withAllowedCharacters: .urlQueryAllowed) ?? s
+    }
+
+    func getNotifications(username: String) async throws -> NotificationsResponse {
+        try await request("api/ext/notifications?username=\(enc(username))")
+    }
+
+    // id = nil -> đánh dấu đã đọc tất cả
+    func markNotificationsRead(username: String, id: Int?) async throws {
+        try await requestVoid("api/ext/notifications/read", method: "PUT",
+                              body: MarkNotificationsReadRequest(username: username, id: id))
+    }
+
+    func getSupportMessages(username: String, after: Int) async throws -> [SupportMessage] {
+        try await request("api/ext/support/messages?username=\(enc(username))&after=\(after)")
+    }
+
+    func sendSupportMessage(username: String, message: String, orderId: Int?) async throws {
+        try await requestVoid("api/ext/support/messages", method: "POST",
+                              body: SendSupportMessageRequest(username: username, sender: "CUSTOMER", message: message, order_id: orderId))
+    }
+
+    func markSupportRead(username: String) async throws {
+        try await requestVoid("api/ext/support/read", method: "PUT",
+                              body: MarkSupportReadRequest(username: username, reader: "CUSTOMER"))
+    }
+
+    func getSupportUnread(username: String) async throws -> Int {
+        let res: SupportUnreadResponse = try await request("api/ext/support/unread?username=\(enc(username))")
+        return res.unread
+    }
+
+    func getCustomerStats(username: String) async throws -> CustomerStats {
+        try await request("api/ext/customer/stats?username=\(enc(username))")
+    }
+
+    // Link mở vận đơn / hóa đơn (trang HTML có nút Print / Save as PDF) - mở bằng Safari
+    func documentURL(type: String, orderId: Int) -> URL? {
+        URL(string: ApiConfig.baseURL + "api/ext/documents/\(type)/\(orderId)")
+    }
+
+    // Proof of Delivery (multipart: ảnh + chữ ký PNG base64 + tên người nhận) - dùng ở app tài xế
+    func submitProofOfDelivery(orderId: Int, imageData: Data?, signatureDataURL: String?, receivedBy: String) async throws {
+        guard let url = URL(string: ApiConfig.baseURL + "api/ext/orders/\(orderId)/pod") else { throw ApiError.invalidURL }
+        let boundary = "Boundary-\(UUID().uuidString)"
+        var req = URLRequest(url: url)
+        req.httpMethod = "POST"
+        req.setValue("multipart/form-data; boundary=\(boundary)", forHTTPHeaderField: "Content-Type")
+
+        var body = Data()
+        func appendField(_ name: String, _ value: String) {
+            body.append("--\(boundary)\r\n".data(using: .utf8)!)
+            body.append("Content-Disposition: form-data; name=\"\(name)\"\r\n\r\n".data(using: .utf8)!)
+            body.append("\(value)\r\n".data(using: .utf8)!)
+        }
+        appendField("received_by", receivedBy)
+        if let sig = signatureDataURL { appendField("signature", sig) }
+        if let imageData = imageData {
+            body.append("--\(boundary)\r\n".data(using: .utf8)!)
+            body.append("Content-Disposition: form-data; name=\"image\"; filename=\"pod.jpg\"\r\n".data(using: .utf8)!)
+            body.append("Content-Type: image/jpeg\r\n\r\n".data(using: .utf8)!)
+            body.append(imageData)
+            body.append("\r\n".data(using: .utf8)!)
+        }
+        body.append("--\(boundary)--\r\n".data(using: .utf8)!)
+        req.httpBody = body
+
+        let (data, response): (Data, URLResponse)
+        do { (data, response) = try await URLSession.shared.data(for: req) } catch { throw ApiError.network(error) }
+        guard let http = response as? HTTPURLResponse else { throw ApiError.network(URLError(.badServerResponse)) }
+        guard (200...299).contains(http.statusCode) else {
+            throw ApiError.server(http.statusCode, String(data: data, encoding: .utf8) ?? "")
+        }
     }
 
     // ĐÃ SỬA: tạo đơn hàng mới của khách hàng CẦN multipart/form-data (có kèm file

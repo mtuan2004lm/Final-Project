@@ -8,6 +8,8 @@
     </array>
     <key>NSCameraUsageDescription</key>
     <string>This app needs camera access to take photos of your cargo for order declarations.</string>
+    <key>NSLocalNetworkUsageDescription</key>
+    <string>This app connects to the logistics server on your local network.</string>
     <key>NSPhotoLibraryUsageDescription</key>
     <string>This app needs photo library access so you can attach an existing photo of your cargo.</string>
 </dict>

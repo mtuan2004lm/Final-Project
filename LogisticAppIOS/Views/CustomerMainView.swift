@@ -12,6 +12,7 @@ struct CustomerMainView: View {
         case list = "Orders"
         case history = "History"
         case payment = "Payment"
+        case account = "Account"
         var id: String { rawValue }
 
         var icon: String {
@@ -20,11 +21,13 @@ struct CustomerMainView: View {
             case .list: return "shippingbox"
             case .history: return "clock.arrow.circlepath"
             case .payment: return "creditcard"
+            case .account: return "person.crop.circle"
             }
         }
     }
 
     @State private var tab: Tab = .create
+    @State private var showNotifications = false
 
     var body: some View {
         VStack(spacing: 0) {
@@ -59,15 +62,51 @@ struct CustomerMainView: View {
                 CustomerPaymentView()
                     .tabItem { Label(Tab.payment.rawValue, systemImage: Tab.payment.icon) }
                     .tag(Tab.payment)
+
+                CustomerAccountView()
+                    .tabItem { Label(Tab.account.rawValue, systemImage: Tab.account.icon) }
+                    .tag(Tab.account)
+                    .badge(store.unreadNotifications + store.unreadChat)
             }
         }
         .environmentObject(store)
         .navigationTitle("LOGISTICS PRO")
         .navigationBarTitleDisplayMode(.inline)
         .toolbar {
+            ToolbarItem(placement: .navigationBarLeading) {
+                // Chuông thông báo + số chưa đọc, bấm mở danh sách thông báo
+                Button {
+                    showNotifications = true
+                } label: {
+                    ZStack(alignment: .topTrailing) {
+                        Image(systemName: "bell")
+                        if store.unreadNotifications > 0 {
+                            Text("\(min(store.unreadNotifications, 99))")
+                                .font(.system(size: 9, weight: .bold))
+                                .foregroundStyle(.white)
+                                .padding(3)
+                                .background(Color.red)
+                                .clipShape(Circle())
+                                .offset(x: 8, y: -8)
+                        }
+                    }
+                }
+            }
             ToolbarItem(placement: .navigationBarTrailing) {
                 Button("Logout", role: .destructive) { session.logout() }
             }
+        }
+        .sheet(isPresented: $showNotifications) {
+            NavigationStack {
+                CustomerNotificationsView()
+                    .toolbar {
+                        ToolbarItem(placement: .navigationBarLeading) {
+                            Button("Close") { showNotifications = false }
+                        }
+                    }
+            }
+            .environmentObject(store)
+            .environmentObject(session)
         }
         .onAppear { store.startPolling(username: session.customerUsername) }
         .onDisappear { store.stopPolling() }

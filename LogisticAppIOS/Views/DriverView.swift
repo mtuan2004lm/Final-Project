@@ -86,8 +86,14 @@ struct DriverView: View {
     @ViewBuilder
     private func tripRow(_ trip: TripOrder) -> some View {
         VStack(alignment: .leading, spacing: 4) {
-            Text("PKG-600\(trip.id)  •  \(trip.customer_name)  (\(trip.product_name) Qty:\(trip.quantity))")
+            Text("\(trip.stop_sequence.map { "Stop \($0)  •  " } ?? "")PKG-\(60000 + trip.id)  •  \(trip.customer_name)  (\(trip.product_name) Qty:\(trip.quantity))")
                 .font(.subheadline).bold()
+            if let addr = trip.delivery_address, !addr.isEmpty {
+                Text("📍 \(addr)").font(.caption)
+            }
+            if let rn = trip.receiver_name, !rn.isEmpty {
+                Text("👤 \(rn)\((trip.receiver_phone ?? "").isEmpty ? "" : " • \(trip.receiver_phone!)")").font(.caption)
+            }
             Text("🛣️ \(trip.delivery_route ?? "")")
                 .font(.caption)
             Text("Status: \(trip.status)  •  Vehicle: \(trip.assigned_truck ?? truckPlate)")

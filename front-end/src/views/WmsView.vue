@@ -14,6 +14,9 @@
           <button @click="activeTab = 'inbound'" :class="{ active: activeTab === 'inbound' }" class="menu-btn">
              📥 1. Inbound & Package Registration
           </button>
+          <button @click="activeTab = 'batch_scan'; $nextTick(() => batchInput && batchInput.focus())" :class="{ active: activeTab === 'batch_scan' }" class="menu-btn">
+             ⚡ Batch Scan (many packages)
+          </button>
           <button @click="activeTab = 'locations'" :class="{ active: activeTab === 'locations' }" class="menu-btn">
              📍 2. Bin / Shelf Location Management
           </button>
@@ -64,6 +67,52 @@
                    </tr>
                 </tbody>
              </table>
+          </div>
+       </div>
+
+       <!-- ĐỢT 3: quét nhiều kiện cùng lúc. Súng quét mã vạch hoạt động như bàn phím: mỗi lần quét gõ mã + Enter. -->
+       <div v-if="activeTab === 'batch_scan'">
+          <header><h1>⚡ BATCH PACKAGE SCAN</h1></header>
+          <div class="card">
+             <p style="margin-top:0; color:#7f8c8d; font-size:13px; line-height:1.6;">
+                Scan or type one code per line (e.g. <b>PKG-60023</b>), press Enter after each. Duplicates are ignored.
+                A barcode scanner works like a keyboard, so just click the box below and start scanning.
+             </p>
+             <div class="batch-row" style="display:flex; gap:10px; flex-wrap:wrap; align-items:center;">
+                <input ref="batchInput" v-model="batchCode" @keyup.enter="addBatchCode"
+                       placeholder="Scan / type package code and press Enter" class="batch-input" />
+                <button @click="addBatchCode" class="btn-action-blue">Add</button>
+                <label style="font-size:13px;"><input type="checkbox" v-model="batchRelease" /> Also release to TMS after scanning</label>
+             </div>
+
+             <div v-if="batchCodes.length" style="margin-top:16px;">
+                <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:8px;">
+                   <b>{{ batchCodes.length }} package(s) in this batch</b>
+                   <div class="batch-row" style="display:flex; gap:8px;">
+                      <button @click="batchCodes = []; batchResults = []" class="btn-action-blue" style="background:#95a5a6;">Clear</button>
+                      <button @click="submitBatch" class="btn-action-green" :disabled="batchSubmitting">
+                         {{ batchSubmitting ? 'Processing...' : '✅ Confirm ' + batchCodes.length + ' package(s)' }}
+                      </button>
+                   </div>
+                </div>
+                <table class="data-table">
+                   <thead><tr><th>#</th><th>Code</th><th>Result</th><th></th></tr></thead>
+                   <tbody>
+                      <tr v-for="(c, i) in batchCodes" :key="c">
+                         <td>{{ i + 1 }}</td>
+                         <td><b class="order-id-tag">{{ c }}</b></td>
+                         <td>
+                            <span v-if="batchResultFor(c)" :style="{ color: batchResultFor(c).color, fontWeight: 'bold', fontSize: '13px' }">
+                               {{ batchResultFor(c).text }}
+                            </span>
+                            <span v-else style="color:#95a5a6;">waiting</span>
+                         </td>
+                         <td><button @click="batchCodes.splice(i, 1)" style="border:none; background:none; cursor:pointer; color:#e74c3c;">✖</button></td>
+                      </tr>
+                   </tbody>
+                </table>
+             </div>
+             <p v-else style="color:#95a5a6; font-style:italic; margin-top:16px;">No packages in the batch yet.</p>
           </div>
        </div>
 
@@ -376,6 +425,57 @@ const scanOrder = async (id) => {
    }
 };
 
+// ================== ĐỢT 3: QUÉT HÀNG LOẠT ==================
+const batchInput = ref(null);
+const batchCode = ref('');
+const batchCodes = ref([]);
+const batchResults = ref([]);
+const batchRelease = ref(false);
+const batchSubmitting = ref(false);
+
+const addBatchCode = () => {
+   const code = batchCode.value.trim().toUpperCase();
+   batchCode.value = '';
+   if (!code) return;
+   if (!parseOrderIdInput(code)) { alert(`"${code}" is not a valid package code (e.g. PKG-60023).`); return; }
+   // chuẩn hóa: "23" hoặc "60023" -> "PKG-60023"
+   const id = parseOrderIdInput(code);
+   const normalized = `PKG-${60000 + (id > 60000 ? id - 60000 : id)}`;
+   if (!batchCodes.value.includes(normalized)) batchCodes.value.push(normalized);
+   batchResults.value = [];
+};
+
+const RESULT_TEXT = {
+   scanned: ['✔️ Scanned', '#27ae60'],
+   scanned_released: ['✔️ Scanned & released to TMS', '#27ae60'],
+   already_scanned: ['ℹ️ Already scanned', '#2980b9'],
+   already_scanned_released: ['ℹ️ Already scanned - released to TMS', '#2980b9'],
+   not_found: ['❌ Order not found', '#c0392b'],
+   not_in_warehouse: ['⚠️ Not in the warehouse (wrong department)', '#e67e22'],
+   invalid_code: ['❌ Invalid code', '#c0392b']
+};
+const batchResultFor = (code) => {
+   const r = batchResults.value.find(x => String(x.code).toUpperCase() === code);
+   if (!r) return null;
+   const [text, color] = RESULT_TEXT[r.status] || [r.status, '#7f8c8d'];
+   return { text, color };
+};
+
+const submitBatch = async () => {
+   if (!batchCodes.value.length) return;
+   batchSubmitting.value = true;
+   try {
+      const res = await axios.post('http://localhost:3000/api/ext/wms/scan-batch', {
+         codes: batchCodes.value, release: batchRelease.value
+      });
+      batchResults.value = res.data.results;
+      fetchWmsOrders();
+      alert(res.data.message);
+   } catch (err) {
+      alert(err.response?.data?.error || 'Batch scan failed!');
+   } finally { batchSubmitting.value = false; }
+};
+
 const updateLocation = async (id) => {
    const loc = locationInputs.value[id];
    if (!loc || loc.trim() === '') {
@@ -462,14 +562,15 @@ onUnmounted(() => {
 
 <style scoped>
 .dashboard-container { display: flex; height: 100vh; font-family: 'Segoe UI', sans-serif; background: #f4f6f9; }
-.sidebar { width: 260px; background: #2c3e50; color: white; padding: 20px; display: flex; flex-direction: column; flex-shrink: 0; }
+.sidebar { width: 260px; background: #2c3e50; color: white; padding: 20px; display: flex; flex-direction: column; flex-shrink: 0; box-sizing: border-box; height: 100vh; overflow-y: auto; }
 .brand { font-size: 22px; font-weight: 800; text-align: center; margin-bottom: 25px; color: #ecf0f1; letter-spacing: 0.5px; }
 .user-info { display: flex; align-items: center; gap: 12px; padding-bottom: 15px; border-bottom: 1px solid #34495e; margin-bottom: 25px; }
 .avatar { width: 45px; height: 45px; background: #e67e22; border-radius: 50%; display: flex; justify-content: center; align-items: center; font-weight: bold; font-size: 16px; }
-.navigation-menu { display: flex; flex-direction: column; gap: 10px; }
+.navigation-menu { display: flex; flex-direction: column; gap: 6px; flex-shrink: 0; }
+.navigation-menu button { flex-shrink: 0; }
 .menu-btn { padding: 12px 15px; text-align: left; background: none; border: none; color: #bdc3c7; font-weight: bold; cursor: pointer; border-radius: 4px; font-size: 13px; transition: 0.2s; }
 .menu-btn:hover, .menu-btn.active { background: #1a252f; color: white; border-left: 4px solid #e67e22; padding-left: 11px; }
-.btn-logout { margin-top: auto; padding: 12px; background: #e74c3c; color: white; border: none; border-radius: 4px; font-weight: bold; cursor: pointer; }
+.btn-logout { flex-shrink: 0; margin-top: auto; padding: 12px; background: #e74c3c; color: white; border: none; border-radius: 4px; font-weight: bold; cursor: pointer; }
 
 .main-content { flex: 1; padding: 30px; overflow-y: auto; }
 header h1 { font-size: 22px; font-weight: 800; color: #2c3e50; margin-bottom: 25px; border-left: 5px solid #e67e22; padding-left: 12px; text-transform: uppercase; }
@@ -499,6 +600,8 @@ header h1 { font-size: 22px; font-weight: 800; color: #2c3e50; margin-bottom: 25
 .btn-action-orange { background: #e67e22; color: white; border: none; padding: 8px 14px; font-weight: bold; font-size: 12px; border-radius: 4px; cursor: pointer; }
 .btn-action-green { background: #27ae60; color: white; border: none; padding: 10px 16px; font-weight: bold; font-size: 13px; border-radius: 4px; cursor: pointer; width: 100%; }
 
+.batch-row button { width: auto; }
+.batch-input { flex: 1; min-width: 260px; padding: 11px 14px; border: 2px solid #3498db; border-radius: 6px; font-size: 15px; font-family: monospace; }
 .btn-action-blue { background: #3498db; color: white; border: none; padding: 8px 14px; font-weight: bold; font-size: 12px; border-radius: 4px; cursor: pointer; width: 100%; text-align: center; }
 .btn-action-blue:hover { background: #2980b9; }
 .btn-disabled { background: #cbd5e1 !important; color: #94a3b8 !important; cursor: not-allowed !important; }

@@ -70,6 +70,9 @@ struct AdminView: View {
         .navigationTitle("SYSTEM ADMINISTRATION")
         .navigationBarTitleDisplayMode(.inline)
         .toolbar {
+            ToolbarItem(placement: .navigationBarLeading) {
+                NavigationLink("Audit Log") { AdminAuditView() }   // ĐỢT 4
+            }
             ToolbarItem(placement: .navigationBarTrailing) {
                 Button("Logout", role: .destructive) { session.logout() }
             }

@@ -7,6 +7,21 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		7279ABD668C645C393227205 /* Localizable.xcstrings in Resources */ = {isa = PBXBuildFile; fileRef = 972615DE402943539FB4AF23 /* Localizable.xcstrings */; };
+		05FCB6CF001840DB9D3842F2 /* AppLanguage.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2B62F30100F04C88B18A45C1 /* AppLanguage.swift */; };
+		34CEA971E6A241BDB93E2D95 /* AdminAuditView.swift in Sources */ = {isa = PBXBuildFile; fileRef = FE506EDDAE1C4D87BBA3545A /* AdminAuditView.swift */; };
+		3692E4F8708B4E32925E2CB8 /* CustomerClaimsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2363A3209E5A400295F75051 /* CustomerClaimsView.swift */; };
+		0A60F4E500D542779A0E3923 /* ForgotPasswordView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 97F7FF608AA84422A91F48B7 /* ForgotPasswordView.swift */; };
+		E717928B3D2D4B068F0A2049 /* CustomerBulkImportView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 80E3B67EE06B4C23AEE9464D /* CustomerBulkImportView.swift */; };
+		387835E9C8C244D3BDAF4E12 /* BatchScanView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5C68D2017E5540A2B485DEDC /* BatchScanView.swift */; };
+		CB1624F3307497A800E5A747 /* CustomerAddressesView.swift in Sources */ = {isa = PBXBuildFile; fileRef = CB1624F2307497A300E5A747 /* CustomerAddressesView.swift */; };
+		CB1624F5307497B600E5A747 /* ReasonSheet.swift in Sources */ = {isa = PBXBuildFile; fileRef = CB1624F4307497B500E5A747 /* ReasonSheet.swift */; };
+		4F0F0E4EDB3590D1D089E734 /* CustomerNotificationsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = F299671307328EDB6025F464 /* CustomerNotificationsView.swift */; };
+		C25DB08F6D2B5D6DF479F38D /* CustomerChatView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5E103D2583CF75B71F076331 /* CustomerChatView.swift */; };
+		92D8C0584475E87F77DC30E3 /* CustomerDashboardView.swift in Sources */ = {isa = PBXBuildFile; fileRef = DF51DB3A199F5F4143E13F7F /* CustomerDashboardView.swift */; };
+		E42AC0167264BE45C006713C /* CustomerAccountView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 94222E3E56832D50C0E3B3F2 /* CustomerAccountView.swift */; };
+		1D773E49CBB6D47AD7609060 /* LocalNotifier.swift in Sources */ = {isa = PBXBuildFile; fileRef = D5AF72DFEB19D26E22C9FD3E /* LocalNotifier.swift */; };
+		CB1624F7307497C300E5A747 /* SignaturePadView.swift in Sources */ = {isa = PBXBuildFile; fileRef = CB1624F6307497C100E5A747 /* SignaturePadView.swift */; };
 		CBF3F1373070941D00C394C2 /* AdminView.swift in Sources */ = {isa = PBXBuildFile; fileRef = CBF3F1363070941500C394C2 /* AdminView.swift */; };
 		CBF3F1393070943900C394C2 /* AdminOrderTimelineView.swift in Sources */ = {isa = PBXBuildFile; fileRef = CBF3F1383070942200C394C2 /* AdminOrderTimelineView.swift */; };
 		CBF3F13B3070947300C394C2 /* AdminReportDetailView.swift in Sources */ = {isa = PBXBuildFile; fileRef = CBF3F13A3070945C00C394C2 /* AdminReportDetailView.swift */; };
@@ -38,6 +53,21 @@
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
+		972615DE402943539FB4AF23 /* Localizable.xcstrings */ = {isa = PBXFileReference; lastKnownFileType = text.json.xcstrings; path = Localizable.xcstrings; sourceTree = "<group>"; };
+		2B62F30100F04C88B18A45C1 /* AppLanguage.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppLanguage.swift; sourceTree = "<group>"; };
+		FE506EDDAE1C4D87BBA3545A /* AdminAuditView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AdminAuditView.swift; sourceTree = "<group>"; };
+		2363A3209E5A400295F75051 /* CustomerClaimsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CustomerClaimsView.swift; sourceTree = "<group>"; };
+		97F7FF608AA84422A91F48B7 /* ForgotPasswordView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ForgotPasswordView.swift; sourceTree = "<group>"; };
+		80E3B67EE06B4C23AEE9464D /* CustomerBulkImportView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CustomerBulkImportView.swift; sourceTree = "<group>"; };
+		5C68D2017E5540A2B485DEDC /* BatchScanView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BatchScanView.swift; sourceTree = "<group>"; };
+		CB1624F2307497A300E5A747 /* CustomerAddressesView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CustomerAddressesView.swift; sourceTree = "<group>"; };
+		CB1624F4307497B500E5A747 /* ReasonSheet.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ReasonSheet.swift; sourceTree = "<group>"; };
+		F299671307328EDB6025F464 /* CustomerNotificationsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CustomerNotificationsView.swift; sourceTree = "<group>"; };
+		5E103D2583CF75B71F076331 /* CustomerChatView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CustomerChatView.swift; sourceTree = "<group>"; };
+		DF51DB3A199F5F4143E13F7F /* CustomerDashboardView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CustomerDashboardView.swift; sourceTree = "<group>"; };
+		94222E3E56832D50C0E3B3F2 /* CustomerAccountView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CustomerAccountView.swift; sourceTree = "<group>"; };
+		D5AF72DFEB19D26E22C9FD3E /* LocalNotifier.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LocalNotifier.swift; sourceTree = "<group>"; };
+		CB1624F6307497C100E5A747 /* SignaturePadView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SignaturePadView.swift; sourceTree = "<group>"; };
 		CBCC38B6306F4EA9003F6C50 /* LogisticAppIOS.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = LogisticAppIOS.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		CBCC38C5306F52C8003F6C50 /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
 		CBCC38C6306F52C8003F6C50 /* LogisticAppIOSApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LogisticAppIOSApp.swift; sourceTree = "<group>"; };
@@ -84,6 +114,7 @@
 			isa = PBXGroup;
 			children = (
 				CBCC38CE306F5374003F6C50 /* Views */,
+				972615DE402943539FB4AF23 /* Localizable.xcstrings */,
 				CBCC38CD306F5367003F6C50 /* Location */,
 				CBCC38CA306F533F003F6C50 /* Storage */,
 				CBCC38C9306F532D003F6C50 /* Networking */,
@@ -132,6 +163,7 @@
 		CBCC38CA306F533F003F6C50 /* Storage */ = {
 			isa = PBXGroup;
 			children = (
+				2B62F30100F04C88B18A45C1 /* AppLanguage.swift */,
 				CBCC38D2306F54DE003F6C50 /* SessionStore.swift */,
 			);
 			path = Storage;
@@ -148,6 +180,16 @@
 		CBCC38CE306F5374003F6C50 /* Views */ = {
 			isa = PBXGroup;
 			children = (
+				CB1624F6307497C100E5A747 /* SignaturePadView.swift */,
+				CB1624F4307497B500E5A747 /* ReasonSheet.swift */,
+				F299671307328EDB6025F464 /* CustomerNotificationsView.swift */,
+				5E103D2583CF75B71F076331 /* CustomerChatView.swift */,
+				80E3B67EE06B4C23AEE9464D /* CustomerBulkImportView.swift */,
+				5C68D2017E5540A2B485DEDC /* BatchScanView.swift */,
+				DF51DB3A199F5F4143E13F7F /* CustomerDashboardView.swift */,
+				94222E3E56832D50C0E3B3F2 /* CustomerAccountView.swift */,
+				D5AF72DFEB19D26E22C9FD3E /* LocalNotifier.swift */,
+				CB1624F2307497A300E5A747 /* CustomerAddressesView.swift */,
 				CBF3F1583070B97800C394C2 /* QRScannerView.swift */,
 				CBF3F1563070B96600C394C2 /* OrderQRCodeView.swift */,
 				CBF3F1523070AB5C00C394C2 /* CustomerStore.swift */,
@@ -164,6 +206,9 @@
 				CBF3F1363070941500C394C2 /* AdminView.swift */,
 				CBCC38DA306F557A003F6C50 /* DriverTripDetailView.swift */,
 				CBCC38D9306F556C003F6C50 /* DriverView.swift */,
+				FE506EDDAE1C4D87BBA3545A /* AdminAuditView.swift */,
+				2363A3209E5A400295F75051 /* CustomerClaimsView.swift */,
+				97F7FF608AA84422A91F48B7 /* ForgotPasswordView.swift */,
 				CBCC38D8306F555B003F6C50 /* WmsLogView.swift */,
 				CBCC38D7306F554A003F6C50 /* OrderDetailView.swift */,
 				CBCC38D6306F553B003F6C50 /* WarehouseView.swift */,
@@ -212,6 +257,7 @@
 			knownRegions = (
 				en,
 				Base,
+				vi,
 			);
 			mainGroup = CBCC38AD306F4EA9003F6C50;
 			minimizedProjectReferenceProxies = 1;
@@ -229,6 +275,7 @@
 		CBCC38B4306F4EA9003F6C50 /* Resources */ = {
 			isa = PBXResourcesBuildPhase;
 			files = (
+				7279ABD668C645C393227205 /* Localizable.xcstrings in Resources */,
 			);
 		};
 /* End PBXResourcesBuildPhase section */
@@ -239,11 +286,16 @@
 			files = (
 				CBF92CFD306F91A70023EE83 /* DriverTripDetailView.swift in Sources */,
 				CBF92CFE306F91A70023EE83 /* DriverView.swift in Sources */,
+				05FCB6CF001840DB9D3842F2 /* AppLanguage.swift in Sources */,
+				34CEA971E6A241BDB93E2D95 /* AdminAuditView.swift in Sources */,
+				3692E4F8708B4E32925E2CB8 /* CustomerClaimsView.swift in Sources */,
+				0A60F4E500D542779A0E3923 /* ForgotPasswordView.swift in Sources */,
 				CBF92CFF306F91A70023EE83 /* WmsLogView.swift in Sources */,
 				CBF92D00306F91A70023EE83 /* OrderDetailView.swift in Sources */,
 				CBF3F1513070AB1700C394C2 /* CameraPicker.swift in Sources */,
 				CBF3F141307094AA00C394C2 /* ShareSheet.swift in Sources */,
 				CBF3F14D3070AAFC00C394C2 /* CustomerHistoryView.swift in Sources */,
+				CB1624F3307497A800E5A747 /* CustomerAddressesView.swift in Sources */,
 				CBF92D01306F91A70023EE83 /* WarehouseView.swift in Sources */,
 				CBF3F1433070AA8C00C394C2 /* CustomerLoginView.swift in Sources */,
 				CBF92D02306F91A70023EE83 /* MainMenuView.swift in Sources */,
@@ -254,9 +306,18 @@
 				CBF3F13B3070947300C394C2 /* AdminReportDetailView.swift in Sources */,
 				CBF3F1373070941D00C394C2 /* AdminView.swift in Sources */,
 				CBF3F1473070AAB700C394C2 /* CustomerCreateOrderView.swift in Sources */,
+				CB1624F7307497C300E5A747 /* SignaturePadView.swift in Sources */,
 				CBF92D05306F91A70023EE83 /* SessionStore.swift in Sources */,
 				CBF3F1593070B98100C394C2 /* QRScannerView.swift in Sources */,
 				CBF3F14B3070AAE700C394C2 /* CustomerOrdersListView.swift in Sources */,
+				CB1624F5307497B600E5A747 /* ReasonSheet.swift in Sources */,
+				4F0F0E4EDB3590D1D089E734 /* CustomerNotificationsView.swift in Sources */,
+				C25DB08F6D2B5D6DF479F38D /* CustomerChatView.swift in Sources */,
+				E717928B3D2D4B068F0A2049 /* CustomerBulkImportView.swift in Sources */,
+				387835E9C8C244D3BDAF4E12 /* BatchScanView.swift in Sources */,
+				92D8C0584475E87F77DC30E3 /* CustomerDashboardView.swift in Sources */,
+				E42AC0167264BE45C006713C /* CustomerAccountView.swift in Sources */,
+				1D773E49CBB6D47AD7609060 /* LocalNotifier.swift in Sources */,
 				CBF3F1453070AAA100C394C2 /* CustomerMainView.swift in Sources */,
 				CBF3F14F3070AB0D00C394C2 /* CustomerPaymentView.swift in Sources */,
 				CBF92D06306F91A70023EE83 /* ApiService.swift in Sources */,

@@ -14,6 +14,15 @@ struct CustomerCreateOrderView: View {
     @State private var cargoType = "Hàng hóa thông thường"
     @State private var quantity = 1
 
+    // ĐỢT 1: địa chỉ giao hàng + lịch lấy hàng
+    @State private var savedAddresses: [CustomerAddress] = []
+    @State private var deliveryAddress = ""
+    @State private var receiverName = ""
+    @State private var receiverPhone = ""
+    @State private var scheduledPickup = false
+    @State private var pickupDate = Date().addingTimeInterval(3600)
+    @State private var pickupNote = ""
+
     @State private var selectedImage: UIImage?
     @State private var photosPickerItem: PhotosPickerItem?
     @State private var showCamera = false
@@ -85,6 +94,40 @@ struct CustomerCreateOrderView: View {
 
                     Stepper("Number of Packages: \(quantity)", value: $quantity, in: 1...9999)
 
+                    // ====== ĐỊA CHỈ GIAO HÀNG + LỊCH LẤY HÀNG ======
+                    VStack(alignment: .leading, spacing: 6) {
+                        Text("Delivery Address").font(.caption).foregroundStyle(.secondary)
+                        if !savedAddresses.isEmpty {
+                            Menu {
+                                ForEach(savedAddresses) { a in
+                                    Button("\(a.label) - \(a.address)") {
+                                        deliveryAddress = a.address
+                                        receiverName = a.receiver_name ?? ""
+                                        receiverPhone = a.receiver_phone ?? ""
+                                    }
+                                }
+                            } label: {
+                                Label("Choose a saved address", systemImage: "mappin.and.ellipse")
+                            }
+                        }
+                        TextField("Enter delivery address...", text: $deliveryAddress)
+                            .textFieldStyle(.roundedBorder)
+                        TextField("Receiver name", text: $receiverName)
+                            .textFieldStyle(.roundedBorder)
+                        TextField("Receiver phone", text: $receiverPhone)
+                            .textFieldStyle(.roundedBorder)
+                            .keyboardType(.phonePad)
+                    }
+
+                    VStack(alignment: .leading, spacing: 6) {
+                        Toggle("Schedule a pickup", isOn: $scheduledPickup)
+                        if scheduledPickup {
+                            DatePicker("Pickup time", selection: $pickupDate, in: Date()...)
+                            TextField("Pickup note (e.g. call before arriving)", text: $pickupNote)
+                                .textFieldStyle(.roundedBorder)
+                        }
+                    }
+
                     VStack(alignment: .leading, spacing: 6) {
                         Text("Actual Cargo Image").font(.caption).foregroundStyle(.secondary)
 
@@ -151,6 +194,11 @@ struct CustomerCreateOrderView: View {
             }
             Button("Cancel", role: .cancel) {}
         }
+        .task {
+            if let list = try? await ApiService.shared.getAddresses(username: session.customerUsername) {
+                savedAddresses = list
+            }
+        }
         .photosPicker(isPresented: $showPhotoPickerTrigger, selection: $photosPickerItem, matching: .images)
         .onChange(of: photosPickerItem) { newItem in
             Task {
@@ -194,6 +242,10 @@ struct CustomerCreateOrderView: View {
             alertMessage = "Please fill in all the information!"
             return
         }
+        guard !deliveryAddress.trimmingCharacters(in: .whitespaces).isEmpty else {
+            alertMessage = "Please enter the delivery address!"
+            return
+        }
         guard let image = selectedImage, let imageData = image.jpegData(compressionQuality: 0.8) else {
             alertMessage = "⚠️ Please upload an actual image of the cargo to create the yard declaration!"
             return
@@ -212,6 +264,26 @@ struct CustomerCreateOrderView: View {
                     imageData: imageData
                 )
                 isSubmitting = false
+
+                // ĐỢT 1: gắn địa chỉ giao + lịch lấy hàng vào đơn vừa tạo
+                if let newId = res.order?.id {
+                    let iso = ISO8601DateFormatter()
+                    try? await ApiService.shared.setDeliveryInfo(
+                        orderId: newId,
+                        body: DeliveryInfoRequest(
+                            delivery_address: deliveryAddress,
+                            receiver_name: receiverName,
+                            receiver_phone: receiverPhone,
+                            pickup_date: scheduledPickup ? iso.string(from: pickupDate) : nil,
+                            pickup_note: scheduledPickup ? pickupNote : ""
+                        )
+                    )
+                }
+                deliveryAddress = ""
+                receiverName = ""
+                receiverPhone = ""
+                scheduledPickup = false
+                pickupNote = ""
 
                 customerName = ""
                 productName = ""

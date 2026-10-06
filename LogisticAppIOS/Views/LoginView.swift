@@ -13,9 +13,11 @@ struct LoginView: View {
     // (CustomerLoginView) - tài khoản khách hàng KHÔNG dùng được form này vì
     // /api/auth/mobile-login chặn role customer, xem CustomerLoginView.swift.
     @State private var showCustomerLogin = false
+    @State private var showForgot = false   // ĐỢT 4
 
     var body: some View {
         VStack(spacing: 16) {
+            LanguagePicker()
             Spacer()
 
             Text("LOGISTICS PRO")
@@ -47,6 +49,9 @@ struct LoginView: View {
             }
             .padding(.top, 24)
 
+            Button("Forgot password?") { showForgot = true }
+                .font(.footnote)
+
             Divider().padding(.vertical, 8)
 
             VStack(spacing: 8) {
@@ -62,6 +67,9 @@ struct LoginView: View {
             Spacer()
         }
         .padding()
+        .sheet(isPresented: $showForgot) {
+            NavigationStack { ForgotPasswordView() }
+        }
         .sheet(isPresented: $showCustomerLogin) {
             NavigationStack {
                 CustomerLoginView()

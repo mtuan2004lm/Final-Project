@@ -102,6 +102,47 @@ struct TripOrder: Decodable, Identifiable {
     let fuel_fee: String?
     let driver_notes: String?
     let gps_coordinates: String?
+    // ĐỢT 3: địa chỉ giao + thứ tự điểm dừng (có thể null với đơn cũ)
+    let delivery_address: String?
+    let receiver_name: String?
+    let receiver_phone: String?
+    let stop_sequence: Int?
+}
+
+// ĐỢT 3: quét QR hàng loạt
+struct BatchScanRequest: Encodable {
+    let codes: [String]
+    let release: Bool
+}
+struct BatchScanItem: Decodable, Identifiable {
+    let code: String
+    let id_: Int?
+    let status: String
+    var id: String { code }
+    enum CodingKeys: String, CodingKey { case code, status, id_ = "id" }
+}
+struct BatchScanResponse: Decodable {
+    let message: String
+    let results: [BatchScanItem]
+}
+
+// ĐỢT 3: tạo đơn hàng loạt từ CSV
+struct BulkOrderRow: Encodable {
+    let customer_name: String
+    let product_name: String
+    let quantity: Int
+    let cargo_type: String
+    let delivery_address: String
+    let receiver_name: String
+    let receiver_phone: String
+}
+struct BulkOrdersRequest: Encodable {
+    let username: String
+    let orders: [BulkOrderRow]
+}
+struct BulkOrdersResponse: Decodable {
+    let message: String?
+    let count: Int?
 }
 
 // Khớp body mà PUT /api/orders/tms/fleet/gps yêu cầu - giống TruckGpsRequest.kt
@@ -186,11 +227,35 @@ struct CustomerOrder: Decodable, Identifiable {
     var truck_lat: Double?
     var truck_lng: Double?
     var truck_gps_updated_at: String?
+    // ĐỢT 1
+    var delivery_address: String?
+    var receiver_name: String?
+    var receiver_phone: String?
+    var pickup_date: String?
+    var pickup_note: String?
+    var cancel_reason: String?
+    var return_status: String?
+    var return_reason: String?
+    var return_reject_note: String?
+    var refund_status: String?
+    var refund_amount: Double?
+    var pod_image: String?
+    var pod_signature: String?
+    var pod_received_by: String?
+    var pod_at: String?
+    // ĐỢT 4: bảo hiểm
+    var insured: Bool?
+    var insured_value: Double?
+    var insurance_fee: Double?
 
     enum CodingKeys: String, CodingKey {
         case id, username, customer_name, product_name, quantity, status, current_dept, notes,
              driver_notes, cargo_type, total_price, payment_status, product_image, assigned_truck,
              delivery_route, rating, feedback, truck_lat, truck_lng, truck_gps_updated_at
+        case delivery_address, receiver_name, receiver_phone, pickup_date, pickup_note, cancel_reason,
+             return_status, return_reason, return_reject_note, refund_status, refund_amount,
+             pod_image, pod_signature, pod_received_by, pod_at
+        case insured, insured_value, insurance_fee
     }
 
     init(from decoder: Decoder) throws {
@@ -215,13 +280,176 @@ struct CustomerOrder: Decodable, Identifiable {
         truck_lat = decodeFlexibleDouble(c, .truck_lat)
         truck_lng = decodeFlexibleDouble(c, .truck_lng)
         truck_gps_updated_at = try c.decodeIfPresent(String.self, forKey: .truck_gps_updated_at)
+        delivery_address = try c.decodeIfPresent(String.self, forKey: .delivery_address)
+        receiver_name = try c.decodeIfPresent(String.self, forKey: .receiver_name)
+        receiver_phone = try c.decodeIfPresent(String.self, forKey: .receiver_phone)
+        pickup_date = try c.decodeIfPresent(String.self, forKey: .pickup_date)
+        pickup_note = try c.decodeIfPresent(String.self, forKey: .pickup_note)
+        cancel_reason = try c.decodeIfPresent(String.self, forKey: .cancel_reason)
+        return_status = try c.decodeIfPresent(String.self, forKey: .return_status)
+        return_reason = try c.decodeIfPresent(String.self, forKey: .return_reason)
+        return_reject_note = try c.decodeIfPresent(String.self, forKey: .return_reject_note)
+        refund_status = try c.decodeIfPresent(String.self, forKey: .refund_status)
+        refund_amount = decodeFlexibleDouble(c, .refund_amount)
+        pod_image = try c.decodeIfPresent(String.self, forKey: .pod_image)
+        pod_signature = try c.decodeIfPresent(String.self, forKey: .pod_signature)
+        pod_received_by = try c.decodeIfPresent(String.self, forKey: .pod_received_by)
+        pod_at = try c.decodeIfPresent(String.self, forKey: .pod_at)
+        insured = try? c.decodeIfPresent(Bool.self, forKey: .insured)
+        insured_value = decodeFlexibleDouble(c, .insured_value)
+        insurance_fee = decodeFlexibleDouble(c, .insurance_fee)
     }
+}
+
+// ĐỢT 4: bảo hiểm + bồi thường
+struct BuyInsuranceRequest: Encodable {
+    let username: String
+    let declared_value: Double
+}
+struct NewClaimRequest: Encodable {
+    let username: String
+    let order_id: Int
+    let reason: String
+    let description: String
+    let claimed_amount: Double
+}
+struct ClaimItem: Decodable, Identifiable {
+    let id: Int
+    let order_id: Int
+    let reason: String
+    let description: String?
+    let claimed_amount: Double
+    let status: String
+    let approved_amount: Double?
+    let resolver_note: String?
+}
+
+// ĐỢT 4: quên mật khẩu bằng OTP
+struct ForgotRequest: Encodable { let username: String }
+struct ForgotResponse: Decodable { let message: String?; let dev_otp: String? }
+struct VerifyOtpRequest: Encodable { let username: String; let otp: String }
+struct VerifyOtpResponse: Decodable { let reset_token: String }
+struct ResetPasswordRequest: Encodable { let username: String; let reset_token: String; let new_password: String }
+
+// ĐỢT 4: audit log (Admin)
+struct AuditEntry: Decodable, Identifiable {
+    let id: Int
+    let actor: String?
+    let action: String
+    let entity_id: String?
+    let status_code: Int?
+    let detail: String?
+    let created_at: String?
 }
 
 // Body gửi lên POST /api/orders/:id/feedback
 struct FeedbackRequest: Encodable {
     let rating: Int
     let feedback: String
+}
+
+// ĐỢT 1: địa chỉ giao hàng đã lưu - khớp bảng customer_addresses
+struct CustomerAddress: Decodable, Identifiable {
+    var id: Int
+    var label: String
+    var address: String
+    var receiver_name: String?
+    var receiver_phone: String?
+    var is_default: Bool?
+}
+
+struct NewAddressRequest: Encodable {
+    let username: String
+    let label: String
+    let address: String
+    let receiver_name: String
+    let receiver_phone: String
+    let is_default: Bool
+}
+
+struct DeliveryInfoRequest: Encodable {
+    let delivery_address: String
+    let receiver_name: String
+    let receiver_phone: String
+    let pickup_date: String?   // ISO8601, nil nếu không đặt lịch
+    let pickup_note: String
+}
+
+struct ReasonRequest: Encodable {
+    let reason: String
+}
+
+// =============================================================================
+// ĐỢT 2: thông báo, chat hỗ trợ, dashboard khách
+// =============================================================================
+
+struct AppNotification: Decodable, Identifiable, Equatable {
+    var id: Int
+    var order_id: Int?
+    var title: String
+    var message: String
+    var is_read: Bool
+    var created_at: String?
+}
+
+struct NotificationsResponse: Decodable {
+    var unread: Int
+    var notifications: [AppNotification]
+}
+
+struct SupportMessage: Decodable, Identifiable, Equatable {
+    var id: Int
+    var username: String?
+    var order_id: Int?
+    var sender: String          // "CUSTOMER" hoặc "OMS"
+    var message: String
+    var created_at: String?
+}
+
+struct SupportUnreadResponse: Decodable { var unread: Int }
+
+struct SendSupportMessageRequest: Encodable {
+    let username: String
+    let sender: String
+    let message: String
+    let order_id: Int?
+}
+
+struct MarkNotificationsReadRequest: Encodable {
+    let username: String
+    let id: Int?
+}
+
+struct MarkSupportReadRequest: Encodable {
+    let username: String
+    let reader: String
+}
+
+struct MonthlySpend: Decodable, Identifiable {
+    var month: String
+    var orders: Int
+    var spent: Double
+    var id: String { month }
+}
+
+struct CargoSpend: Decodable, Identifiable {
+    var cargo_type: String
+    var orders: Int
+    var spent: Double
+    var id: String { cargo_type }
+}
+
+struct CustomerStats: Decodable {
+    var total_orders: Int
+    var delivered_orders: Int
+    var cancelled_orders: Int
+    var active_orders: Int
+    var total_spent: Double
+    var total_paid: Double
+    var total_refunded: Double
+    var success_rate: Int?
+    var monthly: [MonthlySpend]
+    var by_cargo: [CargoSpend]
 }
 
 // =============================================================================

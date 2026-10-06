@@ -16,10 +16,12 @@ struct CustomerLoginView: View {
 
     @State private var isLoading = false
     @State private var alertMessage: String?
+    @State private var showForgot = false   // ĐỢT 4
 
     var body: some View {
         ScrollView {
             VStack(spacing: 16) {
+                LanguagePicker()
                 Picker("Mode", selection: $mode) {
                     Text("Login").tag(Mode.login)
                     Text("Register").tag(Mode.register)
@@ -55,9 +57,16 @@ struct CustomerLoginView: View {
                     }
                     .buttonStyle(.borderedProminent)
                     .disabled(isLoading)
+
+                    if mode == .login {
+                        Button("Forgot password?") { showForgot = true }.font(.footnote)
+                    }
                 }
             }
             .padding()
+        }
+        .sheet(isPresented: $showForgot) {
+            NavigationStack { ForgotPasswordView() }
         }
         .navigationTitle("Customer")
         .navigationBarTitleDisplayMode(.inline)

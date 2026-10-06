@@ -21,10 +21,16 @@ struct DriverTripDetailView: View {
     @State private var isSubmitting = false
     @State private var alertMessage: String?
 
+    // ĐỢT 1: Proof of Delivery thật (ảnh + chữ ký + tên người nhận)
+    @State private var podImage: UIImage?
+    @State private var showCamera = false
+    @State private var receivedBy = ""
+    @State private var signatureLines: [[CGPoint]] = []
+
     var body: some View {
         ScrollView {
             VStack(alignment: .leading, spacing: 14) {
-                Text("Package Code: PKG-600\(orderId)").font(.headline)
+                Text("Package Code: PKG-\(60000 + orderId)").font(.headline)
                 Text("Customer: \(customer)")
                 Text("Cargo: \(product)")
                 Text("🛣️ Route: \(route)")
@@ -47,6 +53,34 @@ struct DriverTripDetailView: View {
                 TextField("Driver notes", text: $notes)
                     .textFieldStyle(.roundedBorder)
 
+                Divider()
+                Text("📸 Proof of Delivery").font(.headline)
+
+                if let img = podImage {
+                    Image(uiImage: img)
+                        .resizable().scaledToFit()
+                        .frame(maxHeight: 180)
+                        .clipShape(RoundedRectangle(cornerRadius: 8))
+                }
+                Button {
+                    if UIImagePickerController.isSourceTypeAvailable(.camera) {
+                        showCamera = true
+                    } else {
+                        alertMessage = "No camera available on this device."
+                    }
+                } label: {
+                    Label(podImage == nil ? "Take delivery photo" : "Retake photo", systemImage: "camera")
+                        .frame(maxWidth: .infinity)
+                }
+                .buttonStyle(.bordered)
+
+                TextField("Received by (name)", text: $receivedBy)
+                    .textFieldStyle(.roundedBorder)
+
+                SignaturePadView(lines: $signatureLines)
+                Button("Clear signature") { signatureLines = [] }
+                    .font(.caption)
+
                 Button {
                     submit()
                 } label: {
@@ -62,6 +96,10 @@ struct DriverTripDetailView: View {
             .padding()
         }
         .navigationTitle("Trip Detail")
+        .fullScreenCover(isPresented: $showCamera) {
+            CameraPicker { image in podImage = image }
+                .ignoresSafeArea()
+        }
         .alert("Notification", isPresented: Binding(
             get: { alertMessage != nil },
             set: { if !$0 { alertMessage = nil } }
@@ -92,6 +130,16 @@ struct DriverTripDetailView: View {
         Task {
             do {
                 try await ApiService.shared.submitPod(orderId: orderId, body: body)
+
+                // ĐỢT 1: gửi ảnh + chữ ký thật SAU pod-submit, vì pod-submit đang ghi
+                // đè pod_image bằng URL placeholder - upload sau sẽ thay bằng ảnh thật.
+                let sig = await SignaturePadView.dataURL(lines: signatureLines, size: CGSize(width: 320, height: 160))
+                let jpeg = podImage?.jpegData(compressionQuality: 0.8)
+                if jpeg != nil || sig != nil {
+                    try? await ApiService.shared.submitProofOfDelivery(
+                        orderId: orderId, imageData: jpeg, signatureDataURL: sig,
+                        receivedBy: receivedBy.trimmingCharacters(in: .whitespaces))
+                }
                 isSubmitting = false
                 // Quay lại DriverView, onAppear ở đó sẽ tự tải lại danh sách chuyến
                 // (tương đương finish() trong DriverTripDetailActivity.kt).

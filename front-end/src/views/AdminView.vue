@@ -21,6 +21,9 @@
               📦 Operations Overview
            </button>
 
+           <button @click="activeTab = 'audit'" :class="{ active: activeTab === 'audit' }" class="menu-btn">
+              🗂️ {{ $t('admin.audit') }}
+           </button>
            <button @click="activeTab = 'reports'" :class="{ active: activeTab === 'reports' }" class="menu-btn">
               📄 Report from Docs
            </button>
@@ -167,6 +170,10 @@
          </div>
 
          <!-- ============ TAB 4: BÁO CÁO TỪ DOCS  ============ -->
+         <div v-if="activeTab === 'audit'">
+            <AdminAudit />
+         </div>
+
          <div v-if="activeTab === 'reports'">
             <header><h1>📄 ORDER REPORT SENT BY THE DOCUMENTATION DEPARTMENT (DOCS)</h1></header>
 
@@ -342,6 +349,7 @@
   import { ref, computed, onMounted, onUnmounted } from 'vue';
   import axios from 'axios';
   import { useRouter } from 'vue-router';
+  import AdminAudit from '../components/AdminAudit.vue';
 
   const router = useRouter();
   const activeTab = ref('pipeline');

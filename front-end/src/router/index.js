@@ -23,6 +23,10 @@ const routes = [
     component: () => import('../views/AdminView.vue') // Tải bất đồng bộ giao diện Tổng quan Quản trị viên
   },
   {
+    path: '/forgot',
+    component: () => import('../views/ForgotPasswordView.vue') // ĐỢT 4: quên mật khẩu bằng OTP
+  },
+  {
     // ĐÃ THÊM: LoginView.vue có nút "Đăng ký ngay" gọi router.push('/register')
     // nhưng route này chưa từng được khai báo -> bấm vào sẽ báo "No match found".
     path: '/register',

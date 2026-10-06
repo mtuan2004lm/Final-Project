@@ -11,6 +11,12 @@ final class CustomerStore: ObservableObject {
     @Published var errorMessage: String?
     @Published var returnedOrderNotice: CustomerOrder?
 
+    // ĐỢT 2: thông báo + chat chưa đọc
+    @Published var notifications: [AppNotification] = []
+    @Published var unreadNotifications = 0
+    @Published var unreadChat = 0
+    private var lastNotifiedId: Int?   // nil = lần tải đầu tiên: không bắn banner cho thông báo cũ
+
     private var timer: Timer?
 
     // Giống hệt bảng giá priceRates trong CustomerView.vue
@@ -48,7 +54,7 @@ final class CustomerStore: ObservableObject {
 
     // Giống unpaidOrders computed
     var unpaidOrders: [CustomerOrder] {
-        orders.filter { $0.payment_status != "PAID" && $0.status != "RETURNED" && $0.status != "DONE" }
+        orders.filter { $0.payment_status != "PAID" && $0.status != "RETURNED" && $0.status != "CANCELLED" && $0.status != "DONE" }
     }
 
     func fetchOrders(username: String) async {
@@ -63,11 +69,47 @@ final class CustomerStore: ObservableObject {
         }
     }
 
+    // ĐỢT 2: tải thông báo + số tin chat chưa đọc; thông báo mới -> bắn banner cục bộ
+    func fetchExtras(username: String) async {
+        if let res = try? await ApiService.shared.getNotifications(username: username) {
+            if let last = lastNotifiedId {
+                let fresh = res.notifications.filter { $0.id > last && !$0.is_read }.sorted { $0.id < $1.id }
+                for n in fresh { LocalNotifier.shared.notify(title: n.title, body: n.message) }
+            }
+            lastNotifiedId = max(res.notifications.map(\.id).max() ?? 0, lastNotifiedId ?? 0)
+            notifications = res.notifications
+            unreadNotifications = res.unread
+            LocalNotifier.shared.setBadge(res.unread)
+        }
+        if let n = try? await ApiService.shared.getSupportUnread(username: username) {
+            unreadChat = n
+        }
+    }
+
+    func markNotificationRead(_ n: AppNotification, username: String) async {
+        guard !n.is_read else { return }
+        try? await ApiService.shared.markNotificationsRead(username: username, id: n.id)
+        await fetchExtras(username: username)
+    }
+
+    func markAllNotificationsRead(username: String) async {
+        try? await ApiService.shared.markNotificationsRead(username: username, id: nil)
+        await fetchExtras(username: username)
+    }
+
     func startPolling(username: String) {
-        Task { await fetchOrders(username: username) }
+        LocalNotifier.shared.setup()
+        lastNotifiedId = nil
+        Task {
+            await fetchOrders(username: username)
+            await fetchExtras(username: username)
+        }
         timer?.invalidate()
         timer = Timer.scheduledTimer(withTimeInterval: 5, repeats: true) { [weak self] _ in
-            Task { await self?.fetchOrders(username: username) }
+            Task {
+                await self?.fetchOrders(username: username)
+                await self?.fetchExtras(username: username)
+            }
         }
     }
 
@@ -87,7 +129,8 @@ final class CustomerStore: ObservableObject {
             "SHIPPING": "🚛 In Transit",
             "DELIVERED": "🏁 Delivered Successfully",
             "DONE": "🏁 Completed",
-            "RETURNED": "⚠️ Returned"
+            "RETURNED": "⚠️ Returned",
+            "CANCELLED": "✖ Cancelled"
         ]
         return dict[status ?? ""] ?? "⏳ Awaiting Approval"
     }
@@ -102,7 +145,10 @@ final class CustomerStore: ObservableObject {
 
     func formatDateTime(_ s: String?) -> String {
         guard let s = s else { return "—" }
-        if let date = ISO8601DateFormatter().date(from: s) {
+        // PostgreSQL trả timestamp có phần mili-giây (…:00.000Z), cần withFractionalSeconds
+        let fractional = ISO8601DateFormatter()
+        fractional.formatOptions = [.withInternetDateTime, .withFractionalSeconds]
+        if let date = fractional.date(from: s) ?? ISO8601DateFormatter().date(from: s) {
             let f = DateFormatter()
             f.dateStyle = .short
             f.timeStyle = .short

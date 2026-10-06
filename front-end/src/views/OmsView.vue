@@ -17,6 +17,16 @@
           <button @click="activeTab = 'customers'" :class="{ active: activeTab === 'customers' }" class="menu-btn">
              👥 Customer Management
           </button>
+          <button @click="activeTab = 'returns'; fetchReturns()" :class="{ active: activeTab === 'returns' }" class="menu-btn">
+             ↩️ Return Requests
+          </button>
+          <button @click="openSupport" :class="{ active: activeTab === 'support' }" class="menu-btn">
+             💬 Customer Support Chat
+             <span v-if="totalUnreadSupport > 0" class="nav-badge">{{ totalUnreadSupport }}</span>
+          </button>
+          <button @click="activeTab = 'claims'" :class="{ active: activeTab === 'claims' }" class="menu-btn">
+             🛡️ {{ $t('oms.claims') }}
+          </button>
           <button @click="activeTab = 'analytics'" :class="{ active: activeTab === 'analytics' }" class="menu-btn">
              📊 Revenue Report
           </button>
@@ -35,10 +45,12 @@
                    <thead>
                        <tr>
                          <th>Order ID</th>
+                         <th>QR Code</th>
                          <th>Image</th>
                          <th>Customer</th>
                          <th>Cargo</th>
                          <th>Qty</th>
+                         <th>Delivery / Pickup</th>
                          <th>Status</th>
                          <th>Actions</th>
                        </tr>
@@ -47,6 +59,13 @@
                        <tr v-for="order in orders" :key="order.id">
                            <td @click="openOrderTimeline(order.id)" class="clickable-id" title="Click to view history details">
                               <b>#{{ order.id }}</b> 🔍
+                           </td>
+
+                           <td>
+                              <img :src="getQrImageUrl(order.id, 60)" alt="QR" class="qr-thumb"
+                                   @click="openQrModal(order.id)" title="Click to enlarge / print" />
+                              <div class="qr-code-mini">{{ getPackageCode(order.id) }}</div>
+                              <button @click="openDocument('waybill', order.id)" class="btn-action" style="background:#8e44ad; color:#fff; margin-top:4px; width:100%;">📄 Waybill</button>
                            </td>
 
                            <td class="img-cell">
@@ -60,6 +79,11 @@
                            <td><b>{{ order.customer_name }}</b></td>
                            <td>{{ order.product_name }}</td>
                            <td>{{ order.quantity }}</td>
+                           <td style="font-size:12px;">
+                              <div v-if="order.delivery_address">📍 {{ order.delivery_address }}</div>
+                              <div v-if="order.receiver_name">👤 {{ order.receiver_name }} {{ order.receiver_phone }}</div>
+                              <div v-if="order.pickup_date">🕒 {{ new Date(order.pickup_date).toLocaleString() }}</div>
+                           </td>
                            <td><span class="badge status-new">{{ order.status }}</span></td>
                            <td class="action-cell">
                              <button @click="approveOrder(order.id)" class="btn-action btn-ok">Approve & Transfer to WMS</button>
@@ -67,7 +91,7 @@
                            </td>
                        </tr>
                        <tr v-if="orders.length === 0">
-                           <td colspan="7" style="text-align: center; color: #7f8c8d; padding: 30px; font-style: italic;">There are no orders awaiting approval.</td>
+                           <td colspan="9" style="text-align: center; color: #7f8c8d; padding: 30px; font-style: italic;">There are no orders awaiting approval.</td>
                        </tr>
                    </tbody>
                </table>
@@ -105,6 +129,75 @@
                    </tbody>
                </table>
            </div>
+        </div>
+
+        <div v-if="activeTab === 'returns'">
+           <header><h1>↩️ CUSTOMER RETURN REQUESTS</h1></header>
+           <div class="card list-card" style="margin-top: 25px;">
+               <table class="data-table">
+                   <thead><tr><th>Order</th><th>Customer</th><th>Product</th><th>Reason</th><th>Return</th><th>Refund</th><th>Actions</th></tr></thead>
+                   <tbody>
+                       <tr v-for="r in returnRequests" :key="r.id">
+                           <td><b>#{{ r.id }}</b></td>
+                           <td>{{ r.customer_name }}</td>
+                           <td>{{ r.product_name }} x{{ r.quantity }}</td>
+                           <td>{{ r.return_reason }}</td>
+                           <td><span class="badge">{{ r.return_status }}</span></td>
+                           <td>{{ r.refund_status }} <span v-if="r.refund_amount > 0">(${{ r.refund_amount }})</span></td>
+                           <td class="action-cell">
+                              <template v-if="r.return_status === 'REQUESTED'">
+                                 <button @click="decideReturn(r.id, true)" class="btn-action btn-ok">Approve + Refund</button>
+                                 <button @click="decideReturn(r.id, false)" class="btn-action btn-fail">Reject</button>
+                              </template>
+                           </td>
+                       </tr>
+                       <tr v-if="returnRequests.length === 0"><td colspan="7" style="text-align:center;color:#7f8c8d;padding:30px;">No return requests.</td></tr>
+                   </tbody>
+               </table>
+           </div>
+        </div>
+
+        <div v-if="activeTab === 'support'">
+           <header><h1>💬 CUSTOMER SUPPORT CHAT</h1></header>
+           <div class="support-layout">
+              <div class="card support-threads">
+                 <h3 style="margin-top:0;">Conversations</h3>
+                 <div v-for="t in supportThreads" :key="t.username"
+                      class="thread-item" :class="{ active: activeThread === t.username }"
+                      @click="selectThread(t.username)">
+                    <div style="display:flex; justify-content:space-between;">
+                       <b>{{ t.username }}</b>
+                       <span v-if="t.unread > 0" class="nav-badge">{{ t.unread }}</span>
+                    </div>
+                    <small class="thread-preview">{{ t.last_sender === 'OMS' ? 'You: ' : '' }}{{ t.last_message }}</small>
+                 </div>
+                 <p v-if="supportThreads.length === 0" style="color:#95a5a6; font-style:italic;">No customer messages yet.</p>
+              </div>
+
+              <div class="card support-chat">
+                 <template v-if="activeThread">
+                    <h3 style="margin-top:0;">💬 {{ activeThread }}</h3>
+                    <div class="chat-box" ref="omsChatBox">
+                       <div v-for="m in threadMessages" :key="m.id" class="chat-row" :class="m.sender === 'OMS' ? 'mine' : 'theirs'">
+                          <div class="chat-bubble">
+                             <div v-if="m.order_id" class="chat-order-ref">Order #{{ m.order_id }}</div>
+                             {{ m.message }}
+                             <small class="chat-time">{{ new Date(m.created_at).toLocaleString() }}</small>
+                          </div>
+                       </div>
+                    </div>
+                    <form @submit.prevent="sendSupportReply" class="chat-form">
+                       <input v-model="replyText" placeholder="Type your reply..." class="chat-input" />
+                       <button type="submit" class="btn-action btn-ok" :disabled="!replyText.trim()">Send</button>
+                    </form>
+                 </template>
+                 <p v-else style="color:#95a5a6; font-style:italic;">Select a conversation on the left.</p>
+              </div>
+           </div>
+        </div>
+
+        <div v-if="activeTab === 'claims'">
+          <OmsClaims />
         </div>
 
         <div v-if="activeTab === 'analytics'">
@@ -156,13 +249,29 @@
        </div>
      </div>
 
+     <!-- QR popup: cùng mã PKG-xxxxx với Customer/WMS, có nút in nhãn dán lên kiện hàng -->
+     <div v-if="showQrModal" class="modal-overlay" @click="showQrModal = false">
+       <div class="modal-content-box qr-box" @click.stop>
+          <div class="modal-header">
+             <h2>🔳 Package QR Code - Order #{{ qrOrderId }}</h2>
+             <button class="close-btn" @click="showQrModal = false">×</button>
+          </div>
+          <div class="modal-body" style="text-align: center;">
+             <img :src="getQrImageUrl(qrOrderId, 240)" alt="Package QR Code" style="width: 240px; height: 240px;" />
+             <p class="qr-code-big">{{ getPackageCode(qrOrderId) }}</p>
+             <button class="btn-action btn-ok" @click="printQr">🖨️ Print Label</button>
+          </div>
+       </div>
+     </div>
+
    </div>
  </template>
 
  <script setup>
- import { ref, onMounted } from 'vue';
+ import { ref, onMounted, computed, nextTick } from 'vue';
  import axios from 'axios';
  import { useRouter } from 'vue-router';
+ import OmsClaims from '../components/OmsClaims.vue';
 
  const router = useRouter();
  const userRole = ref('OMS');
@@ -239,10 +348,92 @@
        alert("An error occurred while processing the return!");
     }
  };
+ // QR kiện hàng: cùng công thức "PKG-" + (60000 + id) với Customer / WMS
+ const showQrModal = ref(false);
+ const qrOrderId = ref(null);
+ const getPackageCode = (id) => `PKG-${60000 + Number(id)}`;
+ const getQrImageUrl = (id, size = 220) =>
+   `https://api.qrserver.com/v1/create-qr-code/?size=${size}x${size}&data=${encodeURIComponent(getPackageCode(id))}`;
+ const openQrModal = (id) => { qrOrderId.value = id; showQrModal.value = true; };
+ const printQr = () => {
+   const w = window.open('', '_blank', 'width=400,height=500');
+   w.document.write(`<html><body style="text-align:center;font-family:sans-serif;padding:20px">
+     <img id="q" src="${getQrImageUrl(qrOrderId.value, 300)}" width="300" height="300" />
+     <h2>${getPackageCode(qrOrderId.value)}</h2></body></html>`);
+   w.document.close();
+   w.document.getElementById('q').onload = () => { w.print(); };
+ };
+
+ // ĐỢT 1: yêu cầu trả hàng
+ const returnRequests = ref([]);
+ const fetchReturns = async () => {
+   try {
+     const res = await axios.get('http://localhost:3000/api/ext/oms/return-requests');
+     returnRequests.value = res.data;
+   } catch (e) { console.error('Unable to load return requests'); }
+ };
+ const decideReturn = async (id, approve) => {
+   let note = '';
+   if (!approve) {
+     note = prompt('Reason for rejecting the return request:');
+     if (note === null) return;
+   }
+   try {
+     await axios.put(`http://localhost:3000/api/ext/oms/return-requests/${id}`, { approve, note });
+     fetchReturns();
+   } catch (e) { alert('Unable to process the return request!'); }
+ };
+
+ // ĐỢT 2: chat hỗ trợ khách hàng + mở vận đơn
+ const API_EXT2 = 'http://localhost:3000/api/ext';
+ const supportThreads = ref([]);
+ const activeThread = ref(null);
+ const threadMessages = ref([]);
+ const replyText = ref('');
+ const omsChatBox = ref(null);
+ const totalUnreadSupport = computed(() => supportThreads.value.reduce((s, t) => s + (t.unread || 0), 0));
+ const scrollOmsChat = () => nextTick(() => { if (omsChatBox.value) omsChatBox.value.scrollTop = omsChatBox.value.scrollHeight; });
+
+ const fetchThreads = async () => {
+   try {
+     const res = await axios.get(`${API_EXT2}/support/threads`);
+     supportThreads.value = res.data;
+   } catch (e) { console.error('Unable to load support threads'); }
+ };
+ const fetchThreadMessages = async (reset = false) => {
+   if (!activeThread.value) return;
+   if (reset) threadMessages.value = [];
+   try {
+     const lastId = threadMessages.value.length ? threadMessages.value[threadMessages.value.length - 1].id : 0;
+     const res = await axios.get(`${API_EXT2}/support/messages`, { params: { username: activeThread.value, after: lastId } });
+     if (res.data.length) {
+       threadMessages.value.push(...res.data);
+       scrollOmsChat();
+       await axios.put(`${API_EXT2}/support/read`, { username: activeThread.value, reader: 'OMS' });
+       fetchThreads();
+     }
+   } catch (e) { console.error('Unable to load messages'); }
+ };
+ const openSupport = () => { activeTab.value = 'support'; fetchThreads(); };
+ const selectThread = async (name) => { activeThread.value = name; await fetchThreadMessages(true); };
+ const sendSupportReply = async () => {
+   const text = replyText.value.trim();
+   if (!text || !activeThread.value) return;
+   try {
+     await axios.post(`${API_EXT2}/support/messages`, { username: activeThread.value, sender: 'OMS', message: text });
+     replyText.value = '';
+     await fetchThreadMessages();
+     fetchThreads();
+   } catch (e) { alert('Unable to send the reply!'); }
+ };
+ const openDocument = (type, id) => window.open(`${API_EXT2}/documents/${type}/${id}`, '_blank');
+
  const refreshAllData = () => {
     fetchOrders();
     fetchCustomerData();
     fetchRevenueData();
+    fetchThreads();
+    if (activeTab.value === 'support') fetchThreadMessages();
  };
 
  onMounted(() => {
@@ -269,6 +460,23 @@
  .navigation-menu { display: flex; flex-direction: column; gap: 8px; margin-top: 10px;}
  .menu-btn { padding: 12px 15px; background: none; border: none; color: #b2bec3; text-align: left; font-size: 14px; font-weight: bold; cursor: pointer; border-radius: 4px; transition: all 0.2s;}
  .menu-btn:hover, .menu-btn.active { background: #34495e; color: #fff; }
+
+ .nav-badge { background: #e74c3c; color: #fff; border-radius: 10px; padding: 1px 7px; font-size: 11px; font-weight: bold; margin-left: 6px; }
+ .support-layout { display: grid; grid-template-columns: 280px 1fr; gap: 20px; margin-top: 25px; }
+ .thread-item { padding: 10px 12px; border-radius: 6px; cursor: pointer; border: 1px solid transparent; margin-bottom: 6px; }
+ .thread-item:hover { background: #f4f6f9; }
+ .thread-item.active { background: #eaf2f8; border-color: #2980b9; }
+ .thread-preview { display: block; color: #7f8c8d; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 230px; }
+ .chat-box { height: 360px; overflow-y: auto; background: #f4f6f9; border-radius: 8px; padding: 14px; display: flex; flex-direction: column; gap: 8px; }
+ .chat-row { display: flex; }
+ .chat-row.mine { justify-content: flex-end; }
+ .chat-bubble { max-width: 70%; padding: 9px 13px; border-radius: 14px; font-size: 14px; line-height: 1.4; white-space: pre-wrap; word-break: break-word; }
+ .chat-row.mine .chat-bubble { background: #2980b9; color: #fff; border-bottom-right-radius: 4px; }
+ .chat-row.theirs .chat-bubble { background: #fff; color: #2c3e50; border: 1px solid #dfe6e9; border-bottom-left-radius: 4px; }
+ .chat-order-ref { font-size: 11px; font-weight: bold; opacity: .8; margin-bottom: 2px; }
+ .chat-time { display: block; font-size: 10px; opacity: .7; margin-top: 3px; }
+ .chat-form { display: flex; gap: 8px; margin-top: 12px; }
+ .chat-input { flex: 1; padding: 10px 12px; border: 1px solid #bdc3c7; border-radius: 6px; font-size: 14px; }
 
  .data-table { width: 100%; border-collapse: collapse; margin-top: 15px; }
  .data-table th, .data-table td { padding: 14px 16px; border-bottom: 1px solid #ecf0f1; text-align: left; font-size: 14px; vertical-align: middle;}
@@ -299,6 +507,11 @@
  .box-rev h2 { font-size: 36px; margin: 8px 0; font-weight: 800; }
  .custom-progress { width: 100%; height: 5px; background: rgba(255,255,255,0.3); border-radius: 10px; margin-top: 15px; }
  .custom-progress .line { height: 100%; background: #fff; border-radius: 10px; }
+
+ .qr-thumb { width: 60px; height: 60px; cursor: pointer; display: block; margin: 0 auto; border: 1px solid #dcdde1; border-radius: 4px; }
+ .qr-code-mini { font-size: 10px; font-weight: bold; text-align: center; margin-top: 3px; color: #2c3e50; }
+ .qr-box { width: 380px; }
+ .qr-code-big { font-size: 22px; font-weight: 800; font-family: monospace; margin: 12px 0; }
 
  .clickable-id { color: #2980b9; cursor: pointer; text-decoration: underline; font-weight: bold; }
  .clickable-id:hover { color: #1f618d; }

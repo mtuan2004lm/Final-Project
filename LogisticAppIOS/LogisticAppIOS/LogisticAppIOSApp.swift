@@ -4,11 +4,14 @@ import SwiftUI
 @main
 struct LogisticsAppiOSApp: App {
     @StateObject private var session = SessionStore()
+    @StateObject private var language = AppLanguage()   // ĐỢT 4: EN / VI
 
     var body: some Scene {
         WindowGroup {
             RootView()
                 .environmentObject(session)
+                .environmentObject(language)
+                .environment(\.locale, language.locale)
         }
     }
 }

@@ -37,6 +37,12 @@ struct WarehouseView: View {
                     WmsLogsView()
                 }
             }
+            // ĐỢT 3: quét nhiều kiện liên tiếp
+            ToolbarItem(placement: .navigationBarLeading) {
+                NavigationLink("Batch") {
+                    BatchScanView()
+                }
+            }
             // Tương đương btnReload
             ToolbarItem(placement: .navigationBarTrailing) {
                 Button("Reload") { Task { await fetchOrders() } }

@@ -9,12 +9,15 @@ struct CustomerOrdersListView: View {
     @EnvironmentObject var store: CustomerStore
 
     @State private var qrOrderId: Int?
+    @State private var cancelOrder: CustomerOrder?
 
     var body: some View {
         ScrollView {
             LazyVStack(spacing: 14) {
                 ForEach(store.activeOrders) { order in
-                    CustomerOrderCard(order: order, store: store, onViewQR: { qrOrderId = order.id })
+                    CustomerOrderCard(order: order, store: store,
+                                      onViewQR: { qrOrderId = order.id },
+                                      onCancel: { cancelOrder = order })
                 }
 
                 if store.activeOrders.isEmpty {
@@ -36,6 +39,19 @@ struct CustomerOrdersListView: View {
                 OrderQRCodeView(orderId: id)
             }
         }
+        .sheet(item: $cancelOrder) { order in
+            ReasonSheet(
+                title: "Cancel Order #\(order.id)",
+                prompt: "Reason for cancelling this order:",
+                confirmLabel: "✖ Confirm Cancellation",
+                onConfirm: { reason in
+                    try await ApiService.shared.cancelOrder(orderId: order.id, reason: reason)
+                },
+                onDone: {
+                    Task { await store.fetchOrders(username: session.customerUsername) }
+                }
+            )
+        }
     }
 }
 
@@ -50,6 +66,7 @@ private struct CustomerOrderCard: View {
     let order: CustomerOrder
     let store: CustomerStore
     var onViewQR: () -> Void
+    var onCancel: () -> Void
 
     @State private var region = MKCoordinateRegion(
         center: CLLocationCoordinate2D(latitude: 0, longitude: 0),
@@ -91,6 +108,32 @@ private struct CustomerOrderCard: View {
                 Spacer()
                 Text(store.formatCurrency(store.getOrderPrice(order)))
                     .font(.subheadline).bold()
+            }
+
+            // ====== ĐỢT 1: địa chỉ giao, lịch lấy hàng, hủy đơn ======
+            if let addr = order.delivery_address, !addr.isEmpty {
+                Text("📍 \(addr)").font(.caption)
+            }
+            if let name = order.receiver_name, !name.isEmpty {
+                Text("👤 \(name) \(order.receiver_phone ?? "")").font(.caption2).foregroundStyle(.secondary)
+            }
+            if let pickup = order.pickup_date, !pickup.isEmpty {
+                Text("🕒 Pickup: \(store.formatDateTime(pickup))").font(.caption2).foregroundStyle(.secondary)
+            }
+            HStack {
+                if order.status == "NEW" || order.status == "RETURNED" {
+                    Button(role: .destructive) { onCancel() } label: {
+                        Label("Cancel Order", systemImage: "xmark.circle")
+                    }
+                    .buttonStyle(.bordered)
+                }
+                // ĐỢT 2: vận đơn (mở bằng Safari, có nút Print / Save as PDF)
+                if let url = ApiService.shared.documentURL(type: "waybill", orderId: order.id) {
+                    Link(destination: url) {
+                        Label("Waybill", systemImage: "doc.text")
+                    }
+                    .buttonStyle(.bordered)
+                }
             }
 
             // ====== VỊ TRÍ XE THỜI GIAN THỰC (giống .live-map-cell bên web) ======

@@ -118,18 +118,49 @@
               </tbody>
            </table>
         </div>
+
+        <div class="card table-card" style="margin-top: 25px;">
+           <h3>↩️ Customer Refunds (Cancelled / Returned Orders)</h3>
+           <table class="data-table">
+              <thead>
+                 <tr><th>Order Code</th><th>Customer</th><th>Reason</th><th>Refund Amount</th><th>Status</th><th>Action</th></tr>
+              </thead>
+              <tbody>
+                 <tr v-for="r in refunds" :key="r.id">
+                    <td><strong class="order-id-tag">#{{ r.id }}</strong></td>
+                    <td>{{ r.customer_name }}<span class="product-sub-txt">📦 {{ r.product_name }}</span></td>
+                    <td>{{ r.cancel_reason || r.return_reason || '-' }}</td>
+                    <td><span class="money-out">-{{ r.refund_amount }} USD</span></td>
+                    <td>{{ r.refund_status === 'REFUNDED' ? '✅ Refunded' : '⏳ Pending' }}</td>
+                    <td>
+                       <button v-if="r.refund_status === 'PENDING'" @click="confirmRefund(r.id)" class="btn-approve-action">Confirm Refund Sent</button>
+                       <span v-else class="text-locked">🔒 Closed</span>
+                    </td>
+                 </tr>
+                 <tr v-if="refunds.length === 0">
+                    <td colspan="6" style="text-align: center; color: #7f8c8d; padding: 20px;">No refund requests.</td>
+                 </tr>
+              </tbody>
+           </table>
+        </div>
+
+        <!-- ĐỢT 4: chi trả bồi thường -->
+        <AccClaims />
      </div>
    </div>
 </template>
 
 <script>
 import axios from 'axios';
+import AccClaims from '../components/AccClaims.vue';
 
 export default {
    name: 'AccView',
+   components: { AccClaims },
    data() {
       return {
          orders: [],
+         refunds: [],
          summary: {
             totalCustomerRevenue: 0,
             collectedCustomerRevenue: 0,
@@ -142,6 +173,7 @@ export default {
    },
    created() {
       this.fetchFinancialData();
+      this.fetchRefunds();
    },
    methods: {
       async fetchFinancialData() {
@@ -159,6 +191,23 @@ export default {
             }
          } catch (err) {
             alert('Error loading data from the Accounting department: ' + err.message);
+         }
+      },
+      async fetchRefunds() {
+         try {
+            const res = await axios.get('http://localhost:3000/api/ext/acc/refunds');
+            this.refunds = res.data;
+         } catch (err) {
+            console.error('Unable to load refunds', err);
+         }
+      },
+      async confirmRefund(orderId) {
+         if (!confirm(`Confirm that the refund for order #${orderId} has been transferred to the customer?`)) return;
+         try {
+            await axios.put(`http://localhost:3000/api/ext/orders/${orderId}/refund`);
+            this.fetchRefunds();
+         } catch (err) {
+            alert(err.response?.data?.error || 'Error confirming the refund');
          }
       },
       async approveOrderPayment(orderId) {

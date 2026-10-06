@@ -1,22 +1,24 @@
 <template>
   <div class="login-container">
     <div class="login-box">
-      <h2>LOGISTICS COMPANY</h2>
+      <h2>{{ $t('login.title') }}</h2>
 
       <div class="form-group">
-        <label>Username:</label>
-        <input v-model="username" type="text" placeholder="Enter your username..." />
+        <label>{{ $t('login.username') }}</label>
+        <input v-model="username" type="text" :placeholder="$t('login.username_ph')" />
       </div>
 
       <div class="form-group">
-        <label>Password:</label>
-        <input v-model="password" type="password" placeholder="Enter your password..." />
+        <label>{{ $t('login.password') }}</label>
+        <input v-model="password" type="password" :placeholder="$t('login.password_ph')" @keyup.enter="handleLogin" />
       </div>
 
-      <button @click="handleLogin">LOG IN</button>
+      <button @click="handleLogin">{{ $t('login.button') }}</button>
+
+      <p style="margin-top: 14px; font-size: 14px;"><span @click="router.push('/forgot')" style="color: #2c5364; cursor: pointer; text-decoration: underline;">{{ $t('login.forgot') }}</span></p>
 
       <div class="link-switch" style="margin-top: 20px; font-size: 14px;">
-        <p>Don't have an account? <span @click="router.push('/register')" style="color: #2c5364; font-weight: bold; cursor: pointer; text-decoration: underline;">Register now</span></p>
+        <p>{{ $t('login.no_account') }} <span @click="router.push('/register')" style="color: #2c5364; font-weight: bold; cursor: pointer; text-decoration: underline;">{{ $t('login.register_now') }}</span></p>
       </div>
 
       <p v-if="message" :class="{'success': isSuccess, 'error': !isSuccess}">
@@ -30,6 +32,7 @@
 import { ref } from 'vue';
 import axios from 'axios';
 import { useRouter } from 'vue-router';
+import { t } from '../i18n';
 
 const username = ref('');
 const password = ref('');
@@ -40,7 +43,7 @@ const router = useRouter();
 const handleLogin = async () => {
   if (!username.value || !password.value) {
     isSuccess.value = false;
-    message.value = "Please enter both username and password!";
+    message.value = t('login.need_both');
     return;
   }
 
@@ -54,7 +57,7 @@ const handleLogin = async () => {
     const role = user.role;
 
     isSuccess.value = true;
-    message.value = `Welcome ${user.full_name || username.value}! Redirecting into the system...`;
+    message.value = t('login.welcome', { name: user.full_name || username.value });
 
     localStorage.setItem('role', role);
     localStorage.setItem('username', user.username);
@@ -86,7 +89,7 @@ const handleLogin = async () => {
 
   } catch (error) {
     isSuccess.value = false;
-    message.value = error.response?.data?.message || 'Server connection error!';
+    message.value = error.response?.data?.message || t('login.server_error');
   }
 };
 </script>

@@ -1,0 +1,2173 @@
+{
+  "sourceLanguage": "en",
+  "version": "1.0",
+  "strings": {
+    "⚠️ This order has been returned to the customer and the standard process has not been followed.": {
+      "extractionState": "manual",
+      "localizations": {
+        "vi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "⚠️ Đơn này đã bị trả lại cho khách hàng và quy trình chuẩn chưa được thực hiện."
+          }
+        }
+      }
+    },
+    "📌 Detailed log of each rotation": {
+      "extractionState": "manual",
+      "localizations": {
+        "vi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "📌 Nhật ký chi tiết từng chặng luân chuyển"
+          }
+        }
+      }
+    },
+    "This order has no recorded shipping history.": {
+      "extractionState": "manual",
+      "localizations": {
+        "vi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Đơn này chưa có lịch sử vận chuyển."
+          }
+        }
+      }
+    },
+    "Close": {
+      "extractionState": "manual",
+      "localizations": {
+        "vi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Đóng"
+          }
+        }
+      }
+    },
+    "Search by order code or customer name...": {
+      "extractionState": "manual",
+      "localizations": {
+        "vi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Tìm theo mã đơn hoặc tên khách hàng..."
+          }
+        }
+      }
+    },
+    "Tab": {
+      "extractionState": "manual",
+      "localizations": {
+        "vi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Thẻ"
+          }
+        }
+      }
+    },
+    "SYSTEM ADMINISTRATION": {
+      "extractionState": "manual",
+      "localizations": {
+        "vi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "QUẢN TRỊ HỆ THỐNG"
+          }
+        }
+      }
+    },
+    "Logout": {
+      "extractionState": "manual",
+      "localizations": {
+        "vi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Đăng xuất"
+          }
+        }
+      }
+    },
+    "Notification": {
+      "extractionState": "manual",
+      "localizations": {
+        "vi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Thông báo"
+          }
+        }
+      }
+    },
+    "OK": {
+      "extractionState": "manual",
+      "localizations": {
+        "vi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "OK"
+          }
+        }
+      }
+    },
+    "⚠️ Refunded": {
+      "extractionState": "manual",
+      "localizations": {
+        "vi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "⚠️ Đã hoàn tiền"
+          }
+        }
+      }
+    },
+    "🔍 View Log": {
+      "extractionState": "manual",
+      "localizations": {
+        "vi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "🔍 Xem nhật ký"
+          }
+        }
+      }
+    },
+    "There are no orders in the system yet.": {
+      "extractionState": "manual",
+      "localizations": {
+        "vi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Hệ thống chưa có đơn hàng nào."
+          }
+        }
+      }
+    },
+    "Overview by Department": {
+      "extractionState": "manual",
+      "localizations": {
+        "vi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Tổng quan theo phòng ban"
+          }
+        }
+      }
+    },
+    "📥 Export CSV": {
+      "extractionState": "manual",
+      "localizations": {
+        "vi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "📥 Xuất CSV"
+          }
+        }
+      }
+    },
+    "Department data is not yet available.": {
+      "extractionState": "manual",
+      "localizations": {
+        "vi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Chưa có dữ liệu phòng ban."
+          }
+        }
+      }
+    },
+    "Order list overview": {
+      "extractionState": "manual",
+      "localizations": {
+        "vi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Tổng quan danh sách đơn hàng"
+          }
+        }
+      }
+    },
+    "For shelf locations, scan status, etc., use the dedicated WMS/TMS screens.": {
+      "extractionState": "manual",
+      "localizations": {
+        "vi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Vị trí kệ, trạng thái quét... vui lòng dùng màn hình WMS/TMS riêng."
+          }
+        }
+      }
+    },
+    "No orders have been received yet.": {
+      "extractionState": "manual",
+      "localizations": {
+        "vi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Chưa nhận được đơn hàng nào."
+          }
+        }
+      }
+    },
+    "Search by report title...": {
+      "extractionState": "manual",
+      "localizations": {
+        "vi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Tìm theo tiêu đề báo cáo..."
+          }
+        }
+      }
+    },
+    "Sender": {
+      "extractionState": "manual",
+      "localizations": {
+        "vi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Người gửi"
+          }
+        }
+      }
+    },
+    "All senders": {
+      "extractionState": "manual",
+      "localizations": {
+        "vi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Tất cả người gửi"
+          }
+        }
+      }
+    },
+    "From": {
+      "extractionState": "manual",
+      "localizations": {
+        "vi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Từ ngày"
+          }
+        }
+      }
+    },
+    "To": {
+      "extractionState": "manual",
+      "localizations": {
+        "vi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Đến ngày"
+          }
+        }
+      }
+    },
+    "✕ Clear filters": {
+      "extractionState": "manual",
+      "localizations": {
+        "vi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "✕ Xóa bộ lọc"
+          }
+        }
+      }
+    },
+    "Camera scanning is not available on this device. Type codes below.": {
+      "extractionState": "manual",
+      "localizations": {
+        "vi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Thiết bị này không hỗ trợ quét camera. Hãy nhập mã bên dưới."
+          }
+        }
+      }
+    },
+    "Type code (PKG-60023) and press return": {
+      "extractionState": "manual",
+      "localizations": {
+        "vi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Nhập mã (PKG-60023) rồi nhấn return"
+          }
+        }
+      }
+    },
+    "Release to TMS after scanning": {
+      "extractionState": "manual",
+      "localizations": {
+        "vi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Chuyển sang TMS sau khi quét"
+          }
+        }
+      }
+    },
+    "Clear": {
+      "extractionState": "manual",
+      "localizations": {
+        "vi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Xóa"
+          }
+        }
+      }
+    },
+    "Batch Scan": {
+      "extractionState": "manual",
+      "localizations": {
+        "vi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Quét hàng loạt"
+          }
+        }
+      }
+    },
+    "Customer account": {
+      "extractionState": "manual",
+      "localizations": {
+        "vi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Tài khoản khách hàng"
+          }
+        }
+      }
+    },
+    "Account": {
+      "extractionState": "manual",
+      "localizations": {
+        "vi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Tài khoản"
+          }
+        }
+      }
+    },
+    "Add new address": {
+      "extractionState": "manual",
+      "localizations": {
+        "vi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Thêm địa chỉ mới"
+          }
+        }
+      }
+    },
+    "Label (Warehouse, Shop, Home...)": {
+      "extractionState": "manual",
+      "localizations": {
+        "vi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Nhãn (Kho, Cửa hàng, Nhà...)"
+          }
+        }
+      }
+    },
+    "Full address": {
+      "extractionState": "manual",
+      "localizations": {
+        "vi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Địa chỉ đầy đủ"
+          }
+        }
+      }
+    },
+    "Receiver name": {
+      "extractionState": "manual",
+      "localizations": {
+        "vi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Tên người nhận"
+          }
+        }
+      }
+    },
+    "Receiver phone": {
+      "extractionState": "manual",
+      "localizations": {
+        "vi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "SĐT người nhận"
+          }
+        }
+      }
+    },
+    "Set as default": {
+      "extractionState": "manual",
+      "localizations": {
+        "vi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Đặt làm mặc định"
+          }
+        }
+      }
+    },
+    "➕ Save Address": {
+      "extractionState": "manual",
+      "localizations": {
+        "vi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "➕ Lưu địa chỉ"
+          }
+        }
+      }
+    },
+    "Saved addresses": {
+      "extractionState": "manual",
+      "localizations": {
+        "vi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Địa chỉ đã lưu"
+          }
+        }
+      }
+    },
+    "No saved addresses.": {
+      "extractionState": "manual",
+      "localizations": {
+        "vi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Chưa có địa chỉ nào."
+          }
+        }
+      }
+    },
+    "Addresses": {
+      "extractionState": "manual",
+      "localizations": {
+        "vi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Địa chỉ"
+          }
+        }
+      }
+    },
+    "Choose CSV file": {
+      "extractionState": "manual",
+      "localizations": {
+        "vi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Chọn file CSV"
+          }
+        }
+      }
+    },
+    "Header: product_name, quantity, cargo_type (Normal / Electronics / Dangerous / Express), delivery_address, receiver_name, receiver_phone. Max 200 rows. Prices are calculated by the server.": {
+      "extractionState": "manual",
+      "localizations": {
+        "vi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Dòng tiêu đề: product_name, quantity, cargo_type (Normal / Electronics / Dangerous / Express), delivery_address, receiver_name, receiver_phone. Tối đa 200 dòng. Giá do máy chủ tính."
+          }
+        }
+      }
+    },
+    "Bulk Import": {
+      "extractionState": "manual",
+      "localizations": {
+        "vi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Nhập hàng loạt"
+          }
+        }
+      }
+    },
+    "No messages yet. Ask our support team anything about your orders.": {
+      "extractionState": "manual",
+      "localizations": {
+        "vi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Chưa có tin nhắn. Hãy hỏi đội hỗ trợ bất cứ điều gì về đơn hàng của bạn."
+          }
+        }
+      }
+    },
+    "Order": {
+      "extractionState": "manual",
+      "localizations": {
+        "vi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Đơn hàng"
+          }
+        }
+      }
+    },
+    "General question": {
+      "extractionState": "manual",
+      "localizations": {
+        "vi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Câu hỏi chung"
+          }
+        }
+      }
+    },
+    "Type your message...": {
+      "extractionState": "manual",
+      "localizations": {
+        "vi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Nhập tin nhắn..."
+          }
+        }
+      }
+    },
+    "Support Chat": {
+      "extractionState": "manual",
+      "localizations": {
+        "vi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Chat hỗ trợ"
+          }
+        }
+      }
+    },
+    "📊 Shipping Service Price List": {
+      "extractionState": "manual",
+      "localizations": {
+        "vi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "📊 Bảng giá dịch vụ vận chuyển"
+          }
+        }
+      }
+    },
+    "* Actual price = Unit price by cargo type × Number of packages": {
+      "extractionState": "manual",
+      "localizations": {
+        "vi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "* Giá thực tế = Đơn giá theo loại hàng × Số kiện"
+          }
+        }
+      }
+    },
+    "📝 Cargo Declaration Information": {
+      "extractionState": "manual",
+      "localizations": {
+        "vi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "📝 Thông tin khai báo hàng hóa"
+          }
+        }
+      }
+    },
+    "Customer Name / Business Partner": {
+      "extractionState": "manual",
+      "localizations": {
+        "vi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Tên khách hàng / Đối tác"
+          }
+        }
+      }
+    },
+    "Enter company name...": {
+      "extractionState": "manual",
+      "localizations": {
+        "vi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Nhập tên công ty..."
+          }
+        }
+      }
+    },
+    "Product Name to Ship": {
+      "extractionState": "manual",
+      "localizations": {
+        "vi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Tên hàng cần vận chuyển"
+          }
+        }
+      }
+    },
+    "E.g.: Wooden crate of components...": {
+      "extractionState": "manual",
+      "localizations": {
+        "vi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "VD: Thùng gỗ linh kiện..."
+          }
+        }
+      }
+    },
+    "Cargo Category": {
+      "extractionState": "manual",
+      "localizations": {
+        "vi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Loại hàng"
+          }
+        }
+      }
+    },
+    "Delivery Address": {
+      "extractionState": "manual",
+      "localizations": {
+        "vi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Địa chỉ giao hàng"
+          }
+        }
+      }
+    },
+    "Choose a saved address": {
+      "extractionState": "manual",
+      "localizations": {
+        "vi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Chọn địa chỉ đã lưu"
+          }
+        }
+      }
+    },
+    "Enter delivery address...": {
+      "extractionState": "manual",
+      "localizations": {
+        "vi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Nhập địa chỉ giao hàng..."
+          }
+        }
+      }
+    },
+    "Schedule a pickup": {
+      "extractionState": "manual",
+      "localizations": {
+        "vi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Hẹn lịch lấy hàng"
+          }
+        }
+      }
+    },
+    "Pickup time": {
+      "extractionState": "manual",
+      "localizations": {
+        "vi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Thời gian lấy hàng"
+          }
+        }
+      }
+    },
+    "Pickup note (e.g. call before arriving)": {
+      "extractionState": "manual",
+      "localizations": {
+        "vi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Ghi chú lấy hàng (VD: gọi trước khi đến)"
+          }
+        }
+      }
+    },
+    "Actual Cargo Image": {
+      "extractionState": "manual",
+      "localizations": {
+        "vi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Ảnh hàng hóa thực tế"
+          }
+        }
+      }
+    },
+    "Estimated shipping cost:": {
+      "extractionState": "manual",
+      "localizations": {
+        "vi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Cước vận chuyển ước tính:"
+          }
+        }
+      }
+    },
+    "🚀 Submit Request": {
+      "extractionState": "manual",
+      "localizations": {
+        "vi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "🚀 Gửi yêu cầu"
+          }
+        }
+      }
+    },
+    "Take Photo": {
+      "extractionState": "manual",
+      "localizations": {
+        "vi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Chụp ảnh"
+          }
+        }
+      }
+    },
+    "Choose from Library": {
+      "extractionState": "manual",
+      "localizations": {
+        "vi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Chọn từ thư viện"
+          }
+        }
+      }
+    },
+    "Cancel": {
+      "extractionState": "manual",
+      "localizations": {
+        "vi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Hủy"
+          }
+        }
+      }
+    },
+    "Spending in the last 6 months": {
+      "extractionState": "manual",
+      "localizations": {
+        "vi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Chi tiêu 6 tháng gần nhất"
+          }
+        }
+      }
+    },
+    "No data yet.": {
+      "extractionState": "manual",
+      "localizations": {
+        "vi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Chưa có dữ liệu."
+          }
+        }
+      }
+    },
+    "Spending by cargo category": {
+      "extractionState": "manual",
+      "localizations": {
+        "vi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Chi tiêu theo loại hàng"
+          }
+        }
+      }
+    },
+    "My Dashboard": {
+      "extractionState": "manual",
+      "localizations": {
+        "vi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Thống kê của tôi"
+          }
+        }
+      }
+    },
+    "🏁 COMPLETED": {
+      "extractionState": "manual",
+      "localizations": {
+        "vi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "🏁 HOÀN TẤT"
+          }
+        }
+      }
+    },
+    "⭐ Write a Review": {
+      "extractionState": "manual",
+      "localizations": {
+        "vi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "⭐ Viết đánh giá"
+          }
+        }
+      }
+    },
+    "Invoice": {
+      "extractionState": "manual",
+      "localizations": {
+        "vi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Hóa đơn"
+          }
+        }
+      }
+    },
+    "Waybill": {
+      "extractionState": "manual",
+      "localizations": {
+        "vi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Vận đơn"
+          }
+        }
+      }
+    },
+    "📸 View Proof of Delivery": {
+      "extractionState": "manual",
+      "localizations": {
+        "vi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "📸 Xem bằng chứng giao hàng"
+          }
+        }
+      }
+    },
+    "↩ Return requested - waiting for OMS": {
+      "extractionState": "manual",
+      "localizations": {
+        "vi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "↩ Đã yêu cầu trả hàng - chờ OMS"
+          }
+        }
+      }
+    },
+    "↩ Request Return": {
+      "extractionState": "manual",
+      "localizations": {
+        "vi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "↩ Yêu cầu trả hàng"
+          }
+        }
+      }
+    },
+    "No orders have completed the logistics supply chain yet.": {
+      "extractionState": "manual",
+      "localizations": {
+        "vi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Chưa có đơn nào hoàn tất chuỗi cung ứng."
+          }
+        }
+      }
+    },
+    "History": {
+      "extractionState": "manual",
+      "localizations": {
+        "vi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Lịch sử"
+          }
+        }
+      }
+    },
+    "Your satisfaction level:": {
+      "extractionState": "manual",
+      "localizations": {
+        "vi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Mức độ hài lòng của bạn:"
+          }
+        }
+      }
+    },
+    "Feedback content:": {
+      "extractionState": "manual",
+      "localizations": {
+        "vi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Nội dung góp ý:"
+          }
+        }
+      }
+    },
+    "🚀 Submit Service Review": {
+      "extractionState": "manual",
+      "localizations": {
+        "vi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "🚀 Gửi đánh giá dịch vụ"
+          }
+        }
+      }
+    },
+    "Mode": {
+      "extractionState": "manual",
+      "localizations": {
+        "vi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Chế độ"
+          }
+        }
+      }
+    },
+    "Login": {
+      "extractionState": "manual",
+      "localizations": {
+        "vi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Đăng nhập"
+          }
+        }
+      }
+    },
+    "Register": {
+      "extractionState": "manual",
+      "localizations": {
+        "vi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Đăng ký"
+          }
+        }
+      }
+    },
+    "Username": {
+      "extractionState": "manual",
+      "localizations": {
+        "vi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Tên đăng nhập"
+          }
+        }
+      }
+    },
+    "Full Name": {
+      "extractionState": "manual",
+      "localizations": {
+        "vi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Họ và tên"
+          }
+        }
+      }
+    },
+    "Password": {
+      "extractionState": "manual",
+      "localizations": {
+        "vi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Mật khẩu"
+          }
+        }
+      }
+    },
+    "Customer": {
+      "extractionState": "manual",
+      "localizations": {
+        "vi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Khách hàng"
+          }
+        }
+      }
+    },
+    "LOGISTICS PRO": {
+      "extractionState": "manual",
+      "localizations": {
+        "vi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "LOGISTICS PRO"
+          }
+        }
+      }
+    },
+    "No notifications yet. They appear here when your orders change status.": {
+      "extractionState": "manual",
+      "localizations": {
+        "vi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Chưa có thông báo. Thông báo sẽ hiện ở đây khi đơn hàng đổi trạng thái."
+          }
+        }
+      }
+    },
+    "Notifications": {
+      "extractionState": "manual",
+      "localizations": {
+        "vi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Thông báo"
+          }
+        }
+      }
+    },
+    "Mark all read": {
+      "extractionState": "manual",
+      "localizations": {
+        "vi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Đánh dấu đã đọc hết"
+          }
+        }
+      }
+    },
+    "There are no orders currently being processed.": {
+      "extractionState": "manual",
+      "localizations": {
+        "vi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Hiện không có đơn nào đang xử lý."
+          }
+        }
+      }
+    },
+    "Current Orders": {
+      "extractionState": "manual",
+      "localizations": {
+        "vi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Đơn đang xử lý"
+          }
+        }
+      }
+    },
+    "Cancel Order": {
+      "extractionState": "manual",
+      "localizations": {
+        "vi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Hủy đơn"
+          }
+        }
+      }
+    },
+    "🔗 Open in Maps": {
+      "extractionState": "manual",
+      "localizations": {
+        "vi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "🔗 Mở trên bản đồ"
+          }
+        }
+      }
+    },
+    "⏳ Waiting for GPS signal from the vehicle...": {
+      "extractionState": "manual",
+      "localizations": {
+        "vi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "⏳ Đang chờ tín hiệu GPS từ xe..."
+          }
+        }
+      }
+    },
+    "Not yet shipped": {
+      "extractionState": "manual",
+      "localizations": {
+        "vi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Chưa vận chuyển"
+          }
+        }
+      }
+    },
+    "💳 Invoices Pending Freight Settlement": {
+      "extractionState": "manual",
+      "localizations": {
+        "vi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "💳 Hóa đơn chờ thanh toán cước"
+          }
+        }
+      }
+    },
+    "No outstanding invoices.": {
+      "extractionState": "manual",
+      "localizations": {
+        "vi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Không có hóa đơn nào còn nợ."
+          }
+        }
+      }
+    },
+    "📥 QR CODE BANK TRANSFER INFORMATION": {
+      "extractionState": "manual",
+      "localizations": {
+        "vi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "📥 THÔNG TIN CHUYỂN KHOẢN QUA MÃ QR"
+          }
+        }
+      }
+    },
+    "Open your Banking app to scan and pay quickly": {
+      "extractionState": "manual",
+      "localizations": {
+        "vi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Mở ứng dụng ngân hàng để quét và thanh toán nhanh"
+          }
+        }
+      }
+    },
+    "✓ I have completed the transfer": {
+      "extractionState": "manual",
+      "localizations": {
+        "vi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "✓ Tôi đã chuyển khoản xong"
+          }
+        }
+      }
+    },
+    "Payment": {
+      "extractionState": "manual",
+      "localizations": {
+        "vi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Thanh toán"
+          }
+        }
+      }
+    },
+    "BOT fee": {
+      "extractionState": "manual",
+      "localizations": {
+        "vi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Phí BOT"
+          }
+        }
+      }
+    },
+    "Fuel fee": {
+      "extractionState": "manual",
+      "localizations": {
+        "vi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Phí nhiên liệu"
+          }
+        }
+      }
+    },
+    "Driver notes": {
+      "extractionState": "manual",
+      "localizations": {
+        "vi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Ghi chú tài xế"
+          }
+        }
+      }
+    },
+    "📸 Proof of Delivery": {
+      "extractionState": "manual",
+      "localizations": {
+        "vi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "📸 Bằng chứng giao hàng"
+          }
+        }
+      }
+    },
+    "Received by (name)": {
+      "extractionState": "manual",
+      "localizations": {
+        "vi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Người nhận (họ tên)"
+          }
+        }
+      }
+    },
+    "Clear signature": {
+      "extractionState": "manual",
+      "localizations": {
+        "vi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Xóa chữ ký"
+          }
+        }
+      }
+    },
+    "Submit E-POD": {
+      "extractionState": "manual",
+      "localizations": {
+        "vi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Gửi biên bản giao hàng"
+          }
+        }
+      }
+    },
+    "Trip Detail": {
+      "extractionState": "manual",
+      "localizations": {
+        "vi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Chi tiết chuyến"
+          }
+        }
+      }
+    },
+    "Driver name": {
+      "extractionState": "manual",
+      "localizations": {
+        "vi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Tên tài xế"
+          }
+        }
+      }
+    },
+    "License plate": {
+      "extractionState": "manual",
+      "localizations": {
+        "vi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Biển số xe"
+          }
+        }
+      }
+    },
+    "Start Trip": {
+      "extractionState": "manual",
+      "localizations": {
+        "vi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Bắt đầu chuyến"
+          }
+        }
+      }
+    },
+    "Stop Trip": {
+      "extractionState": "manual",
+      "localizations": {
+        "vi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Kết thúc chuyến"
+          }
+        }
+      }
+    },
+    "Assigned trips": {
+      "extractionState": "manual",
+      "localizations": {
+        "vi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Chuyến được giao"
+          }
+        }
+      }
+    },
+    "Refresh": {
+      "extractionState": "manual",
+      "localizations": {
+        "vi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Làm mới"
+          }
+        }
+      }
+    },
+    "No trips assigned to this vehicle yet.": {
+      "extractionState": "manual",
+      "localizations": {
+        "vi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Xe này chưa được giao chuyến nào."
+          }
+        }
+      }
+    },
+    "Driver (TMS)": {
+      "extractionState": "manual",
+      "localizations": {
+        "vi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Tài xế (TMS)"
+          }
+        }
+      }
+    },
+    "Mobile App - Warehouse & Driver": {
+      "extractionState": "manual",
+      "localizations": {
+        "vi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Ứng dụng di động - Kho & Tài xế"
+          }
+        }
+      }
+    },
+    "Are you a customer?": {
+      "extractionState": "manual",
+      "localizations": {
+        "vi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Bạn là khách hàng?"
+          }
+        }
+      }
+    },
+    "Customer Login / Register": {
+      "extractionState": "manual",
+      "localizations": {
+        "vi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Khách hàng đăng nhập / đăng ký"
+          }
+        }
+      }
+    },
+    "Go to Driver": {
+      "extractionState": "manual",
+      "localizations": {
+        "vi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Đến màn Tài xế"
+          }
+        }
+      }
+    },
+    "Go to Warehouse": {
+      "extractionState": "manual",
+      "localizations": {
+        "vi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Đến màn Kho"
+          }
+        }
+      }
+    },
+    "Enter/scan verification code": {
+      "extractionState": "manual",
+      "localizations": {
+        "vi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Nhập/quét mã xác nhận"
+          }
+        }
+      }
+    },
+    "Scan QR Code": {
+      "extractionState": "manual",
+      "localizations": {
+        "vi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Quét mã QR"
+          }
+        }
+      }
+    },
+    "Confirm Scan": {
+      "extractionState": "manual",
+      "localizations": {
+        "vi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Xác nhận quét"
+          }
+        }
+      }
+    },
+    "📸 Report Cargo Condition on Receipt": {
+      "extractionState": "manual",
+      "localizations": {
+        "vi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "📸 Báo cáo tình trạng hàng khi nhận"
+          }
+        }
+      }
+    },
+    "Take a photo of the goods right when they arrive at the warehouse, and note any damage if present.": {
+      "extractionState": "manual",
+      "localizations": {
+        "vi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Chụp ảnh hàng ngay khi đến kho và ghi chú nếu có hư hỏng."
+          }
+        }
+      }
+    },
+    "⚠️ Submit Condition Report": {
+      "extractionState": "manual",
+      "localizations": {
+        "vi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "⚠️ Gửi báo cáo tình trạng"
+          }
+        }
+      }
+    },
+    "Package Detail": {
+      "extractionState": "manual",
+      "localizations": {
+        "vi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Chi tiết kiện hàng"
+          }
+        }
+      }
+    },
+    "Back": {
+      "extractionState": "manual",
+      "localizations": {
+        "vi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Quay lại"
+          }
+        }
+      }
+    },
+    "Unable to load image": {
+      "extractionState": "manual",
+      "localizations": {
+        "vi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Không tải được ảnh"
+          }
+        }
+      }
+    },
+    "Print or screenshot this QR code and attach it to your package. The warehouse (WMS) will scan it on arrival to confirm receipt.": {
+      "extractionState": "manual",
+      "localizations": {
+        "vi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "In hoặc chụp màn hình mã QR này và dán vào kiện hàng. Kho (WMS) sẽ quét khi hàng đến để xác nhận."
+          }
+        }
+      }
+    },
+    "Done": {
+      "extractionState": "manual",
+      "localizations": {
+        "vi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Xong"
+          }
+        }
+      }
+    },
+    "Receiver signs here": {
+      "extractionState": "manual",
+      "localizations": {
+        "vi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Người nhận ký tại đây"
+          }
+        }
+      }
+    },
+    "Warehouse (WMS)": {
+      "extractionState": "manual",
+      "localizations": {
+        "vi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Kho (WMS)"
+          }
+        }
+      }
+    },
+    "Logs": {
+      "extractionState": "manual",
+      "localizations": {
+        "vi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Nhật ký"
+          }
+        }
+      }
+    },
+    "Batch": {
+      "extractionState": "manual",
+      "localizations": {
+        "vi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Hàng loạt"
+          }
+        }
+      }
+    },
+    "Reload": {
+      "extractionState": "manual",
+      "localizations": {
+        "vi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Tải lại"
+          }
+        }
+      }
+    },
+    "Search by order code (e.g. 60001)": {
+      "extractionState": "manual",
+      "localizations": {
+        "vi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Tìm theo mã đơn (VD: 60001)"
+          }
+        }
+      }
+    },
+    "Search": {
+      "extractionState": "manual",
+      "localizations": {
+        "vi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Tìm kiếm"
+          }
+        }
+      }
+    },
+    "Warehouse Logs": {
+      "extractionState": "manual",
+      "localizations": {
+        "vi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Nhật ký kho"
+          }
+        }
+      }
+    },
+    "Language": {
+      "extractionState": "manual",
+      "localizations": {
+        "vi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Ngôn ngữ"
+          }
+        }
+      }
+    },
+    "Forgot password?": {
+      "extractionState": "manual",
+      "localizations": {
+        "vi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Quên mật khẩu?"
+          }
+        }
+      }
+    },
+    "Reset Password": {
+      "extractionState": "manual",
+      "localizations": {
+        "vi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Đặt lại mật khẩu"
+          }
+        }
+      }
+    },
+    "Enter your username and we will send a 6-digit code.": {
+      "extractionState": "manual",
+      "localizations": {
+        "vi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Nhập tên đăng nhập, chúng tôi sẽ gửi mã gồm 6 chữ số."
+          }
+        }
+      }
+    },
+    "Send code": {
+      "extractionState": "manual",
+      "localizations": {
+        "vi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Gửi mã"
+          }
+        }
+      }
+    },
+    "Enter the 6-digit code (valid for 10 minutes).": {
+      "extractionState": "manual",
+      "localizations": {
+        "vi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Nhập mã 6 chữ số (có hiệu lực 10 phút)."
+          }
+        }
+      }
+    },
+    "6-digit code": {
+      "extractionState": "manual",
+      "localizations": {
+        "vi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Mã 6 chữ số"
+          }
+        }
+      }
+    },
+    "Verify": {
+      "extractionState": "manual",
+      "localizations": {
+        "vi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Xác nhận"
+          }
+        }
+      }
+    },
+    "Send a new code": {
+      "extractionState": "manual",
+      "localizations": {
+        "vi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Gửi lại mã mới"
+          }
+        }
+      }
+    },
+    "Choose a new password.": {
+      "extractionState": "manual",
+      "localizations": {
+        "vi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Chọn mật khẩu mới."
+          }
+        }
+      }
+    },
+    "New password (min 6 characters)": {
+      "extractionState": "manual",
+      "localizations": {
+        "vi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Mật khẩu mới (tối thiểu 6 ký tự)"
+          }
+        }
+      }
+    },
+    "Confirm new password": {
+      "extractionState": "manual",
+      "localizations": {
+        "vi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Nhập lại mật khẩu mới"
+          }
+        }
+      }
+    },
+    "Change password": {
+      "extractionState": "manual",
+      "localizations": {
+        "vi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Đổi mật khẩu"
+          }
+        }
+      }
+    },
+    "Password changed. You can now sign in.": {
+      "extractionState": "manual",
+      "localizations": {
+        "vi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Đã đổi mật khẩu. Bạn có thể đăng nhập."
+          }
+        }
+      }
+    },
+    "Back to login": {
+      "extractionState": "manual",
+      "localizations": {
+        "vi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Quay lại đăng nhập"
+          }
+        }
+      }
+    },
+    "Passwords do not match.": {
+      "extractionState": "manual",
+      "localizations": {
+        "vi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Mật khẩu nhập lại không khớp."
+          }
+        }
+      }
+    },
+    "Insurance & Claims": {
+      "extractionState": "manual",
+      "localizations": {
+        "vi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Bảo hiểm & bồi thường"
+          }
+        }
+      }
+    },
+    "Insure an order before it is delivered. If something goes wrong you can file a claim up to the insured value.": {
+      "extractionState": "manual",
+      "localizations": {
+        "vi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Mua bảo hiểm cho đơn hàng trước khi giao. Nếu có sự cố, bạn có thể gửi yêu cầu bồi thường tối đa bằng giá trị đã bảo hiểm."
+          }
+        }
+      }
+    },
+    "My orders": {
+      "extractionState": "manual",
+      "localizations": {
+        "vi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Đơn hàng của tôi"
+          }
+        }
+      }
+    },
+    "My claims": {
+      "extractionState": "manual",
+      "localizations": {
+        "vi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Yêu cầu của tôi"
+          }
+        }
+      }
+    },
+    "Nothing here yet.": {
+      "extractionState": "manual",
+      "localizations": {
+        "vi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Chưa có dữ liệu."
+          }
+        }
+      }
+    },
+    "Not insured": {
+      "extractionState": "manual",
+      "localizations": {
+        "vi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Chưa bảo hiểm"
+          }
+        }
+      }
+    },
+    "Declared value (USD)": {
+      "extractionState": "manual",
+      "localizations": {
+        "vi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Giá trị khai báo (USD)"
+          }
+        }
+      }
+    },
+    "Buy insurance": {
+      "extractionState": "manual",
+      "localizations": {
+        "vi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Mua bảo hiểm"
+          }
+        }
+      }
+    },
+    "⚠️ File a claim": {
+      "extractionState": "manual",
+      "localizations": {
+        "vi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "⚠️ Gửi yêu cầu bồi thường"
+          }
+        }
+      }
+    },
+    "File a claim": {
+      "extractionState": "manual",
+      "localizations": {
+        "vi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Gửi yêu cầu bồi thường"
+          }
+        }
+      }
+    },
+    "Pending review": {
+      "extractionState": "manual",
+      "localizations": {
+        "vi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Chờ xem xét"
+          }
+        }
+      }
+    },
+    "Approved - awaiting payment": {
+      "extractionState": "manual",
+      "localizations": {
+        "vi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Đã duyệt - chờ chi trả"
+          }
+        }
+      }
+    },
+    "Rejected": {
+      "extractionState": "manual",
+      "localizations": {
+        "vi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Bị từ chối"
+          }
+        }
+      }
+    },
+    "Paid": {
+      "extractionState": "manual",
+      "localizations": {
+        "vi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Đã chi trả"
+          }
+        }
+      }
+    },
+    "Insurance added.": {
+      "extractionState": "manual",
+      "localizations": {
+        "vi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Đã mua bảo hiểm."
+          }
+        }
+      }
+    },
+    "Claim submitted.": {
+      "extractionState": "manual",
+      "localizations": {
+        "vi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Đã gửi yêu cầu bồi thường."
+          }
+        }
+      }
+    },
+    "Problem": {
+      "extractionState": "manual",
+      "localizations": {
+        "vi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Sự cố"
+          }
+        }
+      }
+    },
+    "Damaged": {
+      "extractionState": "manual",
+      "localizations": {
+        "vi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Hư hỏng"
+          }
+        }
+      }
+    },
+    "Lost": {
+      "extractionState": "manual",
+      "localizations": {
+        "vi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Thất lạc"
+          }
+        }
+      }
+    },
+    "Delayed": {
+      "extractionState": "manual",
+      "localizations": {
+        "vi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Giao trễ"
+          }
+        }
+      }
+    },
+    "Other": {
+      "extractionState": "manual",
+      "localizations": {
+        "vi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Khác"
+          }
+        }
+      }
+    },
+    "Describe what happened...": {
+      "extractionState": "manual",
+      "localizations": {
+        "vi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Mô tả sự việc..."
+          }
+        }
+      }
+    },
+    "Claim amount (USD)": {
+      "extractionState": "manual",
+      "localizations": {
+        "vi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Số tiền yêu cầu (USD)"
+          }
+        }
+      }
+    },
+    "Send claim": {
+      "extractionState": "manual",
+      "localizations": {
+        "vi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Gửi yêu cầu"
+          }
+        }
+      }
+    },
+    "Audit Log": {
+      "extractionState": "manual",
+      "localizations": {
+        "vi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Nhật ký hoạt động"
+          }
+        }
+      }
+    },
+    "Filter by user": {
+      "extractionState": "manual",
+      "localizations": {
+        "vi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Lọc theo người dùng"
+          }
+        }
+      }
+    },
+    "Search action / details / order id": {
+      "extractionState": "manual",
+      "localizations": {
+        "vi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Tìm hành động / chi tiết / mã đơn"
+          }
+        }
+      }
+    },
+    "Bulk Import (CSV)": {
+      "extractionState": "manual",
+      "localizations": {
+        "vi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Nhập hàng loạt (CSV)"
+          }
+        }
+      }
+    },
+    "Delivery Addresses": {
+      "extractionState": "manual",
+      "localizations": {
+        "vi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Địa chỉ giao hàng"
+          }
+        }
+      }
+    },
+    "Customer Name": {
+      "extractionState": "manual",
+      "localizations": {
+        "vi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Tên khách hàng"
+          }
+        }
+      }
+    },
+    "English": {
+      "extractionState": "manual",
+      "localizations": {
+        "vi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "English"
+          }
+        }
+      }
+    },
+    "Tiếng Việt": {
+      "extractionState": "manual",
+      "localizations": {
+        "vi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Tiếng Việt"
+          }
+        }
+      }
+    }
+  }
+}

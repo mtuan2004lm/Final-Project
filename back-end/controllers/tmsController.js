@@ -241,12 +241,20 @@ exports.submitDriverPod = async (req, res) => {
             [id, `The driver successfully submitted the E-POD at GPS: ${gps_coordinates}. The incurred costs (BOT: $${bot_fee}, Fuel: $${fuel_fee}).`, 'SHIPPING', 'DELIVERED']
         );
 
-        // Xe vừa giao xong đơn -> trả lại tình trạng "Sẵn sàng" cho lượt điều xe kế tiếp
+        // Xe vừa giao xong đơn -> chỉ trả về "Sẵn sàng" khi xe không còn đơn nào đang SHIPPING
         if (result.rows[0]?.assigned_truck) {
-            await pool.query(
-                `UPDATE trucks SET status = 'Ready', updated_at = NOW() WHERE license_plate = $1`,
-                [result.rows[0].assigned_truck]
+            const truck = result.rows[0].assigned_truck;
+            const { rows } = await pool.query(
+                `SELECT COUNT(*) AS cnt FROM orders
+                 WHERE assigned_truck = $1 AND UPPER(status) = 'SHIPPING'`,
+                [truck]
             );
+            if (parseInt(rows[0].cnt) === 0) {
+                await pool.query(
+                    `UPDATE trucks SET status = 'Sẵn sàng', updated_at = NOW() WHERE license_plate = $1`,
+                    [truck]
+                );
+            }
         }
 
         res.json({ message: "🏁 The driver has successfully submitted the E-POD! The order has been transferred to the Accounting Department (ACC).", order: result.rows[0] });

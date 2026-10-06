@@ -35,6 +35,11 @@ exports.getCustomerOrders = async (req, res) => {
                    COALESCE(o.delivery_route, '') as delivery_route,
                    o.rating,
                    o.feedback,
+                   o.delivery_address, o.receiver_name, o.receiver_phone, o.pickup_date, o.pickup_note,
+                   o.cancel_reason, COALESCE(o.return_status, 'NONE') as return_status, o.return_reason,
+                   o.return_reject_note, COALESCE(o.refund_status, 'NONE') as refund_status,
+                   COALESCE(o.refund_amount, 0) as refund_amount,
+                   o.pod_image, o.pod_signature, o.pod_received_by, o.pod_at,
                    t.current_lat as truck_lat,
                    t.current_lng as truck_lng,
                    t.gps_updated_at as truck_gps_updated_at
@@ -59,7 +64,7 @@ exports.getCustomerOrders = async (req, res) => {
 // 2. KHỞI TẠO ĐƠN HÀNG MỚI (TỜ KHAI KÝ GỬI HÀNG HÓA CHUYỂN OMS)
 // =========================================================================
 exports.createOrder = async (req, res) => {
-    const { username, customer_name, product_name, cargo_type, quantity, total_price, delivery_route } = req.body;
+    const { username, customer_name, product_name, cargo_type, quantity, total_price } = req.body;
     const productImagePath = req.file ? `/uploads/${req.file.filename}` : '';
 
     try {
@@ -69,9 +74,9 @@ exports.createOrder = async (req, res) => {
         const queryText = `
             INSERT INTO orders (
                 username, customer_name, product_name, cargo_type,
-                quantity, total_price, total_cost, product_image, delivery_route, status, current_dept
+                quantity, total_price, total_cost, product_image, status, current_dept
             )
-            VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, 'NEW', 'OMS')
+            VALUES ($1, $2, $3, $4, $5, $6, $7, $8, 'NEW', 'OMS')
             RETURNING *
         `;
 
@@ -81,10 +86,9 @@ exports.createOrder = async (req, res) => {
             product_name,
             cargo_type || 'Normal goods',
             parseInt(quantity) || 1,
-            safePrice,              // $6: total_price
-            safePrice,              // $7: total_cost
-            productImagePath,       // $8
-            delivery_route || ''    // $9: tuyến đường khách hàng mong muốn (để TMS biết)
+            safePrice,          // $6: total_price
+            safePrice,          // $7: total_cost
+            productImagePath    // $8
         ];
 
         const result = await pool.query(queryText, values);
@@ -108,6 +112,11 @@ exports.createOrder = async (req, res) => {
 
 // =========================================================================
 // 3. MỚI: KHÁCH HÀNG XÁC NHẬN ĐÃ CHUYỂN KHOẢN (Cổng thanh toán -> chờ Kế toán duyệt)
+//    Route này trước đây bị THIẾU HOÀN TOÀN ở backend (PUT /api/orders/:id/pay),
+//    khiến nút "Tôi đã hoàn tất chuyển khoản" trên CustomerView.vue luôn báo lỗi.
+//    Không đánh dấu PAID ngay - chỉ chuyển hồ sơ sang phòng Kế toán (ACC) để họ
+//    đối soát và tự bấm duyệt (đúng như accController.approvePayment đang chờ
+//    status = 'PENDING' + current_dept = 'ACC').
 // =========================================================================
 exports.confirmPaymentSubmitted = async (req, res) => {
     const { id } = req.params;
