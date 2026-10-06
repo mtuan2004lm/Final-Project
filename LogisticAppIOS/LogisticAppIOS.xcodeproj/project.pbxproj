@@ -9,6 +9,7 @@
 /* Begin PBXBuildFile section */
 		7279ABD668C645C393227205 /* Localizable.xcstrings in Resources */ = {isa = PBXBuildFile; fileRef = 972615DE402943539FB4AF23 /* Localizable.xcstrings */; };
 		05FCB6CF001840DB9D3842F2 /* AppLanguage.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2B62F30100F04C88B18A45C1 /* AppLanguage.swift */; };
+		A1B2C3D4E5F60718293A4B5C /* StaffToolsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A1B2C3D4E5F60718293A4B5D /* StaffToolsView.swift */; };
 		34CEA971E6A241BDB93E2D95 /* AdminAuditView.swift in Sources */ = {isa = PBXBuildFile; fileRef = FE506EDDAE1C4D87BBA3545A /* AdminAuditView.swift */; };
 		3692E4F8708B4E32925E2CB8 /* CustomerClaimsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2363A3209E5A400295F75051 /* CustomerClaimsView.swift */; };
 		0A60F4E500D542779A0E3923 /* ForgotPasswordView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 97F7FF608AA84422A91F48B7 /* ForgotPasswordView.swift */; };
@@ -55,6 +56,7 @@
 /* Begin PBXFileReference section */
 		972615DE402943539FB4AF23 /* Localizable.xcstrings */ = {isa = PBXFileReference; lastKnownFileType = text.json.xcstrings; path = Localizable.xcstrings; sourceTree = "<group>"; };
 		2B62F30100F04C88B18A45C1 /* AppLanguage.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppLanguage.swift; sourceTree = "<group>"; };
+		A1B2C3D4E5F60718293A4B5D /* StaffToolsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = StaffToolsView.swift; sourceTree = "<group>"; };
 		FE506EDDAE1C4D87BBA3545A /* AdminAuditView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AdminAuditView.swift; sourceTree = "<group>"; };
 		2363A3209E5A400295F75051 /* CustomerClaimsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CustomerClaimsView.swift; sourceTree = "<group>"; };
 		97F7FF608AA84422A91F48B7 /* ForgotPasswordView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ForgotPasswordView.swift; sourceTree = "<group>"; };
@@ -206,6 +208,7 @@
 				CBF3F1363070941500C394C2 /* AdminView.swift */,
 				CBCC38DA306F557A003F6C50 /* DriverTripDetailView.swift */,
 				CBCC38D9306F556C003F6C50 /* DriverView.swift */,
+				A1B2C3D4E5F60718293A4B5D /* StaffToolsView.swift */,
 				FE506EDDAE1C4D87BBA3545A /* AdminAuditView.swift */,
 				2363A3209E5A400295F75051 /* CustomerClaimsView.swift */,
 				97F7FF608AA84422A91F48B7 /* ForgotPasswordView.swift */,
@@ -287,6 +290,7 @@
 				CBF92CFD306F91A70023EE83 /* DriverTripDetailView.swift in Sources */,
 				CBF92CFE306F91A70023EE83 /* DriverView.swift in Sources */,
 				05FCB6CF001840DB9D3842F2 /* AppLanguage.swift in Sources */,
+				A1B2C3D4E5F60718293A4B5C /* StaffToolsView.swift in Sources */,
 				34CEA971E6A241BDB93E2D95 /* AdminAuditView.swift in Sources */,
 				3692E4F8708B4E32925E2CB8 /* CustomerClaimsView.swift in Sources */,
 				0A60F4E500D542779A0E3923 /* ForgotPasswordView.swift in Sources */,

@@ -308,7 +308,7 @@
                 <td style="font-size: 12px;">
                   <button @click="openDocument('invoice', order.id)" class="btn-qr-view" style="background:#8e44ad; margin-bottom:4px;">🧾 Invoice</button>
                   <button @click="openDocument('waybill', order.id)" class="btn-qr-view" style="background:#8e44ad; margin-bottom:4px;">📄 Waybill</button>
-                  <button v-if="order.pod_image || order.pod_signature" @click="podOrder = order" class="btn-qr-view">📸 View POD</button>
+                  <button @click="podOrder = order" class="btn-qr-view">📸 View POD</button>
                   <div v-if="order.return_status === 'REQUESTED'" style="color:#e67e22;">↩ Return requested</div>
                   <div v-else-if="order.return_status === 'APPROVED'" style="color:#27ae60;">↩ Return approved<span v-if="order.refund_status === 'REFUNDED'"> - refunded</span><span v-else> - refund pending</span></div>
                   <div v-else-if="order.return_status === 'REJECTED'" style="color:#c0392b;">↩ Return rejected: {{ order.return_reject_note }}</div>
@@ -450,7 +450,7 @@
       <!-- ĐỢT 3: Tạo nhiều đơn cùng lúc bằng file CSV -->
       <!-- ĐỢT 4: bảo hiểm + bồi thường -->
       <div v-if="currentTab === 'claims'">
-        <CustomerClaims />
+        <CustomerClaims :username="username" />
       </div>
 
       <div v-if="currentTab === 'bulk'">
@@ -547,10 +547,19 @@
           <button @click="podOrder = null" class="close-review-btn">&times;</button>
         </div>
         <div class="qr-modal-body">
-          <img v-if="podOrder.pod_image" :src="'http://localhost:3000' + podOrder.pod_image" style="max-width:100%;border-radius:6px;" />
+          <img v-if="podReal(podOrder.pod_image)" :src="podReal(podOrder.pod_image)" style="max-width:100%;border-radius:6px;" />
           <p v-if="podOrder.pod_received_by">Received by: <b>{{ podOrder.pod_received_by }}</b></p>
-          <p v-if="podOrder.pod_at" style="font-size:12px;color:#7f8c8d;">{{ formatDateTime(podOrder.pod_at) }}</p>
+          <p v-if="podOrder.pod_at" style="font-size:12px;color:#7f8c8d;">Delivered at: {{ formatDateTime(podOrder.pod_at) }}</p>
+          <p v-if="podOrder.assigned_truck">🚛 Vehicle: <b>{{ podOrder.assigned_truck }}</b><span v-if="podOrder.driver_name"> · Driver: <b>{{ podOrder.driver_name }}</b></span></p>
+          <p v-if="podOrder.gps_coordinates && podOrder.gps_coordinates !== 'Unknown'">📍 GPS: {{ podOrder.gps_coordinates }}
+            <a :href="'https://www.google.com/maps?q=' + encodeURIComponent(podOrder.gps_coordinates.replace(/[^0-9.,\-]/g, ''))" target="_blank">Open in Maps</a></p>
+          <p v-if="podOrder.driver_notes">📝 Driver notes: {{ podOrder.driver_notes }}</p>
+          <p>💰 Order total: <b>${{ Number(podOrder.total_price || 0).toLocaleString() }}</b><span v-if="Number(podOrder.insurance_fee) > 0"> · 🛡️ Insurance fee: ${{ Number(podOrder.insurance_fee).toFixed(2) }}</span></p>
+          <p>🛣️ BOT fee: ${{ Number(podOrder.bot_fee || 0).toFixed(2) }} · ⛽ Fuel fee: ${{ Number(podOrder.fuel_fee || 0).toFixed(2) }}</p>
           <img v-if="podOrder.pod_signature" :src="podOrder.pod_signature" style="max-width:100%;background:#fff;border:1px solid #ddd;border-radius:6px;" />
+          <p v-if="!podReal(podOrder.pod_image) && !podOrder.pod_signature" style="color:#7f8c8d;">
+            No photo or signature was recorded for this delivery{{ podOrder.pod_at ? '' : ' (the driver has not submitted an e-POD yet)' }}.
+          </p>
         </div>
       </div>
     </div>
@@ -879,6 +888,11 @@ const addresses = ref([]);
 const selectedAddressId = ref(null);
 const addrForm = ref({ label: '', address: '', receiver_name: '', receiver_phone: '', is_default: false });
 const podOrder = ref(null);
+// Bỏ qua đường dẫn mô phỏng (cdn-storage...) do pod-submit ghi tạm; chỉ dùng ảnh thật trong /uploads
+const podReal = (p) => {
+  if (!p || p.includes('cdn-storage.logistics.pro')) return '';
+  return p.startsWith('http') ? p : 'http://localhost:3000' + p;
+};
 
 const fetchAddresses = async () => {
   try {

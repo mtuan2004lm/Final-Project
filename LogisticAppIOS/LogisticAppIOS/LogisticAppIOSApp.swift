@@ -40,6 +40,10 @@ struct RootView: View {
             NavigationStack {
                 AdminView()
             }
+        case .staff:
+            NavigationStack {
+                StaffRootView()
+            }
         case .customer:
             // MỚI: khách hàng - giống CustomerView.vue, có TabView riêng 4 tab
             // (Create Order / Current Orders / History / Payment) bên trong.

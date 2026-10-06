@@ -11,6 +11,7 @@ enum AppRoute {
     case warehouse
     case driver
     case admin   // MỚI: dành cho tài khoản role "admin" - xem AdminView.swift
+    case staff   // OMS / ACC / DOCS: công cụ nhân viên (StaffToolsView.swift)
     case customer   // MỚI: dành cho khách hàng - xem CustomerMainView.swift
 }
 
@@ -40,6 +41,16 @@ final class SessionStore: ObservableObject {
 
     // MỚI: lưu username khách hàng đang đăng nhập, tương đương
     // localStorage.getItem('username') bên CustomerView.vue.
+    // Tài khoản nhân viên (Admin/OMS/ACC/DOCS) đang đăng nhập: dùng làm "actor" khi gọi API quản trị.
+    var staffUsername: String {
+        get { defaults.string(forKey: "staff_username") ?? "" }
+        set { defaults.set(newValue, forKey: "staff_username") }
+    }
+    var staffRole: String {
+        get { defaults.string(forKey: "staff_role") ?? "" }
+        set { defaults.set(newValue, forKey: "staff_role") }
+    }
+
     private let keyCustomerUsername = "customer_username"
 
     var customerUsername: String {
@@ -54,6 +65,8 @@ final class SessionStore: ObservableObject {
         LocationManager.shared.stopTracking()
         clearDriverPrefs()
         defaults.removeObject(forKey: keyCustomerUsername)
+        defaults.removeObject(forKey: "staff_username")
+        defaults.removeObject(forKey: "staff_role")
         route = .login
     }
 }

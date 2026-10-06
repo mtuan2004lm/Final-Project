@@ -94,7 +94,7 @@ struct CustomerClaimsView: View {
             }
 
             if o.insured == true && status != "PENDING" && !openClaimOrderIds.contains(o.id) {
-                Button("⚠️ File a claim") { claimOrder = o }.font(.subheadline)
+                Button("File a claim") { claimOrder = o }.font(.subheadline)
             }
         }
         .padding(.vertical, 2)

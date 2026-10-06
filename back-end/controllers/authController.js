@@ -100,7 +100,7 @@ exports.mobileLogin = async (req, res) => {
 
         // MỚI: cho phép thêm role "admin" đăng nhập app mobile (dùng cho màn
         // Admin mới thêm ở app iOS - tổng quan hệ thống, doanh thu, báo cáo).
-        if (userRole === 'wms' || userRole === 'tms' || userRole === 'admin') {
+        if (['wms', 'tms', 'admin', 'oms', 'acc', 'docs'].includes(userRole)) {
             return res.json({
                 success: true,
                 message: "Login application successful!",

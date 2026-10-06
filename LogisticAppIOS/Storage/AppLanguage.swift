@@ -1,4 +1,5 @@
 import SwiftUI
+import Combine
 
 // ĐỢT 4: đa ngôn ngữ EN / VI.
 // Các chuỗi Text("...") trong app được dịch tự động từ Localizable.xcstrings theo `locale` đặt ở gốc app.

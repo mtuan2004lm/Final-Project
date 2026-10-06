@@ -56,6 +56,24 @@ app.use('/api/ext', phase5AccDocsRoutes);
 
 // Khởi động hệ thống Server tại cổng 3000
 const PORT = 3000;
-app.listen(PORT, () => {
-    console.log(`🚀 Server Back-end đang hoạt động mượt mà tại: http://localhost:${PORT}`);
+
+// Tự động chạy các file phase*_migration.sql (an toàn khi chạy lại) trước khi nhận request,
+// để không bao giờ bị lỗi 500 do thiếu bảng/cột khi quên chạy RunMigrations.
+async function runMigrations() {
+    const fs = require('fs');
+    const path = require('path');
+    const pool = require('./config/db');
+    const files = fs.readdirSync(__dirname).filter(f => /^phase\d+_migration\.sql$/.test(f)).sort();
+    for (const f of files) {
+        try {
+            await pool.query(fs.readFileSync(path.join(__dirname, f), 'utf8'));
+            console.log(`✅ Migration OK: ${f}`);
+        } catch (e) { console.error(`⚠️ Migration ${f} failed: ${e.message}`); }
+    }
+}
+
+runMigrations().finally(() => {
+    app.listen(PORT, () => {
+        console.log(`🚀 Server Back-end đang hoạt động mượt mà tại: http://localhost:${PORT}`);
+    });
 });

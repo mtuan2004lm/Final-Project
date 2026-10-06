@@ -247,6 +247,11 @@ struct CustomerOrder: Decodable, Identifiable {
     var insured: Bool?
     var insured_value: Double?
     var insurance_fee: Double?
+    // POD: thông tin tài xế đã nộp
+    var bot_fee: Double?
+    var fuel_fee: Double?
+    var gps_coordinates: String?
+    var driver_name: String?
 
     enum CodingKeys: String, CodingKey {
         case id, username, customer_name, product_name, quantity, status, current_dept, notes,
@@ -256,6 +261,7 @@ struct CustomerOrder: Decodable, Identifiable {
              return_status, return_reason, return_reject_note, refund_status, refund_amount,
              pod_image, pod_signature, pod_received_by, pod_at
         case insured, insured_value, insurance_fee
+        case bot_fee, fuel_fee, gps_coordinates, driver_name
     }
 
     init(from decoder: Decoder) throws {
@@ -298,6 +304,10 @@ struct CustomerOrder: Decodable, Identifiable {
         insured = try? c.decodeIfPresent(Bool.self, forKey: .insured)
         insured_value = decodeFlexibleDouble(c, .insured_value)
         insurance_fee = decodeFlexibleDouble(c, .insurance_fee)
+        bot_fee = decodeFlexibleDouble(c, .bot_fee)
+        fuel_fee = decodeFlexibleDouble(c, .fuel_fee)
+        gps_coordinates = try? c.decodeIfPresent(String.self, forKey: .gps_coordinates)
+        driver_name = try? c.decodeIfPresent(String.self, forKey: .driver_name)
     }
 }
 

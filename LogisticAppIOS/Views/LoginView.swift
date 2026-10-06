@@ -110,6 +110,8 @@ struct LoginView: View {
                 // "tms": tài khoản phòng TMS dùng chung cho cả điều phối lẫn tài xế
                 // -> đăng nhập mobile mở màn tài xế.
                 // "driver": giữ lại phòng trường hợp sau này tách riêng role tài xế khỏi "tms".
+                session.staffUsername = u
+                session.staffRole = (res.role ?? "").lowercased()
                 switch (res.role ?? "").lowercased() {
                 case "driver", "tms":
                     session.route = .driver
@@ -119,6 +121,8 @@ struct LoginView: View {
                     // MỚI: tài khoản quản trị -> mở màn Admin (tổng quan toàn hệ thống,
                     // giống AdminView.vue bên web).
                     session.route = .admin
+                case "oms", "acc", "docs":
+                    session.route = .staff
                 default:
                     alertMessage = "This account does not have access to the Mobile app!"
                 }

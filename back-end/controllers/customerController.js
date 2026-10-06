@@ -40,6 +40,8 @@ exports.getCustomerOrders = async (req, res) => {
                    o.return_reject_note, COALESCE(o.refund_status, 'NONE') as refund_status,
                    COALESCE(o.refund_amount, 0) as refund_amount,
                    o.pod_image, o.pod_signature, o.pod_received_by, o.pod_at,
+                   COALESCE(o.insured, FALSE) as insured, COALESCE(o.insured_value, 0) as insured_value, COALESCE(o.insurance_fee, 0) as insurance_fee,
+                   o.bot_fee, o.fuel_fee, o.gps_coordinates, t.driver_name,
                    t.current_lat as truck_lat,
                    t.current_lng as truck_lng,
                    t.gps_updated_at as truck_gps_updated_at

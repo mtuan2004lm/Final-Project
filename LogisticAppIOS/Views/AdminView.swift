@@ -71,7 +71,7 @@ struct AdminView: View {
         .navigationBarTitleDisplayMode(.inline)
         .toolbar {
             ToolbarItem(placement: .navigationBarLeading) {
-                NavigationLink("Audit Log") { AdminAuditView() }   // ĐỢT 4
+                NavigationLink("Tools") { StaffHubView(role: "admin") }   // Admin/OMS/ACC/Docs tools
             }
             ToolbarItem(placement: .navigationBarTrailing) {
                 Button("Logout", role: .destructive) { session.logout() }

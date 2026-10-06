@@ -172,7 +172,7 @@ router.post('/orders/:id/pod', upload.single('image'), async (req, res) => {
         const cur = await pool.query('SELECT status FROM orders WHERE id=$1', [req.params.id]);
         if (!cur.rows.length) return res.status(404).json({ error: 'Order not found' });
         await pool.query(
-            `UPDATE orders SET pod_image=$1, pod_signature=$2, pod_received_by=$3, pod_at=NOW() WHERE id=$4`,
+            `UPDATE orders SET pod_image=COALESCE($1, pod_image), pod_signature=COALESCE($2, pod_signature), pod_received_by=$3, pod_at=NOW() WHERE id=$4`,
             [imagePath, signature || null, received_by || null, req.params.id]
         );
         await log(req.params.id, cur.rows[0].status, cur.rows[0].status,

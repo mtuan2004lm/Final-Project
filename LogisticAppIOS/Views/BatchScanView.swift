@@ -1,5 +1,6 @@
 import SwiftUI
 import VisionKit
+import Vision
 
 // ĐỢT 3: quét liên tục nhiều mã QR kiện hàng rồi gửi 1 lần lên /api/ext/wms/scan-batch.
 // Camera không tự đóng sau mỗi mã; mã trùng được bỏ qua.

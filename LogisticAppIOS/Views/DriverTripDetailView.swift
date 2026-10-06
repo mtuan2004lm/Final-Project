@@ -116,6 +116,10 @@ struct DriverTripDetailView: View {
         let fuel = fuelFee.trimmingCharacters(in: .whitespaces)
         let gpsCoordinates = gps.isEmpty ? "Unknown" : gps
 
+        if podImage == nil && signatureLines.isEmpty {
+            alertMessage = "Please take a delivery photo or collect a signature before submitting."
+            return
+        }
         isSubmitting = true
         let body = PodSubmitRequest(
             bot_fee: bot.isEmpty ? "0" : bot,
@@ -135,12 +139,19 @@ struct DriverTripDetailView: View {
                 // đè pod_image bằng URL placeholder - upload sau sẽ thay bằng ảnh thật.
                 let sig = await SignaturePadView.dataURL(lines: signatureLines, size: CGSize(width: 320, height: 160))
                 let jpeg = podImage?.jpegData(compressionQuality: 0.8)
+                var podError: String?
                 if jpeg != nil || sig != nil {
-                    try? await ApiService.shared.submitProofOfDelivery(
-                        orderId: orderId, imageData: jpeg, signatureDataURL: sig,
-                        receivedBy: receivedBy.trimmingCharacters(in: .whitespaces))
+                    do {
+                        try await ApiService.shared.submitProofOfDelivery(
+                            orderId: orderId, imageData: jpeg, signatureDataURL: sig,
+                            receivedBy: receivedBy.trimmingCharacters(in: .whitespaces))
+                    } catch { podError = friendlyError(error) }
                 }
                 isSubmitting = false
+                if let podError {
+                    alertMessage = "Trip saved, but the proof of delivery could not be uploaded: \(podError)"
+                    return
+                }
                 // Quay lại DriverView, onAppear ở đó sẽ tự tải lại danh sách chuyến
                 // (tương đương finish() trong DriverTripDetailActivity.kt).
                 dismiss()

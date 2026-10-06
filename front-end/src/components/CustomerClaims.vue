@@ -67,7 +67,8 @@ import axios from 'axios'
 import { t } from '../i18n'
 
 const EXT = 'http://localhost:3000/api/ext'
-const username = localStorage.getItem('username') || ''
+const props = defineProps({ username: { type: String, default: '' } })
+const username = props.username || localStorage.getItem('username') || ''
 const rawOrders = ref([])
 const claims = ref([])
 const declared = ref({})
@@ -94,10 +95,11 @@ const load = async () => {
 const flash = (m) => { message.value = m; setTimeout(() => { if (message.value === m) message.value = '' }, 4000) }
 
 const buy = async (o) => {
+  if (!(Number(declared.value[o.id]) > 0)) { alert('Please enter the declared value of the goods (greater than 0).'); return }
   try {
     await axios.post(`${EXT}/orders/${o.id}/insurance`, { username, declared_value: declared.value[o.id] })
     flash(t('claims.bought')); await load()
-  } catch (e) { flash(e.response?.data?.error || t('common.error')) }
+  } catch (e) { const m = e.response?.data?.error || t('common.error'); flash(m); alert(m) }
 }
 
 const sendClaim = async (o) => {
@@ -106,7 +108,7 @@ const sendClaim = async (o) => {
     flash(t('claims.created'))
     openForm.value = null; form.value = { reason: 'Damaged', description: '', amount: null }
     await load()
-  } catch (e) { flash(e.response?.data?.error || t('common.error')) }
+  } catch (e) { const m = e.response?.data?.error || t('common.error'); flash(m); alert(m) }
 }
 
 onMounted(() => { load(); timer = setInterval(load, 8000) })
