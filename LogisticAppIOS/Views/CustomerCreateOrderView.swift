@@ -23,6 +23,10 @@ struct CustomerCreateOrderView: View {
     @State private var pickupDate = Date().addingTimeInterval(3600)
     @State private var pickupNote = ""
 
+    // ĐỢT 5: mua bảo hiểm ngay khi tạo đơn
+    @State private var insureOn = false
+    @State private var insuredValueText = ""
+
     @State private var selectedImage: UIImage?
     @State private var photosPickerItem: PhotosPickerItem?
     @State private var showCamera = false
@@ -37,6 +41,11 @@ struct CustomerCreateOrderView: View {
     private var estimatedPrice: Double {
         let rate = store.priceRates[cargoType] ?? 100
         return rate * Double(max(quantity, 1))
+    }
+
+    private var insuredValue: Double { Double(insuredValueText.replacingOccurrences(of: ",", with: ".")) ?? 0 }
+    private var insuranceFee: Double {
+        insuredValue > 0 ? ((max(store.insuranceMinFee, insuredValue * store.insuranceRate)) * 100).rounded() / 100 : 0
     }
 
     var body: some View {
@@ -148,10 +157,26 @@ struct CustomerCreateOrderView: View {
                         .buttonStyle(.bordered)
                     }
 
+                    VStack(alignment: .leading, spacing: 6) {
+                        Toggle("🛡️ Insure this shipment", isOn: $insureOn)
+                        if insureOn {
+                            TextField("Declared value (USD)", text: $insuredValueText)
+                                .keyboardType(.decimalPad)
+                                .textFieldStyle(.roundedBorder)
+                            if insuredValue > 0 {
+                                Text("Insurance fee: \(store.formatCurrency(insuranceFee)) · you can claim up to \(store.formatCurrency(insuredValue))")
+                                    .font(.caption).foregroundStyle(.secondary)
+                            }
+                        }
+                    }
+                    .padding(10)
+                    .background(Color.blue.opacity(0.08))
+                    .clipShape(RoundedRectangle(cornerRadius: 8))
+
                     HStack {
                         Text("Estimated shipping cost:")
                         Spacer()
-                        Text(store.formatCurrency(estimatedPrice))
+                        Text(store.formatCurrency(estimatedPrice + (insureOn ? insuranceFee : 0)))
                             .font(.headline)
                             .foregroundStyle(.orange)
                     }
@@ -246,6 +271,10 @@ struct CustomerCreateOrderView: View {
             alertMessage = "Please enter the delivery address!"
             return
         }
+        if insureOn && insuredValue <= 0 {
+            alertMessage = "Please enter the declared value of the goods, or turn off the insurance option."
+            return
+        }
         guard let image = selectedImage, let imageData = image.jpegData(compressionQuality: 0.8) else {
             alertMessage = "⚠️ Please upload an actual image of the cargo to create the yard declaration!"
             return
@@ -279,6 +308,17 @@ struct CustomerCreateOrderView: View {
                         )
                     )
                 }
+                // ĐỢT 5: mua bảo hiểm cho đơn vừa tạo
+                var insuranceNote: String?
+                if insureOn, let newId = res.order?.id {
+                    do {
+                        try await ApiService.shared.buyInsurance(orderId: newId, username: session.customerUsername, declaredValue: insuredValue)
+                    } catch {
+                        insuranceNote = friendlyError(error) + " - the order was created without insurance. You can buy it later in Account → Insurance & Claims."
+                    }
+                }
+                insureOn = false
+                insuredValueText = ""
                 deliveryAddress = ""
                 receiverName = ""
                 receiverPhone = ""
@@ -295,6 +335,9 @@ struct CustomerCreateOrderView: View {
 
                 // MỚI: mở popup QR code nếu lấy được id đơn vừa tạo; nếu vì lý do gì đó
                 // không có id (server trả thiếu), vẫn báo thành công như cũ để không chặn luồng.
+                if let note = insuranceNote {
+                    alertMessage = note
+                }
                 if let newId = res.order?.id {
                     createdOrderId = newId
                 } else {

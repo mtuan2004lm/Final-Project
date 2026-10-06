@@ -163,9 +163,22 @@
                 <input type="file" accept="image/*" required @change="onProductImageChange" class="file-input-styled" />
               </div>
 
+              <!-- ĐỢT 5: mua bảo hiểm ngay khi tạo đơn -->
+              <div class="form-group full-width insurance-box">
+                <label class="insurance-toggle">
+                  <input type="checkbox" v-model="insuranceOn" />
+                  🛡️ Insure this shipment (compensation if it is lost or damaged)
+                </label>
+                <div v-if="insuranceOn" class="insurance-fields">
+                  <input type="number" v-model.number="insuredValue" min="1" max="100000" step="1" placeholder="Declared value of the goods (USD)" />
+                  <small v-if="insuredValue > 0">Insurance fee: <b>{{ formatCurrency(insuranceFee) }}</b> ({{ (insuranceRate * 100).toFixed(1) }}% of the declared value, minimum {{ insuranceMinFee }} USD). You can claim up to {{ formatCurrency(insuredValue) }}.</small>
+                </div>
+              </div>
+
               <div class="price-estimate-box full-width">
                 <span>Estimated shipping cost: </span>
                 <strong style="color: #e67e22; font-size: 18px;">{{ formatCurrency(estimatedPrice) }}</strong>
+                <span v-if="insuranceOn && insuredValue > 0"> + insurance <strong>{{ formatCurrency(insuranceFee) }}</strong> = <strong style="color: #e67e22; font-size: 18px;">{{ formatCurrency(estimatedPrice + insuranceFee) }}</strong></span>
               </div>
 
               <button type="submit" class="btn-submit full-width">🚀 Submit Request</button>
@@ -919,10 +932,21 @@ const priceRates = reactive({
   'Hàng hóa nguy hiểm': 180,
   'Hàng hóa nhanh': 400
 });
+// ĐỢT 5: bảo hiểm khi tạo đơn
+const insuranceOn = ref(false);
+const insuredValue = ref(null);
+const insuranceRate = ref(0.015);
+const insuranceMinFee = ref(1);
+const insuranceFee = computed(() => {
+  const v = Number(insuredValue.value) || 0;
+  return v > 0 ? Math.round(Math.max(insuranceMinFee.value, v * insuranceRate.value) * 100) / 100 : 0;
+});
 const loadPricing = async () => {
   try {
     const r = await axios.get('http://localhost:3000/api/ext/pricing');
     Object.assign(priceRates, r.data.rates);
+    insuranceRate.value = r.data.insurance_rate;
+    insuranceMinFee.value = r.data.insurance_min_fee;
   } catch (e) { /* giữ giá mặc định */ }
 };
 
@@ -1009,6 +1033,10 @@ const createOrder = async () => {
     alert("⚠️ Please upload an actual image of the cargo to create the yard declaration!");
     return;
   }
+  if (insuranceOn.value && !(Number(insuredValue.value) > 0)) {
+    alert("Please enter the declared value of the goods, or untick the insurance option.");
+    return;
+  }
 
   const formData = new FormData();
   formData.append('username', username.value);
@@ -1038,7 +1066,18 @@ const createOrder = async () => {
           pickup_note: newOrder.value.pickup_note
         });
       } catch (e) { console.error('Delivery info not saved', e); }
+
+      // ĐỢT 5: mua bảo hiểm cho đơn vừa tạo
+      if (insuranceOn.value) {
+        try {
+          await axios.post(`${API_EXT}/orders/${createdId}/insurance`, { username: username.value, declared_value: insuredValue.value });
+        } catch (e) {
+          alert((e.response?.data?.error || 'Insurance could not be added') + ' - the order was created without insurance. You can buy insurance later in "Insurance & Claims".');
+        }
+      }
     }
+    insuranceOn.value = false;
+    insuredValue.value = null;
 
     newOrder.value = emptyOrder();
     selectedAddressId.value = null;
@@ -1315,4 +1354,8 @@ header h1 { font-size: 24px; font-weight: 800; color: #2c3e50; margin-bottom: 25
 .qr-hint-text { font-size: 12px; color: #7f8c8d; margin: 0; }
 
 @keyframes fadeIn { from { opacity: 0; transform: translateY(-10px); } to { opacity: 1; transform: translateY(0); } }
+.insurance-box { background: #eaf6fb; border: 1px dashed #5dade2; border-radius: 8px; padding: 10px 14px; }
+.insurance-toggle { display: flex; align-items: center; gap: 8px; font-weight: bold; cursor: pointer; }
+.insurance-toggle input { width: auto; }
+.insurance-fields { display: flex; flex-direction: column; gap: 6px; margin-top: 8px; }
 </style>

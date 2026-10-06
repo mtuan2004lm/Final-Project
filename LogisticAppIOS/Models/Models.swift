@@ -304,6 +304,8 @@ struct CustomerOrder: Decodable, Identifiable {
 // ĐỢT 5: bảng giá do Admin cấu hình
 struct PricingResponse: Decodable {
     let rates: [String: Double]
+    let insurance_rate: Double?
+    let insurance_min_fee: Double?
 }
 
 // ĐỢT 4: bảo hiểm + bồi thường

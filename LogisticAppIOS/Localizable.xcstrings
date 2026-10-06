@@ -2168,6 +2168,28 @@
           }
         }
       }
+    },
+    "🛡️ Insure this shipment": {
+      "extractionState": "manual",
+      "localizations": {
+        "vi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "🛡️ Bảo hiểm lô hàng này"
+          }
+        }
+      }
+    },
+    "Please enter the declared value of the goods, or turn off the insurance option.": {
+      "extractionState": "manual",
+      "localizations": {
+        "vi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Vui lòng nhập giá trị khai báo của hàng, hoặc tắt tùy chọn bảo hiểm."
+          }
+        }
+      }
     }
   }
 }

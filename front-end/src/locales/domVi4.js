@@ -98,6 +98,14 @@ export default {
   'Unable to reopen.': 'Không thể mở lại.',
   'HTTP': 'HTTP',
 
+  // ---- Bảo hiểm khi tạo đơn ----
+  '🛡️ Insure this shipment (compensation if it is lost or damaged)': '🛡️ Bảo hiểm lô hàng này (được bồi thường nếu mất hoặc hư hỏng)',
+  'Declared value of the goods (USD)': 'Giá trị khai báo của hàng hóa (USD)',
+  'Insurance fee:': 'Phí bảo hiểm:',
+  '+ insurance': '+ bảo hiểm',
+  '({}% of the declared value, minimum {} USD). You can claim up to {}.': '({}% giá trị khai báo, tối thiểu {} USD). Bạn có thể yêu cầu bồi thường tối đa {}.',
+  '=': '=',
+
   // ---- Kế toán ----
   '📊 Overview & Approvals': '📊 Tổng quan & duyệt chi',
   '🛡️ Claim Payouts': '🛡️ Chi trả bồi thường',
