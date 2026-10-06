@@ -103,6 +103,7 @@ struct TripOrder: Decodable, Identifiable {
     let driver_notes: String?
     let gps_coordinates: String?
     // ĐỢT 3: địa chỉ giao + thứ tự điểm dừng (có thể null với đơn cũ)
+    let pickup_address: String?
     let delivery_address: String?
     let receiver_name: String?
     let receiver_phone: String?
@@ -228,6 +229,7 @@ struct CustomerOrder: Decodable, Identifiable {
     var truck_lng: Double?
     var truck_gps_updated_at: String?
     // ĐỢT 1
+    var pickup_address: String?
     var delivery_address: String?
     var receiver_name: String?
     var receiver_phone: String?
@@ -257,7 +259,7 @@ struct CustomerOrder: Decodable, Identifiable {
         case id, username, customer_name, product_name, quantity, status, current_dept, notes,
              driver_notes, cargo_type, total_price, payment_status, product_image, assigned_truck,
              delivery_route, rating, feedback, truck_lat, truck_lng, truck_gps_updated_at
-        case delivery_address, receiver_name, receiver_phone, pickup_date, pickup_note, cancel_reason,
+        case pickup_address, delivery_address, receiver_name, receiver_phone, pickup_date, pickup_note, cancel_reason,
              return_status, return_reason, return_reject_note, refund_status, refund_amount,
              pod_image, pod_signature, pod_received_by, pod_at
         case insured, insured_value, insurance_fee
@@ -286,6 +288,7 @@ struct CustomerOrder: Decodable, Identifiable {
         truck_lat = decodeFlexibleDouble(c, .truck_lat)
         truck_lng = decodeFlexibleDouble(c, .truck_lng)
         truck_gps_updated_at = try c.decodeIfPresent(String.self, forKey: .truck_gps_updated_at)
+        pickup_address = try? c.decodeIfPresent(String.self, forKey: .pickup_address)
         delivery_address = try c.decodeIfPresent(String.self, forKey: .delivery_address)
         receiver_name = try c.decodeIfPresent(String.self, forKey: .receiver_name)
         receiver_phone = try c.decodeIfPresent(String.self, forKey: .receiver_phone)
@@ -385,6 +388,7 @@ struct NewAddressRequest: Encodable {
 }
 
 struct DeliveryInfoRequest: Encodable {
+    let pickup_address: String
     let delivery_address: String
     let receiver_name: String
     let receiver_phone: String

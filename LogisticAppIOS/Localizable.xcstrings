@@ -406,6 +406,16 @@
     "💬 %@" : {
 
     },
+    "💰 Order total: $%@%@" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "💰 Order total: $%1$@%2$@"
+          }
+        }
+      }
+    },
     "💳 Invoices Pending Freight Settlement" : {
       "extractionState" : "manual",
       "localizations" : {
@@ -442,9 +452,6 @@
         }
       }
     },
-    "📍 %@" : {
-
-    },
     "📍 %@ | ⚠️ %@ | %@" : {
       "localizations" : {
         "en" : {
@@ -455,7 +462,16 @@
         }
       }
     },
+    "📍 Deliver to: %@" : {
+
+    },
+    "📍 GPS: %@" : {
+
+    },
     "📍 Storage Bin/Shelf Location: %@" : {
+
+    },
+    "📍 To: %@" : {
 
     },
     "📍 Updated: %@" : {
@@ -474,6 +490,9 @@
           }
         }
       }
+    },
+    "📝 Driver notes: %@" : {
+
     },
     "📥 Export CSV" : {
       "extractionState" : "manual",
@@ -507,6 +526,9 @@
         }
       }
     },
+    "📦 From: %@" : {
+
+    },
     "📦 Order: PKG-%lld | %@" : {
       "localizations" : {
         "en" : {
@@ -516,6 +538,9 @@
           }
         }
       }
+    },
+    "📦 Pickup: %@" : {
+
     },
     "📸 Proof of Delivery" : {
       "extractionState" : "manual",
@@ -600,6 +625,16 @@
     "🚛 Vehicle: %@" : {
 
     },
+    "🚛 Vehicle: %@%@" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "🚛 Vehicle: %1$@%2$@"
+          }
+        }
+      }
+    },
     "🛡️ Insure this shipment" : {
       "extractionState" : "manual",
       "localizations" : {
@@ -616,6 +651,16 @@
     },
     "🛣️ %@" : {
 
+    },
+    "🛣️ BOT fee: $%@ · ⛽ Fuel fee: $%@" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "🛣️ BOT fee: $%1$@ · ⛽ Fuel fee: $%2$@"
+          }
+        }
+      }
     },
     "🛣️ Route: %@" : {
 
@@ -1244,6 +1289,9 @@
         }
       }
     },
+    "Delivered at: %@" : {
+
+    },
     "Delivered: %@  ·  Cancelled: %@  ·  Returned: %@" : {
       "localizations" : {
         "en" : {
@@ -1261,6 +1309,17 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Địa chỉ giao hàng"
+          }
+        }
+      }
+    },
+    "Delivery Address (where we deliver)" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Địa chỉ giao hàng (nơi giao hàng đến)"
           }
         }
       }
@@ -1400,6 +1459,17 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Nhập địa chỉ giao hàng..."
+          }
+        }
+      }
+    },
+    "Enter pickup address..." : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Nhập địa chỉ lấy hàng..."
           }
         }
       }
@@ -1964,6 +2034,9 @@
         }
       }
     },
+    "No photo or signature was recorded for this delivery." : {
+
+    },
     "No report has been submitted by Docs yet." : {
 
     },
@@ -2068,6 +2141,9 @@
 
     },
     "Open / print" : {
+
+    },
+    "Open in Maps" : {
 
     },
     "Open your Banking app to scan and pay quickly" : {
@@ -2287,6 +2363,17 @@
     "Period" : {
 
     },
+    "Pickup Address (where we collect the goods)" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Địa chỉ lấy hàng (nơi chúng tôi đến lấy hàng)"
+          }
+        }
+      }
+    },
     "Pickup note (e.g. call before arriving)" : {
       "extractionState" : "manual",
       "localizations" : {
@@ -2316,6 +2403,17 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Vui lòng nhập giá trị khai báo của hàng, hoặc tắt tùy chọn bảo hiểm."
+          }
+        }
+      }
+    },
+    "Please enter the pickup address!" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Vui lòng nhập địa chỉ lấy hàng!"
           }
         }
       }
@@ -3020,6 +3118,9 @@
           }
         }
       }
+    },
+    "Unable to load the delivery photo." : {
+
     },
     "User Management" : {
 

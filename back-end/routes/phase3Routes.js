@@ -585,7 +585,7 @@ router.get('/tms/driver-trips/:plate', async (req, res) => {
                     COALESCE(delivery_route,'') AS delivery_route, COALESCE(assigned_truck,'') AS assigned_truck,
                     COALESCE(bot_fee,0) AS bot_fee, COALESCE(fuel_fee,0) AS fuel_fee,
                     COALESCE(driver_notes,'') AS driver_notes, COALESCE(gps_coordinates,'') AS gps_coordinates,
-                    COALESCE(delivery_address,'') AS delivery_address, receiver_name, receiver_phone, stop_sequence
+                    COALESCE(pickup_address,'') AS pickup_address, COALESCE(delivery_address,'') AS delivery_address, receiver_name, receiver_phone, stop_sequence
              FROM orders
              WHERE assigned_truck = $1 AND UPPER(status) = 'SHIPPING'
              ORDER BY stop_sequence ASC NULLS LAST, id ASC`, [req.params.plate]);

@@ -16,6 +16,7 @@ struct CustomerCreateOrderView: View {
 
     // ĐỢT 1: địa chỉ giao hàng + lịch lấy hàng
     @State private var savedAddresses: [CustomerAddress] = []
+    @State private var pickupAddress = ""
     @State private var deliveryAddress = ""
     @State private var receiverName = ""
     @State private var receiverPhone = ""
@@ -105,7 +106,12 @@ struct CustomerCreateOrderView: View {
 
                     // ====== ĐỊA CHỈ GIAO HÀNG + LỊCH LẤY HÀNG ======
                     VStack(alignment: .leading, spacing: 6) {
-                        Text("Delivery Address").font(.caption).foregroundStyle(.secondary)
+                        Text("Pickup Address (where we collect the goods)").font(.caption).foregroundStyle(.secondary)
+                        TextField("Enter pickup address...", text: $pickupAddress)
+                            .textFieldStyle(.roundedBorder)
+                    }
+                    VStack(alignment: .leading, spacing: 6) {
+                        Text("Delivery Address (where we deliver)").font(.caption).foregroundStyle(.secondary)
                         if !savedAddresses.isEmpty {
                             Menu {
                                 ForEach(savedAddresses) { a in
@@ -267,6 +273,10 @@ struct CustomerCreateOrderView: View {
             alertMessage = "Please fill in all the information!"
             return
         }
+        guard !pickupAddress.trimmingCharacters(in: .whitespaces).isEmpty else {
+            alertMessage = "Please enter the pickup address!"
+            return
+        }
         guard !deliveryAddress.trimmingCharacters(in: .whitespaces).isEmpty else {
             alertMessage = "Please enter the delivery address!"
             return
@@ -300,6 +310,7 @@ struct CustomerCreateOrderView: View {
                     try? await ApiService.shared.setDeliveryInfo(
                         orderId: newId,
                         body: DeliveryInfoRequest(
+                            pickup_address: pickupAddress,
                             delivery_address: deliveryAddress,
                             receiver_name: receiverName,
                             receiver_phone: receiverPhone,
@@ -319,6 +330,7 @@ struct CustomerCreateOrderView: View {
                 }
                 insureOn = false
                 insuredValueText = ""
+                pickupAddress = ""
                 deliveryAddress = ""
                 receiverName = ""
                 receiverPhone = ""

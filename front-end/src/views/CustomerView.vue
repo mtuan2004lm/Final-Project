@@ -130,7 +130,12 @@
               </div>
 
               <div class="form-group full-width">
-                <label>Delivery Address:</label>
+                <label>Pickup Address (where we collect the goods):</label>
+                <input type="text" v-model="newOrder.pickup_address" required placeholder="Enter pickup address..." />
+              </div>
+
+              <div class="form-group full-width">
+                <label>Delivery Address (where we deliver):</label>
                 <select v-model="selectedAddressId" @change="applySavedAddress" v-if="addresses.length">
                   <option :value="null">-- Select a saved address --</option>
                   <option v-for="a in addresses" :key="a.id" :value="a.id">{{ a.label }} - {{ a.address }}</option>
@@ -231,7 +236,8 @@
                   <button @click="openDocument('waybill', order.id)" class="btn-qr-view" style="margin-top:4px; background:#8e44ad;">📄 Waybill</button>
                 </td>
                 <td style="font-size: 12px;">
-                  <div v-if="order.delivery_address">📍 {{ order.delivery_address }}</div>
+                  <div v-if="order.pickup_address">📦 From: {{ order.pickup_address }}</div>
+                  <div v-if="order.delivery_address">📍 To: {{ order.delivery_address }}</div>
                   <div v-if="order.receiver_name">👤 {{ order.receiver_name }} {{ order.receiver_phone }}</div>
                   <div v-if="order.pickup_date">🕒 Pickup: {{ formatDateTime(order.pickup_date) }}</div>
                   <span v-if="!order.delivery_address && !order.pickup_date" style="color:#95a5a6;">-</span>
@@ -874,6 +880,7 @@ const emptyOrder = () => ({
   product_name: '',
   cargo_type: 'Hàng hóa thông thường',
   quantity: 1,
+  pickup_address: '',
   delivery_address: '',
   receiver_name: '',
   receiver_phone: '',
@@ -1073,6 +1080,7 @@ const createOrder = async () => {
     if (createdId) {
       try {
         await axios.put(`${API_EXT}/orders/${createdId}/delivery-info`, {
+          pickup_address: newOrder.value.pickup_address,
           delivery_address: newOrder.value.delivery_address,
           receiver_name: newOrder.value.receiver_name,
           receiver_phone: newOrder.value.receiver_phone,

@@ -35,7 +35,7 @@ exports.getCustomerOrders = async (req, res) => {
                    COALESCE(o.delivery_route, '') as delivery_route,
                    o.rating,
                    o.feedback,
-                   o.delivery_address, o.receiver_name, o.receiver_phone, o.pickup_date, o.pickup_note,
+                   o.pickup_address, o.delivery_address, o.receiver_name, o.receiver_phone, o.pickup_date, o.pickup_note,
                    o.cancel_reason, COALESCE(o.return_status, 'NONE') as return_status, o.return_reason,
                    o.return_reject_note, COALESCE(o.refund_status, 'NONE') as refund_status,
                    COALESCE(o.refund_amount, 0) as refund_amount,

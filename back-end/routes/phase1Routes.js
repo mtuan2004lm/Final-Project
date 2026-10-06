@@ -57,17 +57,17 @@ router.delete('/addresses/:id', async (req, res) => {
 
 // Gắn địa chỉ giao + lịch lấy hàng vào đơn (gọi ngay sau khi tạo đơn)
 router.put('/orders/:id/delivery-info', async (req, res) => {
-    const { delivery_address, receiver_name, receiver_phone, pickup_date, pickup_note } = req.body;
+    const { delivery_address, receiver_name, receiver_phone, pickup_date, pickup_note, pickup_address } = req.body;
     try {
         const r = await pool.query(
             `UPDATE orders SET delivery_address=$1, receiver_name=$2, receiver_phone=$3,
-                    pickup_date=$4, pickup_note=$5 WHERE id=$6 RETURNING *`,
+                    pickup_date=$4, pickup_note=$5, pickup_address=$7 WHERE id=$6 RETURNING *`,
             [delivery_address || null, receiver_name || null, receiver_phone || null,
-             pickup_date || null, pickup_note || null, req.params.id]
+             pickup_date || null, pickup_note || null, req.params.id, pickup_address || null]
         );
         if (!r.rows.length) return res.status(404).json({ error: 'Order not found' });
         await log(req.params.id, r.rows[0].status, r.rows[0].status,
-            `Delivery info updated. Address: ${delivery_address || '-'}. Pickup: ${pickup_date || 'not scheduled'}`);
+            `Delivery info updated. Pickup from: ${pickup_address || '-'}. Deliver to: ${delivery_address || '-'}. Pickup: ${pickup_date || 'not scheduled'}`);
         res.json({ message: 'Saved', order: r.rows[0] });
     } catch (e) { res.status(500).json({ error: e.message }); }
 });

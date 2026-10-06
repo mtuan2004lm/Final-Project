@@ -111,8 +111,11 @@ private struct CustomerOrderCard: View {
             }
 
             // ====== ĐỢT 1: địa chỉ giao, lịch lấy hàng, hủy đơn ======
+            if let pick = order.pickup_address, !pick.isEmpty {
+                Text("📦 From: \(pick)").font(.caption)
+            }
             if let addr = order.delivery_address, !addr.isEmpty {
-                Text("📍 \(addr)").font(.caption)
+                Text("📍 To: \(addr)").font(.caption)
             }
             if let name = order.receiver_name, !name.isEmpty {
                 Text("👤 \(name) \(order.receiver_phone ?? "")").font(.caption2).foregroundStyle(.secondary)

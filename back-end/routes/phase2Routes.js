@@ -223,7 +223,7 @@ router.get('/documents/waybill/:id', async (req, res) => {
             <div class="doc-title">WAYBILL<br><span class="code">${code}</span></div>
           </div>
           <div class="grid">
-            <div class="box"><h4>Sender / Customer</h4><b>${esc(o.customer_name)}</b><br>Account: ${esc(o.username || '-')}<br>Created: ${dt(o.created_at)}</div>
+            <div class="box"><h4>Sender / Customer</h4><b>${esc(o.customer_name)}</b><br>Account: ${esc(o.username || '-')}<br>Pickup address: ${esc(o.pickup_address || '-')}<br>Created: ${dt(o.created_at)}</div>
             <div class="box"><h4>Receiver</h4><b>${esc(o.receiver_name || '-')}</b><br>Phone: ${esc(o.receiver_phone || '-')}<br>Address: ${esc(o.delivery_address || '-')}</div>
           </div>
           <table>
